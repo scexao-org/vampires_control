@@ -18,11 +18,13 @@ with open("README.md", "r") as fh:
 # set up conf files
 os.makedirs("/etc/vampires-control", exist_ok=True)
 if not os.path.exists("/etc/vampires-control/conf_vampires_beamsplitter.txt"):
-    os.link("conf/conf_vampires_beamsplitter.txt", "/etc/vampires-control/conf_vampires_beamsplitter.txt")
+    shutil.copyfile("conf/conf_vampires_beamsplitter.txt", "/etc/vampires-control/conf_vampires_beamsplitter.txt")
 if not os.path.exists("/etc/vampires-control/conf_vampires_diffwheel.txt"):
-    os.link("conf/conf_vampires_diffwheel.txt", "/etc/vampires-control/conf_vampires_diffwheel.txt")
+    shutil.copyfile("conf/conf_vampires_diffwheel.txt", "/etc/vampires-control/conf_vampires_diffwheel.txt")
 if not os.path.exists("/etc/vampires-control/vampires_state.json"):
-    os.link("conf/default_vampires_state.json", "/etc/vampires-control/vampires_state.json")
+    shutil.copyfile("conf/default_vampires_state.json", "/etc/vampires-control/vampires_state.json")
+if not os.path.exists("/etc/vampires-control/device_addresses.json"):
+    shutil.copyfile("conf/device_addresses.json", "/etc/vampires-control/device_addresses.json")
 
 setup(
     long_description=readme,
@@ -41,9 +43,9 @@ setup(
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     package_data={},
     scripts=[
-        "scripts/vampires_beamsplitter",
-        "scripts/vampires_diffwheel",
-        "scripts/conex"
+        # "scripts/vampires_beamsplitter",
+        # "scripts/vampires_diffwheel",
+        # "scripts/conex"
     ],
     install_requires=[
         "tqdm==4.*",

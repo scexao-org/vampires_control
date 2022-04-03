@@ -1,14 +1,11 @@
+import json
 import serial
 
+with open("/etc/vampires-control/device_addresses.json") as fh:
+    DEVICE_MAP = json.load(fh)
 
-DEVICE_MAP = {
-    "beamsplitter_wheel": "",
-    "differential_filter_wheel": "",
-    "absolute_focus_stage": "",
-}
 
 class VAMPIRESDevice:
-
     def __init__(self, name, address=None, unit=""):
         self.name = name
         if address is None:
