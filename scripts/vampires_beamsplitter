@@ -7,7 +7,7 @@ import logging
 import time
 from logging.handlers import SysLogHandler
 
-from vampires_control.devices import ConexDevice
+from vampires_control.devices import beamsplitter 
 from vampires_control.state import VAMPIRES
 
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
@@ -33,8 +33,6 @@ epilog = "positions:\n"
 epilog += "\n".join([f"  {i} {d}" for i, d in zip(positions, descriptions)])
 
 # step 2. define functions for argparse
-
-beamsplitter = ConexDevice("beamsplitter_wheel", unit="deg", keyword="beamsplitter_wheel_angle")
 
 def move(args):
     idx = int(args.position) - 1

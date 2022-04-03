@@ -7,7 +7,7 @@ import logging
 import time
 from logging.handlers import SysLogHandler
 
-from vampires_control.devices import ConexDevice
+from vampires_control.devices import differential_filter 
 from vampires_control.state import VAMPIRES
 
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
@@ -38,12 +38,11 @@ epilog += "\n".join([f"  {i} {d}" for i, d in zip(positions, descriptions)])
 
 
 
-diffwheel = ConexDevice("differential_filter_wheel", unit="deg", keyword="differential_filter_wheel_angle")
 
 def move(args):
     idx = int(args.position) - 1
     angle = angles[idx]
-    diffwheel.move_absolute(angle, wait=args.wait)
+    differential_filter.move_absolute(angle, wait=args.wait)
     VAMPIRES["differential_filter_wheel"] = args.position
 
 

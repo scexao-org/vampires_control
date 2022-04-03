@@ -7,6 +7,8 @@ from time import sleep
 
 from .state import VAMPIRES
 
+__all__ = ["focus", "differential_filter", "qwp_1", "qwp_2", "focus"]
+
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
 logging.basicConfig(
     level=logging.DEBUG, format=formatter, handlers=[logging.StreamHandler()]
@@ -116,3 +118,14 @@ class ConexDevice:
             serial.write(cmd)
         # call true position to update status
         self.true_position()
+
+
+beamsplitter = ConexDevice(
+    "beamsplitter_wheel", keyword="beamsplitter_wheel_angle", unit="deg"
+)
+differential_filter = ConexDevice(
+    "differential_filter_wheel", keyword="differential_filter_wheel_angle", unit="deg"
+)
+qwp_1 = ConexDevice("qwp_1", keyword="qwp_1_angle", unit="deg")
+qwp_2 = ConexDevice("qwp_2", keyword="qwp_2_angle", unit="deg")
+focus = ConexDevice("focus_stage", keyword="focus_stage", unit="deg")
