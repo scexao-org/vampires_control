@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from pathlib import Path
+from subprocess import run
+import sys
+import logging
+import time
+from logging.handlers import SysLogHandler
+
+log_format = "%(asctime)s | %(levelname)s:%(name)s - %(message)s"
+logging.basicConfig(
+    level=logging.INFO, format=log_format, handlers=[SysLogHandler(address="/dev/log")]
+)
+# logging.basicConfig(level=logging.DEBUG, format=log_format, handlers=[logging.StreamHandler()])
+logger = logging.getLogger("vampires_beamsplitter")
+
+# step 1. parse the input file
+CONF_FILE = Path.home() / "code/script/conf/conf_vampires_beamsplitter.txt"
+logger.debug(f"using configuration file '{CONF_FILE}'")
+
+with open(CONF_FILE) as fh:
+    lines = fh.readlines()
+
+logger.debug(f"read {len(lines)} lines")
+
+positions = [l.split(";")[0] for l in lines]
+descriptions = [l.split(";")[1].strip() for l in lines]
+angles = [l.split(";")[2].strip() for l in lines]
+
+epilog = "positions:\n"
+epilog += "\n".join([f"  {i} {d}" for i, d in zip(positions, descriptions)])
+
+# step 2. define functions for argparse
+
+
+def move(args):
+    idx = int(args.position) - 1
+    angle = angles[idx]
+    cmd = f"conex 8 PA {angle}"
+    logger.info(f"command: {cmd}")
+    run(cmd.split())
+
+    cmd = f"scxkw-setter set U_BMSPLT {descriptions[idx]}"
+    logger.info(f"command: {cmd}")
+
+
+# def wheel(args):
+#     if args.command == "status":
+#         cmd = f"conex 8 TP"
+#         print("DEBUG: command sent: ", cmd)
+#     elif args.command == "home":
+#         cmd = f"conex 8 OR"
+#         print("DEBUG: command sent: ", cmd)
+#     elif args.command == "goto":
+#         angle = args.args[0]
+#         cmd = f"conex 8 PA {args.angle}"
+#         print("DEBUG: command sent: ", cmd)
+
+# step 3. create argument parser
+parser = ArgumentParser(
+    description="Switch the VAMPIRES beamsplitter optics",
+    epilog=epilog,
+    formatter_class=RawDescriptionHelpFormatter,
+)
+parser.add_argument(
+    "position", choices=positions, nargs="?", help="move to the position"
+)
+parser.set_defaults(func=move)
+
+# subparsers = parser.add_subparsers(title="wheel commands")
+
+# wheel_parser = subparsers.add_parser("wheel")
+# wheel_parser.add_argument("command", choices=["status", "home", "goto"])
+# wheel_parser.add_argument("args", nargs="*")
+
+
+# setp 4. action
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        parser.print_help()
+    else:
+        args = parser.parse_args()
+        args.func(args)

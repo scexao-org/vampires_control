@@ -33,7 +33,7 @@ setup(
     scripts=[
         "scripts/vampires_beamsplitter",
         "scripts/vampires_diffwheel",
-        "scripts/vampires_focus"
+        "scripts/conex"
     ],
     install_requires=[
         "tqdm==4.*",
