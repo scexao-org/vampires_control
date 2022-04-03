@@ -17,14 +17,10 @@ with open("README.md", "r") as fh:
 
 # set up conf files
 os.makedirs("/etc/vampires-control", exist_ok=True)
-if not os.path.exists("/etc/vampires-control/conf_vampires_beamsplitter.txt"):
-    shutil.copyfile("conf/conf_vampires_beamsplitter.txt", "/etc/vampires-control/conf_vampires_beamsplitter.txt")
-if not os.path.exists("/etc/vampires-control/conf_vampires_diffwheel.txt"):
-    shutil.copyfile("conf/conf_vampires_diffwheel.txt", "/etc/vampires-control/conf_vampires_diffwheel.txt")
-if not os.path.exists("/etc/vampires-control/vampires_state.json"):
-    shutil.copyfile("conf/default_vampires_state.json", "/etc/vampires-control/vampires_state.json")
-if not os.path.exists("/etc/vampires-control/device_addresses.json"):
-    shutil.copyfile("conf/device_addresses.json", "/etc/vampires-control/device_addresses.json")
+for conf_file in os.listdir("conf"):
+    etc_path = f"/etc/vampires-control/{conf_file}"
+    if not os.path.exists(etc_path):
+        shutil.copyfile(conf_file, etc_path)
 
 setup(
     long_description=readme,
