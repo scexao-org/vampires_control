@@ -30,3 +30,9 @@ class VAMPIRESDevice:
 
     def move_relative(self, value):
         pass
+
+    def target_position(self, value):
+        pass
+
+    def true_position(self, value):
+        pass
