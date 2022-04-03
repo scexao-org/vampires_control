@@ -1,5 +1,7 @@
 {
+    "beamsplitter_wheel": 2,
     "beamsplitter_wheel_angle": 45,
     "differential_filter_wheel" : 45,
+    "differential_filter_wheel_angle" : 45,
     "absolute_focus_stage": 16
 }
