@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 import os
 import re
+import shutil
 
 version = ""
 
@@ -13,6 +14,15 @@ with open(os.path.join("vampires_control", "__init__.py"), "r") as fh:
 
 with open("README.md", "r") as fh:
     readme = fh.read()
+
+# set up conf files
+os.makedirs("/etc/vampires-control", exist_ok=True)
+if not os.path.exists("/etc/vampires-control/conf_vampires_beamsplitter.txt"):
+    os.link("conf/conf_vampires_beamsplitter.txt", "/etc/vampires-control/conf_vampires_beamsplitter.txt")
+if not os.path.exists("/etc/vampires-control/conf_vampires_diffwheel.txt"):
+    os.link("conf/conf_vampires_diffwheel.txt", "/etc/vampires-control/conf_vampires_diffwheel.txt")
+if not os.path.exists("/etc/vampires-control/vampires_state.json"):
+    os.link("conf/default_vampires_state.json", "/etc/vampires-control/vampires_state.json")
 
 setup(
     long_description=readme,

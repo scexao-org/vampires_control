@@ -1,0 +1,8 @@
+1;Open        ;Defocus lens;0
+2;Open        ;Open        ;45
+3;775-25      ;675-25      ;90
+4;Continuum   ;H-alpha     ;135
+5;Defocus lens;Open        ;180
+6;Open        ;Open        ;225
+7;675-25      ;775-25      ;270
+8;H-alpha     ;Continuum   ;315
