@@ -27,7 +27,7 @@ logger.debug(f"read {len(lines)} lines")
 
 positions = [l.split(";")[0] for l in lines]
 descriptions = [l.split(";")[1].strip() for l in lines]
-angles = [l.split(";")[2].strip() for l in lines]
+angles = [float(l.split(";")[2].strip()) for l in lines]
 
 epilog = "positions:\n"
 epilog += "\n".join([f"  {i} {d}" for i, d in zip(positions, descriptions)])

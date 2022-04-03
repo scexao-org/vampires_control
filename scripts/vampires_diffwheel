@@ -29,7 +29,7 @@ positions = [l.split(";")[0] for l in lines]
 cam1 = [l.split(";")[1].strip() for l in lines]
 cam2 = [l.split(";")[2].strip() for l in lines]
 descriptions = [f"{d1} / {d2}" for d1, d2 in zip(cam1, cam2)]
-angles = [l.split(";")[3].strip() for l in lines]
+angles = [float(l.split(";")[3].strip()) for l in lines]
 
 epilog = "positions (cam1 / cam2):\n"
 epilog += "\n".join([f"  {i} {d}" for i, d in zip(positions, descriptions)])
