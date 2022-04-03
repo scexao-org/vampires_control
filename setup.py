@@ -44,6 +44,8 @@ setup(
         # "scripts/conex"
     ],
     install_requires=[
+        "numpy==1.*",
+        "pyserial==3.*",
         "tqdm==4.*",
     ],
 )

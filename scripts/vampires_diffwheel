@@ -7,15 +7,17 @@ import logging
 import time
 from logging.handlers import SysLogHandler
 
-log_format = "%(asctime)s | %(levelname)s:%(name)s - %(message)s"
+from vampires_control.devices import ConexDevice
+from vampires_control.state import VAMPIRES
+
+formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
 logging.basicConfig(
-    level=logging.INFO, format=log_format, handlers=[SysLogHandler(address="/dev/log")]
+    level=logging.DEBUG, format=formatter, handlers=[logging.StreamHandler()]
 )
-# logging.basicConfig(level=logging.DEBUG, format=log_format, handlers=[logging.StreamHandler()])
 logger = logging.getLogger("vampires_diffwheel")
 
 # step 1. parse the input file
-CONF_FILE = Path.home() / "code/script/conf/conf_vampires_diffwheel.txt"
+CONF_FILE = "/etc/vampires-control/conf_vampires_diffwheel.txt"
 logger.debug(f"using configuration file '{CONF_FILE}'")
 
 with open(CONF_FILE) as fh:
@@ -35,15 +37,14 @@ epilog += "\n".join([f"  {i} {d}" for i, d in zip(positions, descriptions)])
 # step 2. define functions for argparse
 
 
+
+diffwheel = ConexDevice("differential_filter_wheel", unit="deg", keyword="differential_filter_wheel_angle")
+
 def move(args):
     idx = int(args.position) - 1
     angle = angles[idx]
-    cmd = f"conex 9 PA {angle}"
-    logger.info(f"command: {cmd}")
-    run(cmd.split())
-
-    cmd = f"scxkw-setter set U_DIFWHL {descriptions[idx]}"
-    logger.info(f"command: {cmd}")
+    diffwheel.move_absolute(angle, wait=args.wait)
+    VAMPIRES["differential_filter_wheel"] = args.position
 
 
 # def wheel(args):
@@ -66,6 +67,9 @@ parser = ArgumentParser(
 )
 parser.add_argument(
     "position", choices=positions, nargs="?", help="move to the position"
+)
+parser.add_argument(
+    "-w", "--wait", action="store_true", help="block until movement is finished, if applicable"
 )
 parser.set_defaults(func=move)
 

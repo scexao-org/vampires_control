@@ -32,7 +32,7 @@ class ConexDevice:
             "port": f"/dev/serial/by-id/{self.address}",
             "baudrate": 921600,
             "timeout": 0.5,
-            **serial_kwargs
+            **serial_kwargs,
         }
         self.logger = logging.getLogger(self.name)
 
