@@ -46,6 +46,7 @@ setup(
     install_requires=[
         "numpy==1.*",
         "pyserial==3.*",
+        "scxkw==0.1",
         "tqdm==4.*",
     ],
 )
