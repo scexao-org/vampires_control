@@ -7,7 +7,7 @@ import logging
 import time
 from logging.handlers import SysLogHandler
 
-from vampires_control.devices import beamsplitter 
+from vampires_control.devices.devices import beamsplitter 
 from vampires_control.state import VAMPIRES
 
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
@@ -16,29 +16,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger("vampires_beamsplitter")
 
-# step 1. parse the input file
-CONF_FILE = "/etc/vampires-control/conf_vampires_beamsplitter.txt"
-logger.debug(f"using configuration file '{CONF_FILE}'")
-
-with open(CONF_FILE) as fh:
-    lines = fh.readlines()
-
-logger.debug(f"read {len(lines)} lines")
-
-positions = [l.split(";")[0] for l in lines]
-descriptions = [l.split(";")[1].strip() for l in lines]
-angles = [float(l.split(";")[2].strip()) for l in lines]
+numbers = [pos["number"] for pos in beamsplitter.positions]
+descriptions = [pos["name"] for pos in beamsplitter.positions]
 
 epilog = "positions:\n"
-epilog += "\n".join([f"  {i} {d}" for i, d in zip(positions, descriptions)])
+epilog += "\n".join([f"  {i} {d}" for i, d in zip(numbers, descriptions)])
 
 # step 2. define functions for argparse
 
 def move(args):
-    idx = int(args.position) - 1
-    angle = angles[idx]
-    beamsplitter.move_absolute(angle, wait=args.wait)
-    VAMPIRES["beamsplitter_wheel"] = args.position
+    beamsplitter.move_position(int(args.position), wait=args.wait)
 
 # def wheel(args):
 #     if args.command == "status":
@@ -59,7 +46,7 @@ parser = ArgumentParser(
     formatter_class=RawDescriptionHelpFormatter,
 )
 parser.add_argument(
-    "position", choices=positions, nargs="?", help="move to the position"
+    "position", choices=numbers, nargs="?", help="move to the position"
 )
 parser.add_argument(
     "-w", "--wait", action="store_true", help="block until movement is finished, if applicable"
