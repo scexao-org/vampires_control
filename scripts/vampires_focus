@@ -16,7 +16,7 @@ logger = logging.getLogger("vampires_focus")
 
 __doc__ = f"""
 Usage:
-    vampires_focus (status|home|goto|nudge|stop|reset) [<position>] [-h | --help] [-w | --wait]
+    vampires_focus (status|target|home|goto|nudge|stop|reset) [<position>] [-h | --help] [-w | --wait]
 
 Options:
     -h --help   Show this screen
@@ -24,6 +24,7 @@ Options:
 
 Stage commands:
     status          Returns the current position of the focus stage, in {focus.unit}
+    target          Returns the target position of the focus stage, in {focus.unit}
     home            Homes the focus stage
     goto  <pos>     Move the focus stage to the given position, in {focus.unit}
     nudge <pos>     Move the focus stage relatively by the given distance, in {focus.unit}
@@ -38,6 +39,8 @@ if __name__ == "__main__":
         print(args)
     elif args["status"]:
         print(focus.true_position())
+    elif args["target"]:
+        print(focus.target_position())
     elif args["home"]:
         focus.home(wait=args["--wait"])
     elif args["goto"]:

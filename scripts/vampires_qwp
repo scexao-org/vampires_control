@@ -16,7 +16,7 @@ logger = logging.getLogger("vampires_qwp")
 
 __doc__ = f"""
 Usage:
-    vampires_qwp (1|2) (status|home|goto|nudge|stop|reset) [<angle>] [-h | --help] [-w | --wait]
+    vampires_qwp (1|2) (status|target|home|goto|nudge|stop|reset) [<angle>] [-h | --help] [-w | --wait]
 
 Options:
     -h --help   Show this screen
@@ -24,6 +24,7 @@ Options:
 
 Rotator commands:
     status          Returns the current angle of the selected QWP rotator, in {qwp_1.unit}
+    target          Returns the target angle of the selected QWP rotator, in {qwp_1.unit}
     home            Homes the selected QWP rotator
     goto  <angle>   Rotate the selected QWP to the given angle, in {qwp_1.unit}
     nudge <angle>   Rotate the selected QWP relatively by the given angle, in {qwp_1.unit}
@@ -40,6 +41,8 @@ if __name__ == "__main__":
     qwp = qwp_1 if args["1"] else qwp_2
     if args["status"]:
         print(qwp.true_position())
+    elif args["target"]:
+        print(qwp.target_position())
     elif args["home"]:
         qwp.home(wait=args["--wait"])
     elif args["goto"]:

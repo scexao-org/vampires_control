@@ -113,55 +113,67 @@ else:
     newcmd = COMMAND_MAP[conexNumber]
     origcmd = " ".join(argv[1:])
     print(f"{pycolor.fail}DEPRECATION WARNING{pycolor.endc}")
-    print("Please use the new `vampires_control` scripts")
-    print(f"Instead of\n\n\tconex {origcmd}\n")
+    print(f"Please use the new {pycolor.okblue}vampires_control{pycolor.endc} scripts")
+    print(f"Instead of\n\n\t{pycolor.okgreen}conex {origcmd}{pycolor.endc}\n")
     if conexCommand == "OR":
         try:
             conexArgument = argv[3].lower()
             if conexArgument == "-w":
-                print(f"use\n\n\t{newcmd} home -w\n")
+                print(f"use\n\n\t{pycolor.okgreen}{newcmd} home -w{pycolor.endc}\n")
                 device.home(wait=True)
             else:
-                print(f"use\n\n\t{newcmd} home\n")
+                print(f"use\n\n\t{pycolor.okgreen}{newcmd} home{pycolor.endc}\n")
                 device.home()
         except:
-            print(f"use\n\n\t{newcmd} home\n")
+            print(f"use\n\n\t{pycolor.okgreen}{newcmd} home{pycolor.endc}\n")
             device.home()
     elif conexCommand == "RS":
-        print(f"use\n\n\t{newcmd} reset\n")
+        print(f"use\n\n\t{pycolor.okgreen}{newcmd} reset{pycolor.endc}\n")
         device.reset()
     elif conexCommand == "TH":
-        print(f"there is no equivalent command, use {devicename}.target_position()")
+        print(f"use\n\n\t{pycolor.okgreen}{newcmd} target{pycolor.endc}\n")
         print(device.target_position())
     elif conexCommand == "TP":
-        print(f"use\n\n\t{newcmd} status\n")
+        print(f"use\n\n\t{pycolor.okgreen}{newcmd} status{pycolor.endc}\n")
         print(device.true_position())
     elif conexCommand == "ST":
-        print(f"use\n\n\t{newcmd} stop\n")
+        print(f"use\n\n\t{pycolor.okgreen}{newcmd} stop{pycolor.endc}\n")
         device.stop()
     elif conexCommand == "PA":
         conexArgument = float(argv[3])
         try:
             conexArgument2 = argv[4].lower()
             if conexArgument2 == "-w":
-                print(f"use\n\n\t{newcmd} goto {conexArgument} -w\n")
+                print(
+                    f"use\n\n\t{pycolor.okgreen}{newcmd} goto {conexArgument} -w{pycolor.endc}\n"
+                )
                 device.move_absolute(conexArgument, wait=True)
             else:
-                print(f"use\n\n\t{newcmd} goto {conexArgument}\n")
+                print(
+                    f"use\n\n\t{pycolor.okgreen}{newcmd} goto {conexArgument}{pycolor.endc}\n"
+                )
                 device.move_absolute(conexArgument)
         except:
-            print(f"use\n\n\t{newcmd} goto {conexArgument}\n")
+            print(
+                f"use\n\n\t{pycolor.okgreen}{newcmd} goto {conexArgument}{pycolor.endc}\n"
+            )
             device.move_absolute(conexArgument)
     elif conexCommand == "PR":
         conexArgument = float(argv[3])
         try:
             conexArgument2 = argv[4].lower()
             if conexArgument2 == "-w":
-                print(f"use\n\n\t{newcmd} nudge {conexArgument} -w\n")
+                print(
+                    f"use\n\n\t{pycolor.okgreen}{newcmd} nudge {conexArgument} -w{pycolor.endc}\n"
+                )
                 device.move_relative(conexArgument, wait=True)
             else:
-                print(f"use\n\n\t{newcmd} nudge {conexArgument}\n")
+                print(
+                    f"use\n\n\t{pycolor.okgreen}{newcmd} nudge {conexArgument}{pycolor.endc}\n"
+                )
                 device.move_relative(conexArgument)
         except:
-            print(f"use\n\n\t{newcmd} nudge {conexArgument}\n")
+            print(
+                f"use\n\n\t{pycolor.okgreen}{newcmd} nudge {conexArgument}{pycolor.endc}\n"
+            )
             device.move_relative(conexArgument)

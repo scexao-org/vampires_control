@@ -25,7 +25,7 @@ positions = "\n".join(f"  {i} {d}" for i, d in zip(numbers, descriptions))
 __doc__ = f"""
 Usage:
     vampires_diffwheel <position> [-h | --help] [-w | --wait] 
-    vampires_diffwheel wheel (status|home|goto|nudge|stop|reset) [<angle>] [-h | --help] [-w | --wait]
+    vampires_diffwheel wheel (status|target|home|goto|nudge|stop|reset) [<angle>] [-h | --help] [-w | --wait]
 
 Options:
     -h --help   Show this screen
@@ -36,6 +36,7 @@ Positions (cam1 / cam2):
 
 Wheel commands:
     status          Returns the current position of the differential filter wheel, in {differential_filter.diffwheel.unit}
+    target          Returns the target position of the differential filter wheel, in {differential_filter.diffwheel.unit}
     home            Homes the differential filter wheel
     goto  <angle>   Move the differential filter wheel to the given angle, in {differential_filter.diffwheel.unit}
     nudge <angle>   Move the differential filter wheel relatively by the given angle, in {differential_filter.diffwheel.unit}
@@ -51,6 +52,8 @@ if __name__ == "__main__":
     elif args["wheel"]:
         if args["status"]:
             print(differential_filter.diffwheel.true_position())
+        elif args["target"]:
+            print(differential_filter.diffwheel.target_position())
         elif args["home"]:
             differential_filter.diffwheel.home(wait=args["--wait"])
         elif args["goto"]:
