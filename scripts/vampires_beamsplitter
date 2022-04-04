@@ -7,7 +7,6 @@ import time
 from logging.handlers import SysLogHandler
 
 from vampires_control.devices.devices import beamsplitter 
-from vampires_control.state import VAMPIRES
 
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
 logging.basicConfig(
@@ -50,13 +49,13 @@ if __name__ == "__main__":
         if args["status"]:
             print(beamsplitter.beamsplitter_wheel.true_position())
         elif args["home"]:
-            beamsplitter.beamsplitter_wheel.home()
+            beamsplitter.beamsplitter_wheel.home(wait=args["--wait"])
         elif args["goto"]:
             angle = float(args["<angle>"])
-            beamsplitter.beamsplitter_wheel.move_absolute(angle)
+            beamsplitter.beamsplitter_wheel.move_absolute(angle, wait=args["--wait"])
         elif args["nudge"]:
             rel_angle = float(args["<angle>"])
-            beamsplitter.beamsplitter_wheel.move_relative(rel_angle)
+            beamsplitter.beamsplitter_wheel.move_relative(rel_angle, wait=args["--wait"])
         elif args["stop"]:
             beamsplitter.beamsplitter_wheel.stop()
         else:

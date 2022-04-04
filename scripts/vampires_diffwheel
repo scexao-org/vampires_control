@@ -7,7 +7,6 @@ import time
 from logging.handlers import SysLogHandler
 
 from vampires_control.devices.devices import differential_filter 
-from vampires_control.state import VAMPIRES
 
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
 logging.basicConfig(
@@ -52,13 +51,13 @@ if __name__ == "__main__":
         if args["status"]:
             print(differential_filter.diffwheel.true_position())
         elif args["home"]:
-            differential_filter.diffwheel.home()
+            differential_filter.diffwheel.home(wait=args["--wait"])
         elif args["goto"]:
             angle = float(args["<angle>"])
-            differential_filter.diffwheel.move_absolute(angle)
+            differential_filter.diffwheel.move_absolute(angle, wait=args["--wait"])
         elif args["nudge"]:
             rel_angle = float(args["<angle>"])
-            differential_filter.diffwheel.move_relative(rel_angle)
+            differential_filter.diffwheel.move_relative(rel_angle, wait=args["--wait"])
         elif args["stop"]:
             differential_filter.diffwheel.stop()
         else:
