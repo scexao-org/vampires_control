@@ -5,12 +5,13 @@ import re
 from serial import Serial
 from time import sleep
 
-from .state import VAMPIRES
+from ..state import VAMPIRES
 
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
 logging.basicConfig(
     level=logging.DEBUG, format=formatter, handlers=[logging.StreamHandler()]
 )
+
 
 class ConexDevice:
     def __init__(self, name, address, keyword=None, unit="", **serial_kwargs):
@@ -109,4 +110,3 @@ class ConexDevice:
             serial.write(cmd)
         # call true position to update status
         self.true_position()
-

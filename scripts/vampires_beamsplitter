@@ -15,9 +15,8 @@ logging.basicConfig(
     level=logging.DEBUG, format=formatter, handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger("vampires_beamsplitter")
-
-numbers = [pos["number"] for pos in beamsplitter.positions]
-descriptions = [pos["name"] for pos in beamsplitter.positions]
+numbers = [pos["number"] for pos in beamsplitter.positions["positions"]]
+descriptions = [pos["name"] for pos in beamsplitter.positions["positions"]]
 
 epilog = "positions:\n"
 epilog += "\n".join([f"  {i} {d}" for i, d in zip(numbers, descriptions)])

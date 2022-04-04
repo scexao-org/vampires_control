@@ -17,9 +17,9 @@ logging.basicConfig(
 logger = logging.getLogger("vampires_diffwheel")
 
 
-numbers = [pos["number"] for pos in differential_filter.positions]
-cam1 = [pos["cam1"] for pos in differential_filter.positions]
-cam2 = [pos["cam2"] for pos in differential_filter.positions]
+numbers = [pos["number"] for pos in differential_filter.positions["positions"]]
+cam1 = [pos["cam1"] for pos in differential_filter.positions["positions"]]
+cam2 = [pos["cam2"] for pos in differential_filter.positions["positions"]]
 descriptions = [f"{d1} / {d2}" for d1, d2 in zip(cam1, cam2)]
 
 epilog = "positions (cam1 / cam2):\n"
