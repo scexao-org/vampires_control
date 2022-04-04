@@ -1,1 +1,19 @@
-{"beamsplitter": 2, "beamsplitter_angle": 45, "diffwheel": 2, "diffwheel_angle": 45, "focus_stage": 16, "pupil_wheel": 1, "pupil_wheel_angle": 0, "pupil_wheel_x": 188000, "pupil_wheel_y": 121000, "qwp_1": 197.0, "qwp_2": 250}
+{
+    "beamsplitter": "2",
+    "beamsplitter_state": "Polarizer",
+    "beamsplitter_angle": 45,
+    "diffwheel": "2",
+    "diffwheel_state": "Open / Open",
+    "diffwheel_cam1": "Open",
+    "diffwheel_cam2": "Open",
+    "diffwheel_angle": 45,
+    "focus_stage": 16,
+    "pupil_wheel": "1",
+    "pupil_wheel_state": "Open",
+    "pupil_wheel_angle": 0,
+    "pupil_wheel_x": 188000,
+    "pupil_wheel_y": 121000,
+    "qwp_1": 128,
+    "qwp_2": 168
+  }
+  
