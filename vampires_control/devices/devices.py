@@ -3,6 +3,7 @@ from serial import Serial
 
 from ..state import VAMPIRES
 from .conex import ConexDevice
+from .zaber import ZaberDevice
 
 __all__ = [
     "beamsplitter",
@@ -112,14 +113,14 @@ class VAMPIRESPupilWheel:
         self.pupil_stage_x = ZaberDevice(
             "pupil_stage_x",
             address=DEVICE_MAP["zaber_chain"]["address"],
-            index=DEVCE_MAP["zaber_chain"]["pupil_stage_x"],
+            index=DEVICE_MAP["zaber_chain"]["pupil_stage_x"],
             keyword="pupil_wheel_x",
             unit="step"
         )
         self.pupil_stage_y = ZaberDevice(
             "pupil_stage_y",
             address=DEVICE_MAP["zaber_chain"]["address"],
-            index=DEVCE_MAP["zaber_chain"]["pupil_stage_y"],
+            index=DEVICE_MAP["zaber_chain"]["pupil_stage_y"],
             keyword="pupil_wheel_y",
             unit="step"
         )
