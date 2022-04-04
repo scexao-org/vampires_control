@@ -42,6 +42,7 @@ class VAMPIRESBeamsplitter:
         values = self.positions["positions"][idx]
         self.beamsplitter_wheel.move_absolute(values["angle"], wait=wait)
         VAMPIRES["beamsplitter"] = values["number"]
+        VAMPIRES["beamsplitter_status"] = values["name"]
 
     def write(self, file=None):
         if file is None:
@@ -78,6 +79,9 @@ class VAMPIRESDifferentialFilter:
         values = self.positions["positions"][idx]
         self.diffwheel.move_absolute(values["angle"], wait=wait)
         VAMPIRES["diffwheel"] = values["number"]
+        VAMPIRES["diffwheel_cam1"] = values["cam1"]
+        VAMPIRES["diffwheel_cam2"] = values["cam2"]
+        VAMPIRES["diffwheel_status"] = f"{values['cam1']} / {values['cam2']}"
 
     def write(self, file=None):
         if file is None:
@@ -114,6 +118,7 @@ class VAMPIRESPupilWheel:
         values = self.positions["positions"][idx]
         self.pupil_wheel.move_absolute(values["angle"], wait=wait)
         VAMPIRES["pupil_wheel"] = values["number"]
+        VAMPIRES["pupil_wheel_status"] = values["name"]
 
     def write(self, file=None):
         if file is None:
@@ -150,6 +155,10 @@ class VAMPIRESQWP(ConexDevice):
         if self.keyword is not None:
             VAMPIRES[self.keyword] = value
         return value
+
+    def move_absolute(self, value: float, **kwargs):
+        real_value = value - self.offset
+        return super().move_absolute(real_value, **kwargs)
 
 
 beamsplitter = VAMPIRESBeamsplitter()

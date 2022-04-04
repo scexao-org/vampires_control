@@ -30,12 +30,6 @@ class ConexDevice:
         }
         self.logger = logging.getLogger(self.name)
 
-    def reset(self):
-        cmd = f"1RS\r\n".encode()
-        self.logger.debug(f"RESET command: {cmd}")
-        with Serial(**self.serial_config) as serial:
-            serial.write(cmd)
-
     def home(self, wait=False):
         cmd = f"1OR\r\n".encode()
         self.logger.debug(f"HOME command: {cmd}")
