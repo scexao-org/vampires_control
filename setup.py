@@ -16,11 +16,11 @@ with open("README.md", "r") as fh:
     readme = fh.read()
 
 # set up conf files
-os.makedirs("/etc/vampires-control", exist_ok=True)
-for conf_file in os.listdir("conf"):
-    etc_path = f"/etc/vampires-control/{conf_file}"
-    if not os.path.exists(etc_path):
-        shutil.copyfile(conf_file, etc_path)
+# os.makedirs("/etc/vampires-control", exist_ok=True)
+# for conf_file in os.listdir("conf"):
+#     etc_path = f"/etc/vampires-control/{conf_file}"
+#     if not os.path.exists(etc_path):
+#         shutil.copyfile(conf_file, etc_path)
 
 setup(
     long_description=readme,

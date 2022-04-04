@@ -10,6 +10,16 @@ This software relies on [scxkw](https://github.com/scexao-org/SCeXaoKeyWords), p
 
 ```
 $ git clone https://github.com/scexao-org/vampires-control
-$ pip install vampires-control
+$ pip install vampires-control [-e]
 ```
 
+then, copy the configuration files to the appropriate directory
+
+```
+$ mkdir /etc/vampires-control
+$ cp vampires-control/conf/* /etc/vampires-control/
+```
+
+## Configuration
+
+The configuration files are all stored in JSON format for crystal-clear hierarchical storage. I recommend using [jq](https://stedolan.github.io/jq/) for quick viewing and editing of the files when stored in `/etc/vampires-control`.
