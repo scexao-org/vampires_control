@@ -44,10 +44,10 @@ if __name__ == "__main__":
     elif args["home"]:
         focus.home(wait=args["--wait"])
     elif args["goto"]:
-        pos = float(args["<pos>"])
+        pos = float(args["<position>"])
         focus.move_absolute(pos, wait=args["--wait"])
     elif args["nudge"]:
-        rel_pos = float(args["<pos>"])
+        rel_pos = float(args["<position>"])
         focus.move_relative(rel_pos, wait=args["--wait"])
     elif args["stop"]:
         focus.stop()
