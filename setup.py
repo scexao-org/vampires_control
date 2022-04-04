@@ -39,9 +39,12 @@ setup(
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     package_data={},
     scripts=[
-        # "scripts/vampires_beamsplitter",
-        # "scripts/vampires_diffwheel",
-        # "scripts/conex"
+        "scripts/vampires_beamsplitter",
+        "scripts/vampires_diffwheel",
+        "scripts/vampires_focus",
+        "scripts/vampires_qwp",
+        "scripts/vampires_pupil",
+        "scripts/conex"
     ],
     install_requires=[
         "docopt==0.6.*",
