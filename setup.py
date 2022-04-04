@@ -44,6 +44,7 @@ setup(
         # "scripts/conex"
     ],
     install_requires=[
+        "docopt==0.6.*",
         "numpy==1.*",
         "pyserial==3.*",
         "scxkw==0.1",
