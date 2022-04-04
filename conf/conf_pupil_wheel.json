@@ -9,35 +9,35 @@
         },
         {
             "number": 2,
-            "name": "7-hole",
+            "name": "7hole",
             "angle": 28,
             "x": 164000,
             "y": 214000
         },
         {
             "number": 3,
-            "name": "9-hole",
+            "name": "9hole",
             "angle": 48.3,
             "x": 165000,
             "y": 120500
         },
         {
             "number": 4,
-            "name": "18-hole",
+            "name": "18hole",
             "angle": 73,
             "x": 190000,
             "y": 139000
         },
         {
             "number": 5,
-            "name": "18-hole nudged",
+            "name": "18holeNudged",
             "angle": 95.3,
             "x": 151000,
             "y": 87500
         },
         {
             "number": 6,
-            "name": "Annulus nudged",
+            "name": "AnnulusNudged",
             "angle": 120,
             "x": 168000,
             "y": 106000
@@ -51,14 +51,14 @@
         },
         {
             "number": 8,
-            "name": "Old annulus",
+            "name": "OldAnnulus",
             "angle": 164,
             "x": 182800,
             "y": 11500
         },
         {
             "number": 9,
-            "name": "Lyot Stop",
+            "name": "LyotStop",
             "angle": 192.50,
             "x": 151500,
             "y":130000
@@ -72,7 +72,7 @@
         },
         {
             "number": 11,
-            "name": "Annulus ref",
+            "name": "AnnulusRef",
             "angle": 283.2,
             "x": 179000,
             "y": 2000

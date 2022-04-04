@@ -3,6 +3,6 @@
     "qwp_2": "usb-Newport_CONEX-AGP_A6VMT5XJ-if00-port0",
     "pupil_wheel": "usb-Newport_CONEX-AGP_A6VRT271-if00-port0",
     "focus_stage": "usb-Newport_CONEX-AGP_A6Z9D9VP-if00-port0",
-    "beamsplitter_wheel": "usb-Newport_CONEX-AGP_A60QBY6C-if00-port0",
-    "differential_filter_wheel": "usb-FTDI_USB-RS422_Cable_FT0B42PZ-if00-port0"
+    "beamsplitter": "usb-Newport_CONEX-AGP_A60QBY6C-if00-port0",
+    "diffwheel": "usb-FTDI_USB-RS422_Cable_FT0B42PZ-if00-port0"
 }

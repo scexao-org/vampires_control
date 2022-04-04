@@ -1,7 +1,1 @@
-{
-    "beamsplitter_wheel": 2,
-    "beamsplitter_wheel_angle": 45,
-    "differential_filter_wheel" : 2,
-    "differential_filter_wheel_angle" : 45,
-    "absolute_focus_stage": 16
-}
+{"beamsplitter": 2, "beamsplitter_angle": 45, "diffwheel": 2, "diffwheel_angle": 45, "focus_stage": 16, "pupil_wheel": 1, "pupil_wheel_angle": 0, "pupil_wheel_x": 188000, "pupil_wheel_y": 121000, "qwp_1": 197.0, "qwp_2": 250}
