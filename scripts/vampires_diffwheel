@@ -6,7 +6,7 @@ import logging
 import time
 from logging.handlers import SysLogHandler
 
-from vampires_control.devices.devices import differential_filter 
+from vampires_control.devices.devices import differential_filter
 
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
 logging.basicConfig(
@@ -37,7 +37,7 @@ Positions (cam1 / cam2):
 Wheel commands:
     status          Returns the current position of the differential filter wheel, in {differential_filter.diffwheel.unit}
     home            Homes the differential filter wheel
-    goto <angle>    Move the differential filter wheel to the given angle, in {differential_filter.diffwheel.unit}
+    goto  <angle>   Move the differential filter wheel to the given angle, in {differential_filter.diffwheel.unit}
     nudge <angle>   Move the differential filter wheel relatively by the given angle, in {differential_filter.diffwheel.unit}
     stop            Stop the differential filter wheel
     reset           Reset the differential filter wheel

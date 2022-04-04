@@ -6,7 +6,7 @@ import logging
 import time
 from logging.handlers import SysLogHandler
 
-from vampires_control.devices.devices import pupil_wheel 
+from vampires_control.devices.devices import pupil_wheel
 
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
 logging.basicConfig(
@@ -36,7 +36,7 @@ Positions:
 Wheel commands:
     status          Returns the current position of the pupil wheel, in {pupil_wheel.pupil_wheel.unit}
     home            Homes the pupil wheel
-    goto <angle>    Move the pupil wheel to the given angle, in {pupil_wheel.pupil_wheel.unit}
+    goto  <angle>   Move the pupil wheel to the given angle, in {pupil_wheel.pupil_wheel.unit}
     nudge <angle>   Move the pupil wheel relatively by the given angle, in {pupil_wheel.pupil_wheel.unit}
     stop            Stop the pupil wheel
     reset           Reset the pupil wheel
@@ -44,7 +44,7 @@ Wheel commands:
 Stage commands:
     status          Returns the current position of the selected pupil wheel stage, in {None}
     home            Homes the selected pupil wheel stage
-    goto <pos>      Move the selected pupil wheel stage to the given position, in {None}
+    goto  <pos>     Move the selected pupil wheel stage to the given position, in {None}
     nudge <pos>     Move the selected pupil wheel stage relatively by the given position, in {None}
     stop            Stop the selected pupil wheel stage
 """

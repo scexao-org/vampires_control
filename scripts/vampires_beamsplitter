@@ -6,7 +6,7 @@ import logging
 import time
 from logging.handlers import SysLogHandler
 
-from vampires_control.devices.devices import beamsplitter 
+from vampires_control.devices.devices import beamsplitter
 
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
 logging.basicConfig(
@@ -35,7 +35,7 @@ Positions:
 Wheel commands:
     status          Returns the current position of the beamsplitter wheel, in {beamsplitter.beamsplitter_wheel.unit}
     home            Homes the beamsplitter wheel
-    goto <angle>    Move the beamsplitter wheel to the given angle, in {beamsplitter.beamsplitter_wheel.unit}
+    goto  <angle>   Move the beamsplitter wheel to the given angle, in {beamsplitter.beamsplitter_wheel.unit}
     nudge <angle>   Move the beamsplitter wheel relatively by the given angle, in {beamsplitter.beamsplitter_wheel.unit}
     stop            Stop the beamsplitter wheel
     reset           Reset the beamsplitter wheel
@@ -56,7 +56,9 @@ if __name__ == "__main__":
             beamsplitter.beamsplitter_wheel.move_absolute(angle, wait=args["--wait"])
         elif args["nudge"]:
             rel_angle = float(args["<angle>"])
-            beamsplitter.beamsplitter_wheel.move_relative(rel_angle, wait=args["--wait"])
+            beamsplitter.beamsplitter_wheel.move_relative(
+                rel_angle, wait=args["--wait"]
+            )
         elif args["stop"]:
             beamsplitter.beamsplitter_wheel.stop()
         elif args["reset"]:

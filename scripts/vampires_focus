@@ -25,7 +25,7 @@ Options:
 Stage commands:
     status          Returns the current position of the focus stage, in {focus.unit}
     home            Homes the focus stage
-    goto <pos>      Move the focus stage to the given position, in {focus.unit}
+    goto  <pos>     Move the focus stage to the given position, in {focus.unit}
     nudge <pos>     Move the focus stage relatively by the given distance, in {focus.unit}
     stop            Stop the focus stage
     reset           Reset the focus stage
