@@ -23,7 +23,7 @@ positions = "\n".join(f"  {i} {d}" for i, d in zip(numbers, descriptions))
 __doc__ = f"""
 Usage:
     vampires_beamsplitter <position> [-h | --help] [-w | --wait] 
-    vampires_beamsplitter wheel (status|home|goto|nudge|stop) [<angle>] [-h | --help] [-w | --wait]
+    vampires_beamsplitter wheel (status|home|goto|nudge|stop|reset) [<angle>] [-h | --help] [-w | --wait]
 
 Options:
     -h --help   Show this screen
@@ -38,6 +38,7 @@ Wheel commands:
     goto <angle>    Move the beamsplitter wheel to the given angle, in {beamsplitter.beamsplitter_wheel.unit}
     nudge <angle>   Move the beamsplitter wheel relatively by the given angle, in {beamsplitter.beamsplitter_wheel.unit}
     stop            Stop the beamsplitter wheel
+    reset           Reset the beamsplitter wheel
 """
 
 # setp 4. action
@@ -58,6 +59,8 @@ if __name__ == "__main__":
             beamsplitter.beamsplitter_wheel.move_relative(rel_angle, wait=args["--wait"])
         elif args["stop"]:
             beamsplitter.beamsplitter_wheel.stop()
+        elif args["reset"]:
+            beamsplitter.beamsplitter_wheel.reset()
         else:
             print(args)
     else:

@@ -25,7 +25,7 @@ positions = "\n".join(f"  {i} {d}" for i, d in zip(numbers, descriptions))
 __doc__ = f"""
 Usage:
     vampires_diffwheel <position> [-h | --help] [-w | --wait] 
-    vampires_diffwheel wheel (status|home|goto|nudge|stop) [<angle>] [-h | --help] [-w | --wait]
+    vampires_diffwheel wheel (status|home|goto|nudge|stop|reset) [<angle>] [-h | --help] [-w | --wait]
 
 Options:
     -h --help   Show this screen
@@ -40,6 +40,7 @@ Wheel commands:
     goto <angle>    Move the differential filter wheel to the given angle, in {differential_filter.diffwheel.unit}
     nudge <angle>   Move the differential filter wheel relatively by the given angle, in {differential_filter.diffwheel.unit}
     stop            Stop the differential filter wheel
+    reset           Reset the differential filter wheel
 """
 
 # setp 4. action
@@ -60,6 +61,8 @@ if __name__ == "__main__":
             differential_filter.diffwheel.move_relative(rel_angle, wait=args["--wait"])
         elif args["stop"]:
             differential_filter.diffwheel.stop()
+        elif args["reset"]:
+            differential_filter.diffwheel.reset()
         else:
             print(args)
     else:

@@ -16,7 +16,7 @@ logger = logging.getLogger("vampires_focus")
 
 __doc__ = f"""
 Usage:
-    vampires_focus (status|home|goto|nudge|stop) [<position>] [-h | --help] [-w | --wait]
+    vampires_focus (status|home|goto|nudge|stop|reset) [<position>] [-h | --help] [-w | --wait]
 
 Options:
     -h --help   Show this screen
@@ -28,6 +28,7 @@ Stage commands:
     goto <pos>      Move the focus stage to the given position, in {focus.unit}
     nudge <pos>     Move the focus stage relatively by the given distance, in {focus.unit}
     stop            Stop the focus stage
+    reset           Reset the focus stage
 """
 
 # setp 4. action
@@ -47,5 +48,7 @@ if __name__ == "__main__":
         focus.move_relative(rel_pos, wait=args["--wait"])
     elif args["stop"]:
         focus.stop()
+    elif args["reset"]:
+        focus.reset()
     else:
         print(args)

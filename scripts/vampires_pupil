@@ -23,7 +23,7 @@ positions = "\n".join(f"  {i} {d}" for i, d in zip(numbers, descriptions))
 __doc__ = f"""
 Usage:
     vampires_pupil <position> [-h | --help] [-w | --wait] 
-    vampires_pupil wheel (status|home|goto|nudge|stop) [<angle>] [-h | --help] [-w | --wait]
+    vampires_pupil wheel (status|home|goto|nudge|stop|reset) [<angle>] [-h | --help] [-w | --wait]
     vampires_pupil (x|y) (status|home|goto|nudge|stop) [<posn>] [-h | --help] [-w | --wait]
 
 Options:
@@ -39,6 +39,7 @@ Wheel commands:
     goto <angle>    Move the pupil wheel to the given angle, in {pupil_wheel.pupil_wheel.unit}
     nudge <angle>   Move the pupil wheel relatively by the given angle, in {pupil_wheel.pupil_wheel.unit}
     stop            Stop the pupil wheel
+    reset           Reset the pupil wheel
 
 Stage commands:
     status          Returns the current position of the selected pupil wheel stage, in {None}
@@ -66,6 +67,8 @@ if __name__ == "__main__":
             pupil_wheel.pupil_wheel.move_relative(rel_angle, wait=args["--wait"])
         elif args["stop"]:
             pupil_wheel.pupil_wheel.stop()
+        elif args["reset"]:
+            pupil_wheel.pupil_wheel.reset()
         else:
             print(args)
     elif args["x"] or args["y"]:
