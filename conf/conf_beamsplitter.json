@@ -1,0 +1,44 @@
+{
+    "positions": [
+        { 
+            "number": "1",
+            "name": "Open",
+            "angle": 0
+        },
+        { 
+            "number": "2",
+            "name": "Polarizer",
+            "angle": 45
+        },
+        { 
+            "number": "3",
+            "name": "Open",
+            "angle": 90
+        },
+        { 
+            "number": "4",
+            "name": "700 SP",
+            "angle": 133.95
+        },
+        { 
+            "number": "5",
+            "name": "Open",
+            "angle": 180
+        },
+        { 
+            "number": "6",
+            "name": "50/50",
+            "angle": 224.65
+        },
+        { 
+            "number": "7",
+            "name": "Open",
+            "angle": 270
+        },
+        { 
+            "number": "8",
+            "name": "750 SP",
+            "angle": 315
+        }
+    ]
+}

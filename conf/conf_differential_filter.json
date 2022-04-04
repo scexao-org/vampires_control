@@ -1,0 +1,52 @@
+{
+    "positions": [
+        { 
+            "number": "1",
+            "cam1": "Open",
+            "cam2": "Defocus lens",
+            "angle": 0
+        },
+        { 
+            "number": "2",
+            "cam1": "Open",
+            "cam2": "Open",
+            "angle": 45
+        },
+        { 
+            "number": "3",
+            "cam1": "775-25",
+            "cam2": "675-25",
+            "angle": 90
+        },
+        { 
+            "number": "4",
+            "cam1": "Continuum",
+            "cam2": "H-alpha",
+            "angle": 135
+        },
+        { 
+            "number": "5",
+            "cam1": "Defocus lens",
+            "cam2": "Open",
+            "angle": 180
+        },
+        { 
+            "number": "6",
+            "cam1": "Open",
+            "cam2": "Open",
+            "angle": 225
+        },
+        { 
+            "number": "7",
+            "cam1": "675-25",
+            "cam2": "775-25",
+            "angle": 270
+        },
+        { 
+            "number": "8",
+            "cam1": "H-alpha",
+            "cam2": "Continuum",
+            "angle": 315
+        }
+    ]
+}
