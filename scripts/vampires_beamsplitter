@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from docopt import docopt
 from pathlib import Path
-from subprocess import run
 import sys
 import logging
 import time
@@ -15,12 +14,33 @@ logging.basicConfig(
     level=logging.DEBUG, format=formatter, handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger("vampires_beamsplitter")
+
+
 numbers = [pos["number"] for pos in beamsplitter.positions["positions"]]
 descriptions = [pos["name"] for pos in beamsplitter.positions["positions"]]
 
-epilog = "positions:\n"
-epilog += "\n".join([f"  {i} {d}" for i, d in zip(numbers, descriptions)])
+numrange = "|".join(map(str, range(1, len(numbers))))
+positions = "\n".join(f"  {i} {d}" for i, d in zip(numbers, descriptions))
 
+__doc__ = f"""
+Usage:
+    vampires_beamsplitter <position> [-h | --help] [-w | --wait] 
+    vampires_beamsplitter wheel (status|home|goto|nudge|stop) [<angle>] [-h | --help] [-w | --wait]
+
+Options:
+    -h --help   Show this screen
+    -w --wait   Block command until position has been reached, for applicable commands
+
+Positions:
+{positions}
+
+Wheel commands:
+    status          Returns the current position of the beamsplitter wheel, in {beamsplitter.beamsplitter_wheel.unit}
+    home            Homes the beamsplitter wheel
+    goto <angle>    Move the beamsplitter wheel to the given angle, in {beamsplitter.beamsplitter_wheel.unit}
+    nudge <angle>   Move the beamsplitter wheel relatively by the given angle, in {beamsplitter.beamsplitter_wheel.unit}
+    stop            Stop the beamsplitter wheel
+"""
 # step 2. define functions for argparse
 
 def move(args):
@@ -38,31 +58,24 @@ def move(args):
 #         cmd = f"conex 8 PA {args.angle}"
 #         print("DEBUG: command sent: ", cmd)
 
-# step 3. create argument parser
-parser = ArgumentParser(
-    description="Switch the VAMPIRES beamsplitter optics",
-    epilog=epilog,
-    formatter_class=RawDescriptionHelpFormatter,
-)
-parser.add_argument(
-    "position", choices=numbers, nargs="?", help="move to the position"
-)
-parser.add_argument(
-    "-w", "--wait", action="store_true", help="block until movement is finished, if applicable"
-)
-parser.set_defaults(func=move)
-
-# subparsers = parser.add_subparsers(title="wheel commands")
-
-# wheel_parser = subparsers.add_parser("wheel")
-# wheel_parser.add_argument("command", choices=["status", "home", "goto"])
-# wheel_parser.add_argument("args", nargs="*")
-
-
 # setp 4. action
 if __name__ == "__main__":
+    args = docopt(__doc__)
     if len(sys.argv) == 1:
-        parser.print_help()
+        print(args)
+    elif args["wheel"]:
+        if args["status"]:
+            print(beamsplitter.beamsplitter_wheel.true_position())
+        elif args["home"]:
+            beamsplitter.beamsplitter_wheel.home()
+        elif args["goto"]:
+            angle = float(args["<angle>"])
+            beamsplitter.beamsplitter_wheel.move_absolute(angle)
+        elif args["nudge"]:
+            rel_angle = float(args["<angle>"])
+            beamsplitter.beamsplitter_wheel.move_relative(rel_angle)
+        elif args["stop"]:
+            beamsplitter.beamsplitter_wheel.stop()
     else:
-        args = parser.parse_args()
-        args.func(args)
+        position = int(args["<position>"])
+        beamsplitter.move_position(position, wait=args["--wait"])

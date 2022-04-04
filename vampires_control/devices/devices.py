@@ -28,7 +28,7 @@ class VAMPIRESBeamsplitter:
 
     def move_position(self, position: int, wait=False):
         idx = position - 1  # idx starts at 0
-        values = self.positions[idx]
+        values = self.positions["positions"][idx]
         self.beamsplitter_wheel.move_absolute(values["angle"], wait=wait)
         VAMPIRES["beamsplitter_wheel"] = values["number"]
 
@@ -64,7 +64,7 @@ class VAMPIRESDifferentialFilter:
 
     def move_position(self, position: int, wait=False):
         idx = position - 1  # idx starts at 0
-        values = self.positions[idx]
+        values = self.positions["positions"][idx]
         self.diffwheel.move_absolute(values["angle"], wait=wait)
         VAMPIRES["differential_filter"] = values["number"]
 
