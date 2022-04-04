@@ -3,7 +3,7 @@ import json
 from ..state import VAMPIRES
 from .conex import ConexDevice
 
-__all__ = ["beamsplitter", "focus", "differential_filter", "qwp_1", "qwp_2", "focus"]
+__all__ = ["beamsplitter", "focus", "differential_filter", "qwp_1", "qwp_2"]
 
 with open("/etc/vampires-control/device_addresses.json") as fh:
     DEVICE_MAP = json.load(fh)
