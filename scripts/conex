@@ -9,104 +9,123 @@
 ##############################################
 
 ###########################################################
-#Created by Guillaume Schworer guillaume.schworer@obspm.fr#
+# Created by Guillaume Schworer guillaume.schworer@obspm.fr#
 # from bits of Frants Martinache's code                   #
 ###########################################################
 
+##############################################
+# Murdered by Miles Lucas mdlucas@hawaii.edu #
+# use `vampires_control` instead             #
+##############################################
 
-import serial
 from sys import argv
-from numpy import sort
+
+from vampires_control.devices.devices import (
+    beamsplitter,
+    focus,
+    differential_filter,
+    qwp_1,
+    qwp_2,
+    pupil_wheel,
+)
+
 
 class pycolor:
-    header = '\033[95m'
-    okblue = '\033[94m'
-    okgreen = '\033[92m'
-    warning = '\033[93m'
-    fail = '\033[91m'
-    endc = '\033[0m'
+    header = "\033[95m"
+    okblue = "\033[94m"
+    okgreen = "\033[92m"
+    warning = "\033[93m"
+    fail = "\033[91m"
+    endc = "\033[0m"
+
 
 conexWait = True
-#conexAddress = {'1':["/dev/ttyCONEX1","1/4 wave plate 2"],
-#                '2':["/dev/ttyCONEX2","mask wheel"],
-#                '3':["/dev/ttyCONEX3","Polarizer"],
-#                '4':["/dev/ttyCONEX4","1/4 wave plate 1"],
-#				'5':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A6Z9D9VP-if00-port0","Focusing stage"],
-#				'6':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A60MCHL5-if00-port0","Field stop axis 1"],
-#				'7':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A60MCIFA-if00-port0","Field stop axis 2"],
-#				'8':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A60QBY6C-if00-port0","Beamsplitter wheel"],
-#				'9':["/dev/serial/by-id/usb-FTDI_USB-RS422_Cable_FT0B42PZ-if00-port0","Differential filter wheel"]}
+conexAddress = {
+    "1": [
+        "/dev/serial/by-id/usb-Newport_CONEX-AGP_A6VMT5XJ-if00-port0",
+        "1/4 wave plate 2",
+    ],
+    "2": ["/dev/serial/by-id/usb-Newport_CONEX-AGP_A6VRT271-if00-port0", "mask wheel"],
+    "4": [
+        "/dev/serial/by-id/usb-Newport_CONEX-AGP_A6WXETGZ-if00-port0",
+        "1/4 wave plate 1",
+    ],
+    "5": [
+        "/dev/serial/by-id/usb-Newport_CONEX-AGP_A6Z9D9VP-if00-port0",
+        "Focusing stage",
+    ],
+    "8": [
+        "/dev/serial/by-id/usb-Newport_CONEX-AGP_A60QBY6C-if00-port0",
+        "Beamsplitter wheel",
+    ],
+    "9": [
+        "/dev/serial/by-id/usb-FTDI_USB-RS422_Cable_FT0B42PZ-if00-port0",
+        "Differential filter wheel",
+    ],
+}
 
-conexAddress = {'1':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A6VMT5XJ-if00-port0","1/4 wave plate 2"],
-                '2':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A6VRT271-if00-port0","mask wheel"],
-                '3':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A6WMSQ3G-if00-port0","Polarizer"],
-                '4':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A6WXETGZ-if00-port0","1/4 wave plate 1"],
-				'5':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A6Z9D9VP-if00-port0","Focusing stage"],
-				'6':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A60MCHL5-if00-port0","Field stop axis 1"],
-				'7':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A60MCIFA-if00-port0","Field stop axis 2"],
-				'8':["/dev/serial/by-id/usb-Newport_CONEX-AGP_A60QBY6C-if00-port0","Beamsplitter wheel"],
-				'9':["/dev/serial/by-id/usb-FTDI_USB-RS422_Cable_FT0B42PZ-if00-port0","Differential filter wheel"]}
+DEVICE_MAP = {
+    "1": qwp_2,
+    "2": pupil_wheel.pupil_wheel,
+    "4": qwp_1,
+    "5": focus,
+    "8": beamsplitter.beamsplitter_wheel,
+    "9": differential_filter.diffwheel,
+}
 
-#conexAddress = {'1':'/dev/serial/by-id/usb-Newport_CONEX-AGP_A6VMT5XJ-if00-port0',
-#                '2':'/dev/serial/by-id/usb-Newport_CONEX-AGP_A6VRT271-if00-port0',
-#                '3':'/dev/serial/by-id/usb-Newport_CONEX-AGP_A6WMSQ3G-if00-port0',
-#                '4':'/dev/serial/by-id/usb-Newport_CONEX-AGP_A6WXETGZ-if00-port0'}
-
-#checks options and arguments
-if ('-h' in argv) or ('-H' in argv) or (len(argv)<3) or (len(argv)>5): argv.append('-h')
-if argv[-1][:2].upper()=='-H':
-    print("\n"+pycolor.fail+"conex"+pycolor.endc+" ["+pycolor.okblue+"-h"+pycolor.endc+" (help)] "+pycolor.okgreen+"conexDeviceNumber command argument ["+pycolor.okblue+"-w"+pycolor.endc+" (wait until conex is in-place)]\n")
-    output=pycolor.okgreen+"conexDeviceNumber"+pycolor.endc+": "
-    # for i in sort(conexAddress.keys()):
+# checks options and arguments
+if ("-h" in argv) or ("-H" in argv) or (len(argv) < 3) or (len(argv) > 5):
+    argv.append("-h")
+if argv[-1][:2].upper() == "-H":
+    print(
+        f"\n{pycolor.fail}conex{pycolor.endc} [{pycolor.okblue}-h{pycolor.endc} (help)] {pycolor.okgreen}conexDeviceNumber command argument [{pycolor.okblue}-w{pycolor.endc} (wait until conex is in-place)]\n"
+    )
+    output = f"{pycolor.okgreen}conexDeviceNumber{pycolor.endc}:\n"
     for i in conexAddress.keys():
-        output=output+pycolor.warning+str(i)+pycolor.endc+"- "+conexAddress[i][1]+", "
-    print(output[:-2]+"\n")
-    print(pycolor.okgreen+"command"+pycolor.endc+": (* no argument needed)\nRS*: Reset\nOR*: Home\nPA: Move absolute (deg)\nPR: Move relative (deg)\nTH*: Get target position\nTP*: Get current position\nST*: Stop motion\n")
+        output = f"{output}{pycolor.warning}{i}{pycolor.endc}- {conexAddress[i][1]}\n"
+    print(output)
+    print(
+        f"{pycolor.okgreen}command{pycolor.endc}: (* no argument needed)\nRS*: Reset\nOR*: Home\nPA: Move absolute (deg)\nPR: Move relative (deg)\nTH*: Get target position\nTP*: Get current position\nST*: Stop motion\n"
+    )
     quit()
 else:
     conexNumber = str(argv[1])
+    device = DEVICE_MAP[conexNumber]
     conexCommand = str(argv[2]).upper()
-    try:
-        conexArgument = str(argv[3])
-    except:
-        conexArgument=''
-    try:
-        conexWait = str(argv[4])
-    except:
-        conexWait=False
-    if conexArgument.upper()=='-W': conexWait=True
-    if str(conexWait).upper()=='-W': conexWait=True
-
-#connection
-try:
-    ser = serial.Serial(
-        port=conexAddress[str(conexNumber)][0],
-        baudrate=921600,
-        parity=serial.PARITY_NONE,
-        stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS,
-        xonxoff=False,
-        timeout=0.5)
-except:
-    print(pycolor.fail+"Fail: Can't find CONEX "+str(conexNumber)+pycolor.endc)
-    quit()
-
-
-#formats and sends command
-if conexCommand[0]!='1': conexCommand = '1'+conexCommand
-if (conexCommand.find('TP')!=-1 or conexCommand.find('TH')!=-1) and conexCommand[-1]!='?': conexCommand = conexCommand+'?'
-# ser.write(conexCommand+conexArgument+'\r\n')
-serCommand = conexCommand+conexArgument+'\r\n'
-ser.write(serCommand.encode())
-from re import sub
-# print(sub('^('+conexCommand+conexArgument+')','',ser.read(1024)))
-print(sub('^('+conexCommand+conexArgument+')','',ser.read(1024).decode("utf-8", "ignore")))
-if conexWait and (conexCommand.upper().find('OR')!=-1 or conexCommand.upper().find('PA')!=-1 or conexCommand.upper().find('PR')!=-1): #can wait only for PA PR and OR command
-    if conexCommand.upper().find('OR')!=-1: conexArgument=0 #if OR command, no argument given, making up one
-    dummy = 500
-    from time import sleep as timesleep
-    while abs(dummy-float(conexArgument))>=0.1:
-        ser.write('1TP?\r\n')
-    dummy=float(ser.read(1024)[3:])
-    timesleep(0.5)
-ser.close()
+    if conexCommand == "OR":
+        try:
+            conexArgument = argv[3].lower()
+            if conexArgument == "-w":
+                device.home(wait=True)
+            else:
+                device.home()
+        except:
+            device.home()
+    elif conexCommand == "RS":
+        device.reset()
+    elif conexCommand == "TH":
+        device.target_position()
+    elif conexCommand == "TP":
+        device.true_position()
+    elif conexCommand == "ST":
+        device.stop()
+    elif conexCommand == "PA":
+        conexArgument = float(argv[3])
+        try:
+            conexArgument2 = argv[4].lower()
+            if conexArgument2 == "-w":
+                device.move_absolute(conexArgument, wait=True)
+            else:
+                device.move_absolute(conexArgument)
+        except:
+            device.move_absolute(conexArgument)
+    elif conexCommand == "PR":
+        conexArgument = float(argv[3])
+        try:
+            conexArgument2 = argv[4].lower()
+            if conexArgument2 == "-w":
+                device.move_relative(conexArgument, wait=True)
+            else:
+                device.move_relative(conexArgument)
+        except:
+            device.move_relative(conexArgument)
