@@ -109,6 +109,20 @@ class VAMPIRESPupilWheel:
             keyword="pupil_wheel_angle",
             unit="deg",
         )
+        self.pupil_stage_x = ZaberDevice(
+            "pupil_stage_x",
+            address=DEVICE_MAP["zaber_chain"]["address"],
+            index=DEVCE_MAP["zaber_chain"]["pupil_stage_x"],
+            keyword="pupil_wheel_x",
+            unit="step"
+        )
+        self.pupil_stage_y = ZaberDevice(
+            "pupil_stage_y",
+            address=DEVICE_MAP["zaber_chain"]["address"],
+            index=DEVCE_MAP["zaber_chain"]["pupil_stage_y"],
+            keyword="pupil_wheel_y",
+            unit="step"
+        )
         self.conf_file = conf_file
         with open(self.conf_file) as fh:
             self.positions = json.load(fh)
