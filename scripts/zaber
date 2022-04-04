@@ -25,6 +25,7 @@ timeout = 15  # time out for read from zabers
 zabdevice = "/dev/serial/by-id/usb-FTDI_USB_Serial_Converter_FTG4YSH7-if00-port0"
 encoding = "latin-1"
 
+
 class pycolor:
     header = "\033[95m"
     okblue = "\033[94m"
@@ -32,6 +33,7 @@ class pycolor:
     warning = "\033[93m"
     fail = "\033[91m"
     endc = "\033[0m"
+
 
 zabMapping = {
     1: "right/left mask wheel",
@@ -148,57 +150,14 @@ if ("-h" in argv) or ("-H" in argv) or (len(argv) < 2) or (len(argv) > 8):
     argv.append("-h")
 if argv[-1][:2].upper() == "-H":
     print(
-        "\n"
-        + pycolor.fail
-        + "zab"
-        + pycolor.endc
-        + " ["
-        + pycolor.okblue
-        + "-h"
-        + pycolor.endc
-        + " (help)] "
-        + pycolor.okgreen
-        + "zabNumer commandNumer argument"
-        + pycolor.endc
-        + " ["
-        + pycolor.okblue
-        + "-t"
-        + pycolor.endc
-        + "='timeout' (15sec)] "
-        + " ["
-        + pycolor.okblue
-        + "-a"
-        + pycolor.endc
-        + "='on|off' set mode astro] "
-        + " ["
-        + pycolor.okblue
-        + "-s"
-        + pycolor.endc
-        + " set safe speeds] "
-        + " ["
-        + pycolor.okblue
-        + "-p"
-        + pycolor.endc
-        + " show all positions] "
-        + "\n"
+        f"\n{pycolor.fail}zab{pycolor.endc} [{pycolor.okblue}-h{pycolor.endc} (help)] {pycolor.okgreen}zabNumer commandNumer argument{pycolor.endc} [{pycolor.okblue}-t{pycolor.endc}='timeout' (15sec)] [{pycolor.okblue}-a{pycolor.endc}='on|off' set mode astro] [{pycolor.okblue}-s{pycolor.endc} set safe speeds] [{pycolor.okblue}-p{pycolor.endc} show all positions]\n"
     )
-    output = pycolor.okgreen + "zabNumer" + pycolor.endc + ": "
+    output = f"{pycolor.okgreen}zabNumer{pycolor.endc}:\n"
     for i in sort(list(zabMapping.keys())):
-        output = (
-            output
-            + pycolor.warning
-            + str(i)
-            + pycolor.endc
-            + "- "
-            + zabMapping[i]
-            + ", "
-        )
-    print(output[:-2] + "\n")
+        output += f"{pycolor.warning}{i}{pycolor.endc}-{zabMapping[i]}\n"
+    print(output)
     print(
-        pycolor.okgreen
-        + "commandNumer"
-        + pycolor.endc
-        + ": (* no argument needed)\n0*: Reset\n1*: Home\n2: Rename (new zaber number)\n20: Move absolute (step)\n21: Move relative (+/-step)\n42: Set speed (speed)\n44: Set maximum position (step)\n53: Query command value (command number)\n60*: Get position\n"
+        f"{pycolor.okgreen}commandNumer{pycolor.endc}: (* no argument needed)\n0*: Reset\n1*: Home\n2: Rename (new zaber number)\n20: Move absolute (step)\n21: Move relative (+/-step)\n42: Set speed (speed)\n44: Set maximum position (step)\n53: Query command value (command number)\n60*: Get position\n"
     )
     quit()
 
@@ -238,7 +197,7 @@ for arg in argv[1:]:
 try:
     ser = serialSerial(zabdevice, brate, timeout=0.5)
 except:
-    print(pycolor.fail + "Fail: Can't connect to Zabers" + pycolor.endc)
+    print(f"{pycolor.fail}Fail: Can't connect to Zabers{pycolor.endc}")
     quit()
 dummy = ser.readlines()  # flushes
 print(dummy)
@@ -249,11 +208,7 @@ if safeSpeed is not None:
 if giveAllPositions is not None:
     for i in list(zabMapping.keys()):
         print(
-            pycolor.warning
-            + zabMapping[i]
-            + pycolor.endc
-            + ": "
-            + str(command(i, 60, 0, timeout))
+            f"{pycolor.warning}{zabMapping[i]}{pycolor.endc}: {str(command(i, 60, 0, timeout))}"
         )
 if inputNum is not None:
     try:
