@@ -7,24 +7,15 @@ from time import sleep
 
 from .state import VAMPIRES
 
-__all__ = ["focus", "differential_filter", "qwp_1", "qwp_2", "focus"]
-
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
 logging.basicConfig(
     level=logging.DEBUG, format=formatter, handlers=[logging.StreamHandler()]
 )
 
-with open("/etc/vampires-control/device_addresses.json") as fh:
-    DEVICE_MAP = json.load(fh)
-
-
 class ConexDevice:
-    def __init__(self, name, address=None, keyword=None, unit="", **serial_kwargs):
+    def __init__(self, name, address, keyword=None, unit="", **serial_kwargs):
         self.name = name
-        if address is None:
-            self.address = DEVICE_MAP[self.name]
-        else:
-            self.address = address
+        self.address = address
 
         self.keyword = keyword
         self.unit = unit
@@ -119,13 +110,3 @@ class ConexDevice:
         # call true position to update status
         self.true_position()
 
-
-beamsplitter = ConexDevice(
-    "beamsplitter_wheel", keyword="beamsplitter_wheel_angle", unit="deg"
-)
-differential_filter = ConexDevice(
-    "differential_filter_wheel", keyword="differential_filter_wheel_angle", unit="deg"
-)
-qwp_1 = ConexDevice("qwp_1", keyword="qwp_1_angle", unit="deg")
-qwp_2 = ConexDevice("qwp_2", keyword="qwp_2_angle", unit="deg")
-focus = ConexDevice("focus_stage", keyword="focus_stage", unit="deg")
