@@ -19,7 +19,6 @@ logger = logging.getLogger("vampires_beamsplitter")
 numbers = [pos["number"] for pos in beamsplitter.positions["positions"]]
 descriptions = [pos["name"] for pos in beamsplitter.positions["positions"]]
 
-numrange = "|".join(map(str, range(1, len(numbers))))
 positions = "\n".join(f"  {i} {d}" for i, d in zip(numbers, descriptions))
 
 __doc__ = f"""
@@ -41,22 +40,6 @@ Wheel commands:
     nudge <angle>   Move the beamsplitter wheel relatively by the given angle, in {beamsplitter.beamsplitter_wheel.unit}
     stop            Stop the beamsplitter wheel
 """
-# step 2. define functions for argparse
-
-def move(args):
-    beamsplitter.move_position(int(args.position), wait=args.wait)
-
-# def wheel(args):
-#     if args.command == "status":
-#         cmd = f"conex 8 TP"
-#         print("DEBUG: command sent: ", cmd)
-#     elif args.command == "home":
-#         cmd = f"conex 8 OR"
-#         print("DEBUG: command sent: ", cmd)
-#     elif args.command == "goto":
-#         angle = args.args[0]
-#         cmd = f"conex 8 PA {args.angle}"
-#         print("DEBUG: command sent: ", cmd)
 
 # setp 4. action
 if __name__ == "__main__":
@@ -76,6 +59,8 @@ if __name__ == "__main__":
             beamsplitter.beamsplitter_wheel.move_relative(rel_angle)
         elif args["stop"]:
             beamsplitter.beamsplitter_wheel.stop()
+        else:
+            print(args)
     else:
         position = int(args["<position>"])
         beamsplitter.move_position(position, wait=args["--wait"])
