@@ -13,10 +13,10 @@ __all__ = [
     "pupil_wheel",
 ]
 
-with open("/etc/vampires-control/device_addresses.json") as fh:
+with open("/etc/vampires_control/device_addresses.json") as fh:
     DEVICE_MAP = json.load(fh)
 
-with open("/etc/vampires-control/conf_qwp.json") as fh:
+with open("/etc/vampires_control/conf_qwp.json") as fh:
     QWP_OFFSETS = json.load(fh)
 
 
@@ -24,7 +24,7 @@ class VAMPIRESBeamsplitter:
     def __init__(
         self,
         name="beamsplitter",
-        conf_file="/etc/vampires-control/conf_beamsplitter.json",
+        conf_file="/etc/vampires_control/conf_beamsplitter.json",
     ):
         self.name = name
         self.beamsplitter_wheel = ConexDevice(
@@ -61,7 +61,7 @@ class VAMPIRESDifferentialFilter:
     def __init__(
         self,
         name="diffwheel",
-        conf_file="/etc/vampires-control/conf_diffwheel.json",
+        conf_file="/etc/vampires_control/conf_diffwheel.json",
     ):
         self.name = name
         self.diffwheel = ConexDevice(
@@ -100,7 +100,7 @@ class VAMPIRESPupilWheel:
     def __init__(
         self,
         name="pupil_wheel",
-        conf_file="/etc/vampires-control/conf_pupil_wheel.json",
+        conf_file="/etc/vampires_control/conf_pupil_wheel.json",
     ):
         self.name = name
         self.pupil_wheel = ConexDevice(

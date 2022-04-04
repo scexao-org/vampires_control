@@ -4,7 +4,7 @@ from scxkw.redisutil.typed_db import Redis
 from scxkw.config import REDIS_DB_HOST, REDIS_DB_PORT
 from warnings import warn
 
-LOCAL_STATE_FILE = Path("/etc/vampires-control/vampires_state.json")
+LOCAL_STATE_FILE = Path("/etc/vampires_control/vampires_state.json")
 
 
 class VAMPIRESState:

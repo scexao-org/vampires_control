@@ -16,21 +16,21 @@ with open("README.md", "r") as fh:
     readme = fh.read()
 
 # set up conf files
-# os.makedirs("/etc/vampires-control", exist_ok=True)
+# os.makedirs("/etc/vampires_control", exist_ok=True)
 # for conf_file in os.listdir("conf"):
-#     etc_path = f"/etc/vampires-control/{conf_file}"
+#     etc_path = f"/etc/vampires_control/{conf_file}"
 #     if not os.path.exists(etc_path):
 #         shutil.copyfile(conf_file, etc_path)
 
 setup(
     long_description=readme,
     long_description_content_type="text/markdown",
-    name="vampires-control",
+    name="vampires_control",
     version=version,
     description="VAMPIRES control software",
     python_requires=">=3.7,<3.10",
     project_urls={
-        "repository": "https://github.com/scexao-org/vampires-control",
+        "repository": "https://github.com/scexao-org/vampires_control",
     },
     author="Miles Lucas",
     author_email="mdlucas@hawaii.edu",
