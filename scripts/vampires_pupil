@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 from docopt import docopt
+import logging
+from logging.handlers import SysLogHandler
 from pathlib import Path
 import sys
-import logging
 import time
-from logging.handlers import SysLogHandler
 
 from vampires_control.devices.devices import pupil_wheel
 
@@ -34,19 +34,19 @@ Positions:
 {positions}
 
 Wheel commands:
-    status          Returns the current position of the pupil wheel, in {pupil_wheel.pupil_wheel.unit}
-    target          Returns the target position of the pupil wheel, in {pupil_wheel.pupil_wheel.unit}
-    home            Homes the pupil wheel
+    status          Return the current position of the pupil wheel, in {pupil_wheel.pupil_wheel.unit}
+    target          Return the target position of the pupil wheel, in {pupil_wheel.pupil_wheel.unit}
+    home            Home the pupil wheel
     goto  <angle>   Move the pupil wheel to the given angle, in {pupil_wheel.pupil_wheel.unit}
     nudge <angle>   Move the pupil wheel relatively by the given angle, in {pupil_wheel.pupil_wheel.unit}
     stop            Stop the pupil wheel
     reset           Reset the pupil wheel
 
 Stage commands:
-    status          Returns the current position of the selected pupil wheel stage, in {None}
-    home            Homes the selected pupil wheel stage
-    goto  <pos>     Move the selected pupil wheel stage to the given position, in {None}
-    nudge <pos>     Move the selected pupil wheel stage relatively by the given position, in {None}
+    status          Return the current position of the selected pupil wheel stage, in {pupil_wheel.pupil_stage_x.unit}
+    home            Home the selected pupil wheel stage
+    reset           Reset the selected pupil wheel stage
+    goto  <pos>     Move the selected pupil wheel stage to the given position, in {pupil_wheel.pupil_stage_x.unit}
     stop            Stop the selected pupil wheel stage
 """
 
@@ -78,9 +78,6 @@ if __name__ == "__main__":
         stage = pupil_wheel.pupil_stage_x if args["x"] else pupil_wheel.pupil_stage_y
         if args["status"]:
             print(stage.true_position())
-        elif args["nudge"]:
-            rel_pos = int(args["<pos>"])
-            stage.move_relative(rel_pos, wait=args["--wait"])
         elif args["goto"]:
             pos = int(args["<pos>"])
             stage.move_absolute(pos, wait=args["--wait"])

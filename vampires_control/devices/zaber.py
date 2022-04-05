@@ -4,9 +4,9 @@ from math import floor
 import numpy as np
 import re
 from serial import Serial
-from time import sleep
-import sys
 import struct
+import sys
+from time import sleep
 
 from ..state import VAMPIRES
 
@@ -79,23 +79,6 @@ class ZaberDevice:
                 current = np.inf
                 while np.abs(current - value) >= 100:
                     current = self.true_position()
-                    sleep(0.5)
-
-    def move_relative(self, value: int, wait=False):
-        cmd = bytearray([self.index, 21, *data_to_bytes(value)])
-        self.logger.debug(f"MOVE RELATIVE command: {cmd}")
-        with Serial(**self.serial_config) as serial:
-            initial = self.true_position()
-            serial.flush()
-            serial.write(cmd)
-            if self.keyword is not None:
-                VAMPIRES[self.keyword] = initial + value
-            if wait:
-                # continously poll until position has been reached
-                current = np.inf
-                while np.abs(current - initial) >= np.abs(value) - 100:
-                    current = self.true_position()
-                    print(np.abs(current - initial))
                     sleep(0.5)
 
     def true_position(self):
