@@ -1,9 +1,11 @@
 import json
 import logging
-import numpy as np
+from math import floor
 import re
 from serial import Serial
 from time import sleep
+import sys
+import struct
 
 from ..state import VAMPIRES
 
@@ -13,37 +15,16 @@ logging.basicConfig(
 )
 
 
-def data_to_bits(data: int):
-    # Convert negative numbers...
-    if data < 0:
-        data = 256**4 + data
-
-    # d6 is the last bit (data must be larger than 256^3 to have a value here)
-    d6 = np.floor(data / 256**3)
-    data -= 256**3 * d6
-
-    # d5 is the next largest bit... d5 = (0:256)*256^2
-    d5 = np.floor(data / 256**2)
-    if d5 > 256:
-        d5 = 256
-
-    # d4 is the second smallest bit... d4 = (0:256)*256
-    data -= 256**2 * d5
-    d4 = np.floor(data / 256)
-    if d4 > 256:
-        d4 = 256
-
-    # d3 is the smallest bit, values are 0:256
-    d3 = np.floor(np.mod(data, 256))
-    if d3 > 256:
-        d3 = 256
-
-    return [d3, d4, d5, d6]
+def data_to_bytes(data: int):
+    return struct.pack("<Q", data)
 
 
-def bits_to_data(d3, d4, d5, d6):
-    # TODO this is just bitshifting
-    data = d6 * 256**3 + d5 * 256**2 + d4 * 256 + d3
+def bytes_to_data(bytes):
+    data = 0
+    power = 0
+    for bit in bytes:
+        data += bit * 256**power
+        power += 1
     return data
 
 
@@ -65,71 +46,75 @@ class ZaberDevice:
         }
         self.logger = logging.getLogger(self.name)
 
-    # def home(self, wait=False):
-    #     cmd = f"1OR\r\n".encode()
-    #     self.logger.debug(f"HOME command: {cmd}")
-    #     with Serial(**self.serial_config) as serial:
-    #         serial.write(cmd)
-    #         if wait:
-    #             # continously poll until position has been reached
-    #             current = np.inf
-    #             while np.abs(current) >= 0.1:
-    #                 current = self.true_position()
-    #                 sleep(0.5)
+    def home(self, wait=False):
+        cmd = bytearray([self.index, 1, *data_to_bytes(value)])
+        self.logger.debug(f"HOME command: {cmd}")
+        with Serial(**self.serial_config) as serial:
+            serial.flush()
+            serial.write(cmd)
+            if wait:
+                # continously poll until position has been reached
+                current = np.inf
+                while np.abs(current) >= 0.1:
+                    current = self.true_position()
+                    sleep(0.5)
 
-    # def reset(self):
-    #     cmd = f"1RS\r\n".encode()
-    #     self.logger.debug(f"RESET command: {cmd}")
-    #     with Serial(**self.serial_config) as serial:
-    #         serial.write(cmd)
-
-    # def move_absolute(self, value, wait=False):
-    #     bits = data_to_bits(value)
-    #     cmd = f"1PA {value}\r\n".encode()
-    #     self.logger.debug(f"MOVE ABSOLUTE command: {cmd}")
-    #     with Serial(**self.serial_config) as serial:
-    #         serial.write(cmd)
-    #         if self.keyword is not None:
-    #             VAMPIRES[self.keyword] = value
-    #         if wait:
-    #             # continously poll until position has been reached
-    #             current = np.inf
-    #             while np.abs(current - value) >= 0.1:
-    #                 current = self.true_position()
-    #                 sleep(0.5)
-
-    # def move_relative(self, value, wait=False):
-    #     cmd = f"1PR {value}\r\n".encode()
-    #     self.logger.debug(f"MOVE RELATIVE command: {cmd}")
-    #     with Serial(**self.serial_config) as serial:
-    #         initial = self.true_position()
-    #         serial.write(cmd)
-    #         if self.keyword is not None:
-    #             VAMPIRES[self.keyword] = initial + value
-    #         if wait:
-    #             # continously poll until position has been reached
-    #             current = np.inf
-    #             while np.abs(current - initial) >= np.abs(value) - 0.1:
-    #                 current = self.true_position()
-    #                 sleep(0.5)
-
-    def true_position(self):
-        cmd = [self.index, 60]
-        self.logger.debug(f"TRUE POSITION command: {cmd}")
+    def reset(self):
+        cmd = bytearray([self.index, 0, *data_to_bytes(value)])
+        self.logger.debug(f"RESET command: {cmd}")
         with Serial(**self.serial_config) as serial:
             serial.write(cmd)
-            retval = serial.read(6).decode("utf-8")
+
+    def move_absolute(self, value: int, wait=False):
+        cmd = bytearray([self.index, 20, *data_to_bytes(value)])
+        self.logger.debug(f"MOVE ABSOLUTE command: {cmd}")
+        with Serial(**self.serial_config) as serial:
+            serial.flush()
+            serial.write(cmd)
+            if self.keyword is not None:
+                VAMPIRES[self.keyword] = value
+            if wait:
+                # continously poll until position has been reached
+                current = np.inf
+                while np.abs(current - value) >= 0.1:
+                    current = self.true_position()
+                    sleep(0.5)
+
+    def move_relative(self, value: int, wait=False):
+        cmd = bytearray([self.index, 21, *data_to_bytes(value)])
+        self.logger.debug(f"MOVE RELATIVE command: {cmd}")
+        with Serial(**self.serial_config) as serial:
+            initial = self.true_position()
+            serial.flush()
+            serial.write(cmd)
+            if self.keyword is not None:
+                VAMPIRES[self.keyword] = initial + value
+            if wait:
+                # continously poll until position has been reached
+                current = np.inf
+                while np.abs(current - initial) >= np.abs(value) - 0.1:
+                    current = self.true_position()
+                    sleep(0.5)
+
+    def true_position(self):
+        cmd = bytearray([self.index, 60, 0, 0, 0, 0])
+        self.logger.debug(f"TRUE POSITION command: {cmd}")
+        with Serial(**self.serial_config) as serial:
+            serial.flush()
+            serial.write(cmd)
+            retbytes = "".join([line.decode("latin-1") for line in serial.readlines()])
+            retval = [ord(b) for b in retbytes]
             self.logger.debug(f"returned value: {retval}")
         # cut off leading command
-        # value = float(retval[3:])
+        value = bytes_to_data(retval[2:])
         if self.keyword is not None:
             VAMPIRES[self.keyword] = value
         return value
 
-    # def stop(self):
-    #     cmd = f"1ST\r\n".encode()
-    #     self.logger.debug(f"STOP command: {cmd}")
-    #     with Serial(**self.serial_config) as serial:
-    #         serial.write(cmd)
-    #     # call true position to update status
-    #     self.true_position()
+    def stop(self):
+        cmd = bytearray([self.index, 23, 0, 0, 0, 0])
+        self.logger.debug(f"STOP command: {cmd}")
+        with Serial(**self.serial_config) as serial:
+            serial.write(cmd)
+        # call true position to update status
+        self.true_position()
