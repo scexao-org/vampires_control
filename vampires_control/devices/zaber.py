@@ -1,6 +1,7 @@
 import json
 import logging
 from math import floor
+import numpy as np
 import re
 from serial import Serial
 from time import sleep
@@ -47,7 +48,7 @@ class ZaberDevice:
         self.logger = logging.getLogger(self.name)
 
     def home(self, wait=False):
-        cmd = bytearray([self.index, 1, *data_to_bytes(value)])
+        cmd = bytearray([self.index, 1, 0, 0, 0, 0])
         self.logger.debug(f"HOME command: {cmd}")
         with Serial(**self.serial_config) as serial:
             serial.flush()
@@ -60,7 +61,7 @@ class ZaberDevice:
                     sleep(0.5)
 
     def reset(self):
-        cmd = bytearray([self.index, 0, *data_to_bytes(value)])
+        cmd = bytearray([self.index, 0, 0, 0, 0, 0])
         self.logger.debug(f"RESET command: {cmd}")
         with Serial(**self.serial_config) as serial:
             serial.write(cmd)
@@ -76,7 +77,7 @@ class ZaberDevice:
             if wait:
                 # continously poll until position has been reached
                 current = np.inf
-                while np.abs(current - value) >= 0.1:
+                while np.abs(current - value) >= 100:
                     current = self.true_position()
                     sleep(0.5)
 
@@ -92,8 +93,9 @@ class ZaberDevice:
             if wait:
                 # continously poll until position has been reached
                 current = np.inf
-                while np.abs(current - initial) >= np.abs(value) - 0.1:
+                while np.abs(current - initial) >= np.abs(value) - 100:
                     current = self.true_position()
+                    print(np.abs(current - initial))
                     sleep(0.5)
 
     def true_position(self):

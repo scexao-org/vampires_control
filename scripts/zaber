@@ -99,11 +99,7 @@ def make_them_astro(on=True):
         bits[14] = val
         bits[15] = val
         dummy = command(i, 40, Byte2mode(bits))
-    print(
-        pycolor.warning
-        + "Astro mode is %s%s" % (on * "on", (not on) * "off")
-        + pycolor.endc
-    )
+    print(f"{pycolor.warning}Astro mode is {'on' if on else 'off'}{pycolor.endc}")
 
 
 def set_speed():
@@ -112,7 +108,7 @@ def set_speed():
     dummy = command(3, 42, 3400)
     dummy = command(4, 42, 1500)
     dummy = command(5, 42, 3400)
-    print(pycolor.warning + "Set speed to safe values" + pycolor.endc)
+    print(f"{pycolor.warning}Set speed to safe values{pycolor.endc}")
 
 
 def command(idn, cmd, arg, timeout=timeout):
@@ -122,8 +118,11 @@ def command(idn, cmd, arg, timeout=timeout):
     dummy = (
         ser.readlines()
     )  # flush all stored results tracking manual movement (command 10)
-    print(full_cmd)
-    ser.write(zab_cmd(full_cmd).encode(encoding))
+    print(dummy)
+    print(f"full command: {full_cmd}")
+    print(f"encoded: {zab_cmd(full_cmd).encode()}")
+    ecmd = zab_cmd(full_cmd).encode()
+    ser.write(ecmd)
     start = time.time()
     dummy = []
     if cmd == 0:
@@ -136,7 +135,7 @@ def command(idn, cmd, arg, timeout=timeout):
             :6
         ]  # read all lines, in case the character chr(10)='\n' is within the answer
         if time.time() - start > timeout:
-            print(pycolor.warning + "Answer timed out" + pycolor.endc)
+            print(f"{pycolor.warning}Answer timed out{pycolor.endc}")
             return
     return zaberByte2step(dummy[2:])  # returns the result
 
@@ -167,13 +166,13 @@ for arg in argv[1:]:
             try:
                 timeout = min(60, float(arg[arg.find("=") + 1 :]))
             except:
-                print(pycolor.fail + "Fail: can't read -t=" + pycolor.endc)
+                print(f"{pycolor.fail}Fail: can't read -t={pycolor.endc}")
                 quit()
         elif arg[1].upper() == "A":
             try:
                 modeAstro = str(arg[arg.find("=") + 1 :])
             except:
-                print(pycolor.fail + "Fail: can't read -a=" + pycolor.endc)
+                print(f"{pycolor.fail}Fail: can't read -a={pycolor.endc}")
                 quit()
             if modeAstro[:3].upper() == "OFF":
                 modeAstro = False
@@ -214,7 +213,7 @@ if inputNum is not None:
     try:
         zabCommand
     except:
-        print(pycolor.fail + "Fail: incomplete input" + pycolor.endc)
+        print(f"{pycolor.fail}Fail: incomplete input{pycolor.endc}")
         ser.close()
         quit()
     try:
@@ -222,9 +221,8 @@ if inputNum is not None:
     except:
         zabArgument = 0
     if int(zabNumber) not in list(zabMapping.keys()):
-        print(pycolor.fail + "Fail: zaber number unknown" + pycolor.endc)
+        print(f"{pycolor.fail}Fail: zaber number unknown{pycolor.endc}")
         ser.close()
         quit()
-    print("log: ", zabNumber, zabCommand, zabArgument, timeout)
     print(command(zabNumber, zabCommand, zabArgument, timeout))
 ser.close()

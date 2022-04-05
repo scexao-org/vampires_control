@@ -8,7 +8,6 @@
     "zaber_chain": {
         "address": "usb-FTDI_USB_Serial_Converter_FTG4YSH7-if00-port0",
         "pupil_stage_x": 1,
-        "pupil_stage_y": 2,
-        "difffocus_stage": 3
+        "pupil_stage_y": 2
     }
 }

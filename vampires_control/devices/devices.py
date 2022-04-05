@@ -115,14 +115,14 @@ class VAMPIRESPupilWheel:
             address=DEVICE_MAP["zaber_chain"]["address"],
             index=DEVICE_MAP["zaber_chain"]["pupil_stage_x"],
             keyword="pupil_wheel_x",
-            unit="step"
+            unit="step",
         )
         self.pupil_stage_y = ZaberDevice(
             "pupil_stage_y",
             address=DEVICE_MAP["zaber_chain"]["address"],
             index=DEVICE_MAP["zaber_chain"]["pupil_stage_y"],
             keyword="pupil_wheel_y",
-            unit="step"
+            unit="step",
         )
         self.conf_file = conf_file
         with open(self.conf_file) as fh:
@@ -132,6 +132,10 @@ class VAMPIRESPupilWheel:
         idx = position - 1  # idx starts at 0
         values = self.positions["positions"][idx]
         self.pupil_wheel.move_absolute(values["angle"], wait=wait)
+        print(values["x"])
+        self.pupil_stage_x.move_absolute(values["x"], wait=wait)
+        print(values["y"])
+        self.pupil_stage_y.move_absolute(values["y"], wait=wait)
         VAMPIRES["pupil_wheel"] = values["number"]
         VAMPIRES["pupil_wheel_status"] = values["name"]
 

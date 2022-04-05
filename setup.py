@@ -45,7 +45,7 @@ setup(
         "scripts/vampires_qwp",
         "scripts/vampires_pupil",
         "scripts/vampires_status",
-        "scripts/conex"
+        "scripts/conex",
     ],
     install_requires=[
         "docopt==0.6.*",
