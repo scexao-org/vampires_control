@@ -24,7 +24,7 @@ __doc__ = f"""
 Usage:
     vampires_pupil <position> [-h | --help] [-w | --wait] 
     vampires_pupil wheel (status|target|home|goto|nudge|stop|reset) [<angle>] [-h | --help] [-w | --wait]
-    vampires_pupil (x|y) (status|home|goto|nudge|stop) [<posn>] [-h | --help] [-w | --wait]
+    vampires_pupil (x|y) (status|home|goto|nudge|stop) [<pos>] [-h | --help] [-w | --wait]
 
 Options:
     -h --help   Show this screen
@@ -75,7 +75,23 @@ if __name__ == "__main__":
         else:
             print(args)
     elif args["x"] or args["y"]:
-        print("Not supported yet, please use `zaber3`")
+        stage = pupil_wheel.pupil_stage_x if args["x"] else pupil_wheel.pupil_stage_y
+        if args["status"]:
+            print(stage.true_position())
+        elif args["nudge"]:
+            rel_pos = int(args["<pos>"])
+            stage.move_relative(rel_pos, wait=args["--wait"])
+        elif args["goto"]:
+            pos = int(args["<pos>"])
+            stage.move_absolute(pos, wait=args["--wait"])
+        elif args["home"]:
+            stage.home(wait=args["--wait"])
+        elif args["reset"]:
+            stage.reset()
+        elif args["stop"]:
+            stage.stop()
+        else:
+            print(args)
     else:
         position = int(args["<position>"])
         pupil_wheel.move_position(position, wait=args["--wait"])
