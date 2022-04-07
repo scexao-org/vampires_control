@@ -30,7 +30,17 @@ def bytes_to_data(bytes):
 
 
 class ZaberDevice:
-    def __init__(self, name, address, index, keyword=None, unit="", **serial_kwargs):
+    def __init__(
+        self,
+        name,
+        address,
+        index,
+        keyword=None,
+        unit="",
+        shorthands=None,
+        argname="",
+        **serial_kwargs,
+    ):
         self.name = name
         self.address = address
         self.index = index
@@ -38,6 +48,8 @@ class ZaberDevice:
         self.keyword = keyword
         self.unit = unit
         self.position = None
+        self.shorthands = shorthands if shorthands is not None else []
+        self.argname = argname
 
         self.serial_config = {
             "port": f"/dev/serial/by-id/{self.address}",
@@ -103,3 +115,16 @@ class ZaberDevice:
             serial.write(cmd)
         # call true position to update status
         self.true_position()
+
+    def help_message(self):
+        cmds = [self.name, *self.shorthands]
+        helpstr = f"""
+{','.join(cmds)}
+
+Commands:
+    {self.name} ([st]atus|[h]ome|[r]eset|[g]oto|[n]udge) [<{self.argname}>]  [-w | --wait]
+
+Options:
+    -h --help   Display this message
+    -w --wait   Block until motion is completed, if applicable
+        """

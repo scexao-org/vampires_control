@@ -14,12 +14,23 @@ logging.basicConfig(
 
 
 class ConexDevice:
-    def __init__(self, name, address, keyword=None, unit="", **serial_kwargs):
+    def __init__(
+        self,
+        name,
+        address,
+        keyword=None,
+        unit="",
+        shorthands=None,
+        argname=None,
+        **serial_kwargs,
+    ):
         self.name = name
         self.address = address
 
         self.keyword = keyword
         self.unit = unit
+        self.shorthands = shorthands if shorthands is not None else []
+        self.argname = argname
         self.position = None
 
         self.serial_config = {
@@ -34,6 +45,7 @@ class ConexDevice:
         cmd = f"1OR\r\n".encode()
         self.logger.debug(f"HOME command: {cmd}")
         with Serial(**self.serial_config) as serial:
+            serial.flush()
             serial.write(cmd)
             if wait:
                 # continously poll until position has been reached
@@ -46,12 +58,14 @@ class ConexDevice:
         cmd = f"1RS\r\n".encode()
         self.logger.debug(f"RESET command: {cmd}")
         with Serial(**self.serial_config) as serial:
+            serial.flush()
             serial.write(cmd)
 
     def move_absolute(self, value, wait=False):
         cmd = f"1PA {value}\r\n".encode()
         self.logger.debug(f"MOVE ABSOLUTE command: {cmd}")
         with Serial(**self.serial_config) as serial:
+            serial.flush()
             serial.write(cmd)
             if self.keyword is not None:
                 VAMPIRES[self.keyword] = value
@@ -66,6 +80,7 @@ class ConexDevice:
         cmd = f"1PR {value}\r\n".encode()
         self.logger.debug(f"MOVE RELATIVE command: {cmd}")
         with Serial(**self.serial_config) as serial:
+            serial.flush()
             initial = self.true_position()
             serial.write(cmd)
             if self.keyword is not None:
@@ -81,9 +96,9 @@ class ConexDevice:
         cmd = f"1TH?\r\n".encode()
         self.logger.debug(f"TARGET POSITION command: {cmd}")
         with Serial(**self.serial_config) as serial:
+            serial.flush()
             serial.write(cmd)
-            tokens = serial.read(1024).decode("utf-8").split("\r\n")
-            retval = tokens[0]
+            retval = serial.read(1024).decode("utf-8")
             self.logger.debug(f"returned value: {retval}")
         # cut off leading command
         return float(retval[3:])
@@ -92,9 +107,9 @@ class ConexDevice:
         cmd = f"1TP?\r\n".encode()
         self.logger.debug(f"TRUE POSITION command: {cmd}")
         with Serial(**self.serial_config) as serial:
+            serial.flush()
             serial.write(cmd)
-            tokens = serial.read(1024).decode("utf-8").split("\r\n")
-            retval = tokens[0]
+            retval = serial.read(1024).decode("utf-8")
             self.logger.debug(f"returned value: {retval}")
         # cut off leading command
         value = float(retval[3:])
@@ -106,6 +121,21 @@ class ConexDevice:
         cmd = f"1ST\r\n".encode()
         self.logger.debug(f"STOP command: {cmd}")
         with Serial(**self.serial_config) as serial:
+            serial.flush()
             serial.write(cmd)
         # call true position to update status
         self.true_position()
+
+    def help_message(self):
+        cmds = [self.name, *self.shorthands]
+        helpstr = f"""
+{','.join(cmds)}
+
+Commands:
+    {self.name} ([st]atus|[h]ome|[r]eset|[g]oto|[n]udge) [<{self.argname}>]  [-w | --wait]
+
+Options:
+    -h --help   Display this message
+    -w --wait   Block until motion is completed, if applicable
+        """
+        return helpstr
