@@ -4,6 +4,16 @@ import socket
 
 from vampires_control.server import DEFAULT_HOST, DEFAULT_PORT
 
+
+def send_command(string, host, port, response=False):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.connect((host, port))
+        sock.sendall(bytes(string, "ascii"))
+        if response:
+            resp = str(sock.recv(1024), "ascii")
+            return resp
+
+
 __doc__ = f"""
 Usage:
     vampires [-h | --help] [--host <HOST>] [-p <PORT> | --port <PORT>] <command> [<args> ...]
@@ -16,20 +26,84 @@ Options:
     -p --port <PORT>    VAMPIRES daemon port, default is {DEFAULT_PORT}
 
 Commands:
-    get <KEYWORD>   Query a keyword from the VAMPIRES status
+    (g)et <KEYWORD>   Query a keyword from the VAMPIRES status
 
 """
 
 if __name__ == "__main__":
     args = docopt(__doc__)
-    port = args["--port"] if args["--port"] is not None else DEFAULT_PORT
     host = args["--host"] if args["--host"] is not None else DEFAULT_HOST
+    port = int(args["--port"]) if args["--port"] is not None else DEFAULT_PORT
 
-    if args["<command>"] == "get":
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.connect((host, port))
-            sock.sendall(bytes(f"get {args['<args>'][0]}", "ascii"))
-            response = str(sock.recv(1024), "ascii")
+    if args["<command>"] == "get" or args["<command>"] == "g":
+        response = send_command(f"get {args['<args>'][0]}", host, port, response=True)
+        print(response)
+    elif args["<command>"] == "set" or args["<command>"] == "s":
+        response = send_command(
+            f"set {' '.join(args['<args>'])}", host, port, response=True
+        )
+        print(response)
+    elif args["<command>"] == "beamsplitter" or args["<command>"] == "bs":
+        if (
+            len(args["<args>"]) == 0
+            or args["<args>"][0] == "status"
+            or args["<args>"][0] == "st"
+        ):
+            response = send_command("beamsplitter status", host, port, response=True)
             print(response)
+        elif args["<args>"][0] == "wheel" or args["<args>"][0] == "w":
+            if (
+                len(args["<args>"]) == 1
+                or args["<args>"][1] == "status"
+                or args["<args>"][1] == "st"
+            ):
+                response = send_command(
+                    "beamsplitter wheel status", host, port, response=True
+                )
+                print(response)
+            elif args["<args>"][1] == "home" or args["<args>"][1] == "h":
+                send_command("beamsplitter wheel home", host, port)
+            elif args["<args>"][1] == "reset" or args["<args>"][1] == "r":
+                send_command("beamsplitter wheel reset", host, port)
+            elif args["<args>"][1] == "target" or args["<args>"][1] == "th":
+                send_command("beamsplitter wheel target", host, port)
+            elif args["<args>"][1] == "stop" or args["<args>"][1] == "s":
+                response = send_command(
+                    "beamsplitter wheel stop", host, port, response=True
+                )
+                print(response)
+            elif args["<args>"][1] == "goto" or args["<args>"][1] == "g":
+                value = args["<args>"][2]
+                response = send_command(
+                    f"beamsplitter wheel goto {value}", host, port, response=True
+                )
+                print(response)
+            elif args["<args>"][1] == "nudge" or args["<args>"][1] == "n":
+                value = args["<args>"][2]
+                response = send_command(
+                    f"beamsplitter wheel nudge {value}", host, port, response=True
+                )
+                print(response)
+        else:
+            try:
+                posn = int(args["<args>"][0])
+                send_command(f"beamsplitter {posn}", host, port)
+            except:
+                print(args)
+    elif (
+        args["<command>"] == "diffwheel"
+        or args["<command>"] == "diff"
+        or args["<command>"] == "df"
+    ):
+        pass
+    elif args["<command>"] == "pupil" or args["<command>"] == "p":
+        pass
+    elif args["<command>"] == "focus" or args["<command>"] == "f":
+        pass
+    elif args["<command>"] == "qwp" or args["<command>"] == "q":
+        pass
+    elif args["<command>"] == "status" or args["<command>"] == "st":
+        response = send_command("status", host, port, response=True)
+        print(response)
     else:
         print(args)
