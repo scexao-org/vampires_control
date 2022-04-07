@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+from docopt import docopt
+import socket
+
+from vampires_control.server import DEFAULT_HOST, DEFAULT_PORT
+
+__doc__ = f"""
+Usage:
+    vampires [-h | --help] [--host <HOST>] [-p <PORT> | --port <PORT>] <command> [<args> ...]
+
+Interface with the VAMPIRES instrument control daemon from the command line. 
+
+Options:
+    -h --help           Print this message
+    --host <HOST>       VAMPIRES daemon host, default is {DEFAULT_HOST}
+    -p --port <PORT>    VAMPIRES daemon port, default is {DEFAULT_PORT}
+
+Commands:
+    get <KEYWORD>   Query a keyword from the VAMPIRES status
+
+"""
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+    port = args["--port"] if args["--port"] is not None else DEFAULT_PORT
+    host = args["--host"] if args["--host"] is not None else DEFAULT_HOST
+
+    if args["<command>"] == "get":
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.connect((host, port))
+            sock.sendall(bytes(f"get {args['<args>'][0]}", "ascii"))
+            response = str(sock.recv(1024), "ascii")
+            print(response)
+    else:
+        print(args)
