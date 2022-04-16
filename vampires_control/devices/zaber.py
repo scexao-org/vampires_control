@@ -10,11 +10,6 @@ from time import sleep
 
 from ..state import VAMPIRES
 
-formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
-logging.basicConfig(
-    level=logging.DEBUG, format=formatter, handlers=[logging.StreamHandler()]
-)
-
 
 def data_to_bytes(data: int):
     return struct.pack("<Q", data)
@@ -128,3 +123,4 @@ Options:
     -h --help   Display this message
     -w --wait   Block until motion is completed, if applicable
         """
+        return helpstr

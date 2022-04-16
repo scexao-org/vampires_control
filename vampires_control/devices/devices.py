@@ -220,12 +220,11 @@ class VAMPIRESPupilWheel:
         idx = position - 1  # idx starts at 0
         values = self.positions["positions"][idx]
         self.pupil_wheel.move_absolute(values["angle"], wait=wait)
-        print(values["x"])
         self.pupil_stage_x.move_absolute(values["x"], wait=wait)
-        print(values["y"])
         self.pupil_stage_y.move_absolute(values["y"], wait=wait)
         VAMPIRES["pupil_wheel"] = values["number"]
         VAMPIRES["pupil_wheel_status"] = values["name"]
+        VAMPIRES["pupil_wheel_x"] = self.pupil_stage_x.true_position()
 
     def write(self, file=None):
         if file is None:
