@@ -1,7 +1,57 @@
 #!/usr/bin/env python
 from docopt import docopt
+from daemon import DaemonContext
+import logging
+from logging.config import dictConfig
+from logging.handlers import TimedRotatingFileHandler, SysLogHandler
 from socketserver import ForkingTCPServer
 from vampires_control.server import DEFAULT_HOST, DEFAULT_PORT, VAMPIRESHandler
+
+dictConfig(
+    {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "standard": {"format": "%(asctime)s|%(levelname)s|%(name)s - %(message)s"}
+        },
+        "handlers": {
+            "file": {
+                "class": "logging.handlers.TimedRotatingFileHandler",
+                "when": "midnight",
+                "utc": True,
+                "backupCount": 9999,
+                "level": logging.INFO,
+                "filename": "/var/log/vampires/vampires.log",
+                "formatter": "standard",
+            },
+            "debug": {
+                "class": "logging.handlers.TimedRotatingFileHandler",
+                "when": "midnight",
+                "utc": True,
+                "backupCount": 31,
+                "level": logging.DEBUG,
+                "filename": "/var/log/vampires/vampires_debug.log",
+                "formatter": "standard",
+            },
+            "stream": {
+                "class": "logging.StreamHandler",
+                "formatter": "standard",
+                "level": logging.INFO
+            },
+            "syslog": {
+                "class": "logging.handlers.SysLogHandler",
+                "level": logging.DEBUG,
+                "formatter": "standard",
+            },
+        },
+        "loggers": {"": {
+            "handlers": ["file", "debug", "stream", "syslog"],
+            "level": logging.DEBUG
+        }},
+    }
+)
+# logging.basicConfig(level=logging.DEBUG, format="%(asctime)s|%(levelname)s|%(name)s - %(message)s", handlers=[SysLogHandler(), TimedRotatingFileHandler("/var/log/vampires/vampires.log", when="midnight", utc=True, backupCount=9999)])
+logger = logging.getLogger("vampires")
 
 __doc__ = f"""
 Usage:
@@ -22,6 +72,7 @@ if __name__ == "__main__":
     port = int(args["--port"]) if args["--port"] is not None else DEFAULT_PORT
 
     print(f"launching server on at {host}:{port}")
+    logger.info(f"launching server on at {host}:{port}")
 
     with ForkingTCPServer((host, port), VAMPIRESHandler) as server:
         server.serve_forever()

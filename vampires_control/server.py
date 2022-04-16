@@ -1,5 +1,6 @@
 from docopt import docopt
 import json
+import logging
 import socketserver
 from socketserver import BaseRequestHandler
 
@@ -16,11 +17,15 @@ from .devices.devices import (
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 47653
 
+logger = logging.getLogger("vampires")
 
 class VAMPIRESHandler(BaseRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        print(f"{self.client_address[0]} received: {self.data}")
+        logger.info(f"received: {self.data}")
 
         command = str(self.data, "ascii")
         tokens = command.split()
@@ -104,7 +109,7 @@ class VAMPIRESHandler(BaseRequestHandler):
                     angle = VAMPIRES["beamsplitter_angle"]
                     out = f"({posn}) {status} {{{angle} {beamsplitter.beamsplitter_wheel.unit}}}"
                     self.request.sendall(bytes(out, "ascii"))
-                except:
+                except ValueError:
                     self.request.sendall(
                         bytes("ERROR: invalid command received", "ascii")
                     )
@@ -157,7 +162,7 @@ class VAMPIRESHandler(BaseRequestHandler):
                     angle = VAMPIRES["diffwheel_angle"]
                     out = f"({posn}) {status} {{t={angle} {differential_filter.diffwheel.unit}}}"
                     self.request.sendall(bytes(out, "ascii"))
-                except:
+                except ValueError:
                     self.request.sendall(
                         bytes("ERROR: invalid command received", "ascii")
                     )
@@ -272,10 +277,11 @@ class VAMPIRESHandler(BaseRequestHandler):
                 try:
                     posn = int(tokens[1])
                     pupil_wheel.move_position(posn, wait=wait)
+                    print(pupil_wheel.status())
                     self.request.sendall(
                         bytes(pupil_wheel.status(update=update), "ascii")
                     )
-                except:
+                except ValueError:
                     self.request.sendall(
                         bytes("ERROR: invalid command received", "ascii")
                     )
