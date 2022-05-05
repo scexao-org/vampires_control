@@ -4,8 +4,29 @@ from daemon import DaemonContext
 import logging
 from logging.config import dictConfig
 from logging.handlers import TimedRotatingFileHandler, SysLogHandler
-from socketserver import ForkingTCPServer
-from vampires_control.server import DEFAULT_HOST, DEFAULT_PORT, VAMPIRESHandler
+import zmq
+from pathlib import Path
+from vampires_control.server import DEFAULT_HOST, DEFAULT_PORT, handle_message
+
+__doc__ = f"""
+Usage:
+    vampiresd [-h | --help] [--host <HOST>] [-p <PORT> | --port <PORT>]
+
+Launch the VAMPIRES server daemon.
+
+Options:
+    -h --help           Print this message
+    --host <HOST>       Change the port, default is {DEFAULT_HOST}
+    -p --port <PORT>    Change the port, default is {DEFAULT_PORT}
+
+"""
+
+# set up logging
+LOG_PATH = Path("/var/log/vampires/vampires.log").resolve()
+DEBUG_LOG_PATH = Path("/var/log/vampires/vampires_debug.log").resolve()
+# ensure directories exist
+LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+DEBUG_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 dictConfig(
     {
@@ -21,7 +42,7 @@ dictConfig(
                 "utc": True,
                 "backupCount": 9999,
                 "level": logging.INFO,
-                "filename": "/var/log/vampires/vampires.log",
+                "filename": LOG_PATH,
                 "formatter": "standard",
             },
             "debug": {
@@ -30,7 +51,7 @@ dictConfig(
                 "utc": True,
                 "backupCount": 31,
                 "level": logging.DEBUG,
-                "filename": "/var/log/vampires/vampires_debug.log",
+                "filename": DEBUG_LOG_PATH,
                 "formatter": "standard",
             },
             "stream": {
@@ -38,14 +59,9 @@ dictConfig(
                 "formatter": "standard",
                 "level": logging.INFO
             },
-            "syslog": {
-                "class": "logging.handlers.SysLogHandler",
-                "level": logging.DEBUG,
-                "formatter": "standard",
-            },
         },
         "loggers": {"": {
-            "handlers": ["file", "debug", "stream", "syslog"],
+            "handlers": ["file", "debug", "stream"],
             "level": logging.DEBUG
         }},
     }
@@ -53,26 +69,26 @@ dictConfig(
 # logging.basicConfig(level=logging.DEBUG, format="%(asctime)s|%(levelname)s|%(name)s - %(message)s", handlers=[SysLogHandler(), TimedRotatingFileHandler("/var/log/vampires/vampires.log", when="midnight", utc=True, backupCount=9999)])
 logger = logging.getLogger("vampires")
 
-__doc__ = f"""
-Usage:
-    vampiresd [-h | --help] [--host <HOST>] [-p <PORT> | --port <PORT>]
+def launch_server(host=DEFAULT_HOST, port=DEFAULT_PORT):
+    context = zmq.Context()
+    # create reply request socket
+    socket = context.socket(zmq.REP)
+    socket.bind(f"tcp://{host}:{port}")
 
-Launch the VAMPIRES server daemon.
+    # begin receiving requests
+    while True:
+        message = socket.recv()
+        logger.debug(f"message received: {message}")
+        response = handle_message(str(message, "ascii"))
 
-Options:
-    -h --help           Print this message
-    --host <HOST>       Change the port, default is {DEFAULT_HOST}
-    -p --port <PORT>    Change the port, default is {DEFAULT_PORT}
+        socket.send_string(response)
 
-"""
 
 if __name__ == "__main__":
     args = docopt(__doc__)
     host = args["--host"] if args["--host"] is not None else DEFAULT_HOST
     port = int(args["--port"]) if args["--port"] is not None else DEFAULT_PORT
 
-    print(f"launching server on at {host}:{port}")
     logger.info(f"launching server on at {host}:{port}")
 
-    with ForkingTCPServer((host, port), VAMPIRESHandler) as server:
-        server.serve_forever()
+    launch_server(host, port)

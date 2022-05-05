@@ -2,13 +2,9 @@
 from docopt import docopt
 import socket
 import sys
+import zmq
 
 from vampires_control.server import DEFAULT_HOST, DEFAULT_PORT
-
-
-def send_command(string, host, port, response=False):
-    pass
-
 
 __doc__ = f"""
 Usage:
@@ -35,6 +31,16 @@ Commands:
     qwp,q [<cmd>...]              Control the two QWP rotators.
 """
 
+def send_command(command, host=DEFAULT_HOST, port=DEFAULT_PORT, response=False):
+    context = zmq.Context()
+    # set up request socket
+    socket = context.socket(zmq.REQ)
+    socket.connect(f"tcp://{host}:{port}")
+
+    socket.send_string(command)
+    response = str(socket.recv(), "ascii")
+    return response
+
 if __name__ == "__main__":
     args = docopt(__doc__, help=False, options_first=True)
     if args["<command>"] is None:
@@ -47,9 +53,7 @@ if __name__ == "__main__":
     if args["--wait"]:
         _args += " --wait"
     cmd = f"{args['<command>']} {_args}"
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((host, port))
-        sock.sendall(bytes(cmd, "ascii"))
-        resp = str(sock.recv(1024), "ascii")
-        if resp:
-            print(resp)
+    
+    response = send_command(cmd, host, port)
+    if response is not None:
+        print(response)

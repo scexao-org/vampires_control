@@ -52,6 +52,7 @@ setup(
         "numpy==1.*",
         "pyserial==3.*",
         "python-daemon==2.*",
+        "pyzmq==18.*",
         "scxkw==0.1",
         "tqdm==4.*",
     ],
