@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 
 from .state import VAMPIRES
 from .devices.devices import (
@@ -14,8 +15,11 @@ from .devices.devices import (
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 47653
 
+from argparse import ArgumentParser
+
+
 def handle_message(message):
-        tokens = message.split()
+        tokens = message.strip().split()
         # see if wait flag is set
         wait = "-w" in tokens or "--wait" in tokens
         update = "-u" in tokens or "--update" in tokens
@@ -35,7 +39,7 @@ def handle_message(message):
                 f_st = focus.true_position()
             else:
                 f_st = VAMPIRES["focus_stage"]
-            f = f"[{'focus':^12s}]   : {{z={f_st} {focus.unit}}}"
+            f = f"[{'focus':^12s}]   : {' ' * 20} {{z={f_st} {focus.unit}}}"
 
             if update:
                 qwp1_angle = qwp_1.true_position()
@@ -43,7 +47,7 @@ def handle_message(message):
             else:
                 qwp1_angle = VAMPIRES["qwp_1"]
                 qwp2_angle = VAMPIRES["qwp_2"]
-            q = f"[{'qwp':^12s}]   : {{t1={qwp1_angle} {qwp_1.unit}, t2={qwp2_angle} {qwp_2.unit}}}"
+            q = f"[{'qwp':^12s}]   : {' ' * 20} {{t1={qwp1_angle} {qwp_1.unit}, t2={qwp2_angle} {qwp_2.unit}}}"
 
             out = "\n".join([bs, df, p, f, q])
             return out

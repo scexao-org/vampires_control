@@ -224,7 +224,6 @@ class VAMPIRESPupilWheel:
         self.pupil_stage_y.move_absolute(values["y"], wait=wait)
         VAMPIRES["pupil_wheel"] = values["number"]
         VAMPIRES["pupil_wheel_status"] = values["name"]
-        VAMPIRES["pupil_wheel_x"] = self.pupil_stage_x.true_position()
 
     def write(self, file=None):
         if file is None:
