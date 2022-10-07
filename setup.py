@@ -45,6 +45,7 @@ setup(
         "scripts/vampires_qwp",
         "scripts/vampires_pupil",
         "scripts/vampires_status",
+        "scripts/vampires_nominal",
         "scripts/conex",
     ],
     install_requires=[
