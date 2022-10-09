@@ -37,7 +37,7 @@ class ConexDevice:
         self.logger = logging.getLogger(self.name)
 
     def home(self, wait=False):
-        cmd = f"1OR\r\n".encode()
+        cmd = b"1OR\r\n"
         self.logger.debug(f"HOME command: {cmd}")
         self.serial.write(cmd)
         if wait:
@@ -48,7 +48,7 @@ class ConexDevice:
                 sleep(0.5)
 
     def reset(self):
-        cmd = f"1RS\r\n".encode()
+        cmd = b"1RS\r\n"
         self.logger.debug(f"RESET command: {cmd}")
         self.serial.write(cmd)
 
@@ -80,7 +80,7 @@ class ConexDevice:
                 sleep(0.5)
 
     def target_position(self):
-        cmd = f"1TH?\r\n".encode()
+        cmd = b"1TH?\r\n"
         self.logger.debug(f"TARGET POSITION command: {cmd}")
         self.serial.write(cmd)
         retval = self.serial.read(1024).decode("utf-8").split("\r\n", 1)[0]
@@ -89,7 +89,7 @@ class ConexDevice:
         return float(retval[3:])
 
     def true_position(self):
-        cmd = f"1TP?\r\n".encode()
+        cmd = b"1TP?\r\n"
         self.logger.debug(f"TRUE POSITION command: {cmd}")
         self.serial.write(cmd)
         retval = self.serial.read(1024).decode("utf-8").split("\r\n", 1)[0]
@@ -101,7 +101,7 @@ class ConexDevice:
         return value
 
     def stop(self):
-        cmd = f"1ST\r\n".encode()
+        cmd = b"1ST\r\n"
         self.logger.debug(f"STOP command: {cmd}")
         self.serial.write(cmd)
         # call true position to update status

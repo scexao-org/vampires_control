@@ -1,5 +1,5 @@
 [Unit]
-Description=Control all daemons used in VAMPIRES
+Description=VAMPIRES Control Daemons
 
 [Service]
 # The dummy program will exit
