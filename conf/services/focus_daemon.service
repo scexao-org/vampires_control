@@ -1,0 +1,15 @@
+[Unit]
+Description=0MQ socket daemon for the VAMPIRES lens focus stage
+PartOf=vampiresd.service
+After=vampiresd.service
+
+[Service]
+Type=forking
+# Pretend that the component is running
+ExecStart=/usr/bin/env python -m  infinity
+# Restart the service on non-zero exit code when terminated by a signal other than SIGHUP, SIGINT, SIGTERM or SIGPIPE
+Restart=on-failure
+
+[Install]
+# This unit should start when app.service is starting
+WantedBy=app.service

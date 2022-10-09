@@ -5,7 +5,7 @@ import re
 from serial import Serial
 from time import sleep
 
-from ..state import VAMPIRES
+from ...state import VAMPIRES
 
 
 class ConexDevice:
@@ -28,78 +28,72 @@ class ConexDevice:
         self.argname = argname
         self.position = None
 
-        self.serial_config = {
-            "port": f"/dev/serial/by-id/{self.address}",
-            "baudrate": 921600,
-            "timeout": 0.5,
+        self.serial = Serial(
+            port=f"/dev/serial/by-id/{self.address}",
+            baudrate=921600,
+            timeout=0.5,
             **serial_kwargs,
-        }
+        )
         self.logger = logging.getLogger(self.name)
 
     def home(self, wait=False):
         cmd = f"1OR\r\n".encode()
         self.logger.debug(f"HOME command: {cmd}")
-        with Serial(**self.serial_config) as serial:
-            serial.write(cmd)
-            if wait:
-                # continously poll until position has been reached
-                current = np.inf
-                while np.abs(current) >= 0.1:
-                    current = self.true_position()
-                    sleep(0.5)
+        self.serial.write(cmd)
+        if wait:
+            # continously poll until position has been reached
+            current = np.inf
+            while np.abs(current) >= 0.1:
+                current = self.true_position()
+                sleep(0.5)
 
     def reset(self):
         cmd = f"1RS\r\n".encode()
         self.logger.debug(f"RESET command: {cmd}")
-        with Serial(**self.serial_config) as serial:
-            serial.write(cmd)
+        self.serial.write(cmd)
 
     def move_absolute(self, value, wait=False):
         cmd = f"1PA {value}\r\n".encode()
         self.logger.debug(f"MOVE ABSOLUTE command: {cmd}")
-        with Serial(**self.serial_config) as serial:
-            serial.write(cmd)
-            if self.keyword is not None:
-                VAMPIRES[self.keyword] = value
-            if wait:
-                # continously poll until position has been reached
-                current = np.inf
-                while np.abs(current - value) >= 0.1:
-                    current = self.true_position()
-                    sleep(0.5)
+        self.serial.write(cmd)
+        if self.keyword is not None:
+            VAMPIRES[self.keyword] = value
+        if wait:
+            # continously poll until position has been reached
+            current = np.inf
+            while np.abs(current - value) >= 0.1:
+                current = self.true_position()
+                sleep(0.5)
 
     def move_relative(self, value, wait=False):
         cmd = f"1PR {value}\r\n".encode()
         self.logger.debug(f"MOVE RELATIVE command: {cmd}")
-        with Serial(**self.serial_config) as serial:
-            initial = self.true_position()
-            serial.write(cmd)
-            if self.keyword is not None:
-                VAMPIRES[self.keyword] = initial + value
-            if wait:
-                # continously poll until position has been reached
-                current = np.inf
-                while np.abs(current - initial) >= np.abs(value) - 0.1:
-                    current = self.true_position()
-                    sleep(0.5)
+        initial = self.true_position()
+        self.serial.write(cmd)
+        if self.keyword is not None:
+            VAMPIRES[self.keyword] = initial + value
+        if wait:
+            # continously poll until position has been reached
+            current = np.inf
+            while np.abs(current - initial) >= np.abs(value) - 0.1:
+                current = self.true_position()
+                sleep(0.5)
 
     def target_position(self):
         cmd = f"1TH?\r\n".encode()
         self.logger.debug(f"TARGET POSITION command: {cmd}")
-        with Serial(**self.serial_config) as serial:
-            serial.write(cmd)
-            retval = serial.read(1024).decode("utf-8").split("\r\n", 1)[0]
-            self.logger.debug(f"returned value: {retval}")
+        self.serial.write(cmd)
+        retval = self.serial.read(1024).decode("utf-8").split("\r\n", 1)[0]
+        self.logger.debug(f"returned value: {retval}")
         # cut off leading command
         return float(retval[3:])
 
     def true_position(self):
         cmd = f"1TP?\r\n".encode()
         self.logger.debug(f"TRUE POSITION command: {cmd}")
-        with Serial(**self.serial_config) as serial:
-            serial.write(cmd)
-            retval = serial.read(1024).decode("utf-8").split("\r\n", 1)[0]
-            self.logger.debug(f"returned value: {retval}")
+        self.serial.write(cmd)
+        retval = self.serial.read(1024).decode("utf-8").split("\r\n", 1)[0]
+        self.logger.debug(f"returned value: {retval}")
         # cut off leading command
         value = float(retval[3:])
         if self.keyword is not None:
@@ -109,8 +103,7 @@ class ConexDevice:
     def stop(self):
         cmd = f"1ST\r\n".encode()
         self.logger.debug(f"STOP command: {cmd}")
-        with Serial(**self.serial_config) as serial:
-            serial.write(cmd)
+        self.serial.write(cmd)
         # call true position to update status
         self.true_position()
 

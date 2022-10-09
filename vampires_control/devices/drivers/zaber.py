@@ -8,7 +8,7 @@ import struct
 import sys
 from time import sleep
 
-from ..state import VAMPIRES
+from ...state import VAMPIRES
 
 
 def data_to_bytes(data: int):

@@ -2,8 +2,8 @@ import json
 from serial import Serial
 
 from ..state import VAMPIRES
-from .conex import ConexDevice
-from .zaber import ZaberDevice
+from .drivers.conex import ConexDevice
+from .drivers.zaber import ZaberDevice
 
 __all__ = [
     "beamsplitter",

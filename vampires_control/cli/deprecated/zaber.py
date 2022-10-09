@@ -140,7 +140,7 @@ def command(idn, cmd, arg, timeout=timeout):
     return zaberByte2step(dummy[2:])  # returns the result
 
 
-def mian():
+def main():
     # checks options
     modeAstro = None
     safeSpeed = None
@@ -227,3 +227,7 @@ def mian():
             quit()
         print(command(zabNumber, zabCommand, zabArgument, timeout))
     ser.close()
+
+
+if __name__ == "__main__":
+    main()

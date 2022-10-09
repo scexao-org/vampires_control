@@ -183,3 +183,7 @@ def main():
                     f"use\n\n\t{pycolor.okgreen}{newcmd} nudge {conexArgument}{pycolor.endc}\n"
                 )
                 device.move_relative(conexArgument)
+
+
+if __name__ == "__main__":
+    main()
