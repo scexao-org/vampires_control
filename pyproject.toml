@@ -20,11 +20,16 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[tool.setuptools.packages.find]
+exclude = ["conf"]
+
 [project.optional-dependencies]
 test = ["pytest==7.*", "mock-serial==0.0.*", "pytest-cov==4.*"]
 docs = ["sphinx>=4.5<5", "sphinx-rtd-theme==1.*", "myst-parser==0.18.*"]
 
 [project.scripts]
+conex = "vampires_control.cli.deprecated.conex:main"
+zaber = "vampires_control.cli.deprecated.zaber:main"
 vampires_beamsplitter = "vampires_control.cli.vampires_beamsplitter:main"
 vampires_diffwheel = "vampires_control.cli.vampires_diffwheel:main"
 vampires_focus = "vampires_control.cli.vampires_focus:main"
@@ -32,8 +37,6 @@ vampires_qwp = "vampires_control.cli.vampires_qwp:main"
 vampires_pupil = "vampires_control.cli.vampires_pupil:main"
 vampires_status = "vampires_control.cli.vampires_status:main"
 vampires_nominal = "vampires_control.cli.vampires_nominal:main"
-conex = "vampires_control.deprecated.conex:main"
-zaber = "vampires_control.deprecated.zaber:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_control.__version__"}
