@@ -31,7 +31,6 @@ myst_enable_extensions = [
     "dollarmath",
 ]
 myst_heading_anchors = 2
-source_suffix = {".rst": "restructuredtext", ".md": "myst-nb", ".ipynb": "myst-nb"}
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
@@ -41,10 +40,6 @@ autodoc_typehints_format = "short"
 
 # -- Options for HTML output -------------------------------------------------
 
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 html_title = "VAMPIRES Control"
 html_theme = "sphinx_rtd_theme"
-html_theme_options = {
-    "github_url": "https://github.com/scexao-org/vampires_control",
-    "repository_url": "https://github.com/scexao-org/vampires_control",
-}

@@ -1,6 +1,8 @@
 VAMPIRES Control Software
 ========================================
 
+.. image:: https://img.shields.io/badge/Code-GitHub-black.svg
+   :target: https://github.com/scexao-org/vampires_control
 .. image:: https://github.com/scexao-org/vampires_control/actions/workflows/CI.yml/badge.svg?branch=main
    :target: https://github.com/scexao-org/vampires_control/actions/workflows/CI.yml
 .. image:: https://codecov.io/gh/scexao-org/vampires_control/branch/main/graph/badge.svg

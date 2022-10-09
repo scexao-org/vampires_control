@@ -1,5 +1,10 @@
 # VAMPIRES control
 
+[![CI tests](https://github.com/scexao-org/vampires_control/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/scexao-org/vampires_control/actions/workflows/CI.yml)
+[![Docs](https://github.com/scexao-org/vampires_control/actions/workflows/docs.yml/badge.svg?branch=main)](https://scexao-org.github.io/vampires_control)
+[![Coverage](https://codecov.io/gh/scexao-org/vampires_control/branch/main/graph/badge.svg)](https://codecov.io/gh/scexao-org/vampires_control)
+[![License](https://img.shields.io/github/license/scexao-org/vampires_control?color=yellow)](LICENSE)
+
 **WARNING:** Work in progress
 
 Maintainer: [Miles Lucas](https://github.com/mileslucas)
