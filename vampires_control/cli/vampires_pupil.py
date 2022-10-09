@@ -51,7 +51,7 @@ Stage commands:
 """
 
 # setp 4. action
-if __name__ == "__main__":
+def main():
     args = docopt(__doc__)
     if len(sys.argv) == 1:
         print(args)
@@ -92,3 +92,6 @@ if __name__ == "__main__":
     else:
         position = int(args["<position>"])
         pupil_wheel.move_position(position, wait=args["--wait"])
+
+if __name__ == "__main__":
+    main()

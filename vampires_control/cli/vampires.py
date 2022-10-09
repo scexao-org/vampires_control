@@ -31,6 +31,7 @@ Commands:
     qwp,q [<cmd>...]              Control the two QWP rotators.
 """
 
+
 def send_command(command, host=DEFAULT_HOST, port=DEFAULT_PORT, response=False):
     context = zmq.Context()
     # set up request socket
@@ -41,7 +42,8 @@ def send_command(command, host=DEFAULT_HOST, port=DEFAULT_PORT, response=False):
     response = str(socket.recv(), "ascii")
     return response
 
-if __name__ == "__main__":
+
+def main():
     args = docopt(__doc__, help=False, options_first=True)
     if args["<command>"] is None:
         print(__doc__)
@@ -53,7 +55,10 @@ if __name__ == "__main__":
     if args["--wait"]:
         _args += " --wait"
     cmd = f"{args['<command>']} {_args}"
-    
+
     response = send_command(cmd, host, port)
     if response is not None:
         print(response)
+
+if __name__ == "__main__":
+    main()

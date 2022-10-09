@@ -35,8 +35,10 @@ def main():
     focus.move_absolute(NOMINAL_FOCUS)
     # 5. Remove focal plane mask
     fieldstop_nominal = 5
-    os.system(f"ssh scexao@scexao2 vampires_fieldstop {fieldstop_nominal}")
-
+    # have to hard-code path because PATH doesn't include
+    # Instrument-Control-Main scripts over SSH
+    cmd_path = "/home/scexao/bin/devices/vampires_fieldstop"
+    os.system(f"ssh scexao@scexao2 '{cmd_path} {fieldstop_nominal}'")
 
 if __name__ == "__main__":
     main()

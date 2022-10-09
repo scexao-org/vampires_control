@@ -11,10 +11,13 @@ Options:
     -h --help   Print this screen
 """
 
-if __name__ == "__main__":
+def main():
     args = docopt(__doc__)
     if args["<key>"] is not None:
         print(VAMPIRES[args["<key>"]])
     else:
         out = "\n".join(f"{k}: {v}" for k, v in VAMPIRES.state_dict.items())
         print(out)
+
+if __name__ == "__main__":
+    main()

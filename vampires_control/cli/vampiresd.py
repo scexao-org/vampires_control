@@ -57,17 +57,17 @@ dictConfig(
             "stream": {
                 "class": "logging.StreamHandler",
                 "formatter": "standard",
-                "level": logging.INFO
+                "level": logging.INFO,
             },
         },
-        "loggers": {"": {
-            "handlers": ["file", "debug", "stream"],
-            "level": logging.DEBUG
-        }},
+        "loggers": {
+            "": {"handlers": ["file", "debug", "stream"], "level": logging.DEBUG}
+        },
     }
 )
 # logging.basicConfig(level=logging.DEBUG, format="%(asctime)s|%(levelname)s|%(name)s - %(message)s", handlers=[SysLogHandler(), TimedRotatingFileHandler("/var/log/vampires/vampires.log", when="midnight", utc=True, backupCount=9999)])
 logger = logging.getLogger("vampires")
+
 
 def launch_server(host=DEFAULT_HOST, port=DEFAULT_PORT):
     context = zmq.Context()
@@ -84,11 +84,14 @@ def launch_server(host=DEFAULT_HOST, port=DEFAULT_PORT):
         socket.send_string(response)
 
 
-if __name__ == "__main__":
+def main():
     args = docopt(__doc__)
     host = args["--host"] if args["--host"] is not None else DEFAULT_HOST
     port = int(args["--port"]) if args["--port"] is not None else DEFAULT_PORT
 
     logger.info(f"launching server on at {host}:{port}")
-
+    # with DaemonContext():
     launch_server(host, port)
+
+if __name__ == "__main__":
+    main()

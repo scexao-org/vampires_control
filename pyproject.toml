@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vampires_control"
+description = "VAMPIRES control software"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{name = "Miles Lucas", email = "mdlucas@hawaii.edu"}]
+requires-python = ">=3.7,<3.10"
+dependencies = [
+    "docopt==0.6.*",
+    "numpy==1.*",
+    "pyserial==3.*",
+    "python-daemon==2.*",
+    "pyzmq==18.*",
+    "scxkw==0.1",
+    "tqdm==4.*",
+],
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = ["pytest==7.*", "mock-serial==0.0.*", "pytest-cov==4.*"]
+
+[project.scripts]
+vampires_beamsplitter = "cli.vampires_beamsplitter:main"
+vampires_diffwheel = "cli.vampires_diffwheel:main"
+vampires_focus = "cli.vampires_focus:main"
+vampires_qwp = "cli.vampires_qwp:main"
+vampires_pupil = "cli.vampires_pupil:main"
+vampires_status = "cli.vampires_status:main"
+vampires_nominal = "cli.vampires_nominal:main"
+conex = "deprecated.conex:main"
+zaber = "deprecated.zaber:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "vampires_control.__version__"}
+
+[tool.pytest.ini_options]
+log_cli = false
+log_cli_level = "DEBUG"
+log_cli_format = "[%(levelname)s] (%(name)-15s) %(message)s"
+
+[tool.coverage.run]
+source = ["vampires_control"]

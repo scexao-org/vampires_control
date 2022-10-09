@@ -33,7 +33,7 @@ Stage commands:
 """
 
 # setp 4. action
-if __name__ == "__main__":
+def main():
     args = docopt(__doc__)
     if len(sys.argv) == 1:
         print(args)
@@ -55,3 +55,6 @@ if __name__ == "__main__":
         focus.reset()
     else:
         print(args)
+
+if __name__ == "__main__":
+    main()

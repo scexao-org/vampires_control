@@ -140,89 +140,90 @@ def command(idn, cmd, arg, timeout=timeout):
     return zaberByte2step(dummy[2:])  # returns the result
 
 
-# checks options
-modeAstro = None
-safeSpeed = None
-giveAllPositions = None
-inputNum = None
-if ("-h" in argv) or ("-H" in argv) or (len(argv) < 2) or (len(argv) > 8):
-    argv.append("-h")
-if argv[-1][:2].upper() == "-H":
-    print(
-        f"\n{pycolor.fail}zab{pycolor.endc} [{pycolor.okblue}-h{pycolor.endc} (help)] {pycolor.okgreen}zabNumer commandNumer argument{pycolor.endc} [{pycolor.okblue}-t{pycolor.endc}='timeout' (15sec)] [{pycolor.okblue}-a{pycolor.endc}='on|off' set mode astro] [{pycolor.okblue}-s{pycolor.endc} set safe speeds] [{pycolor.okblue}-p{pycolor.endc} show all positions]\n"
-    )
-    output = f"{pycolor.okgreen}zabNumer{pycolor.endc}:\n"
-    for i in sort(list(zabMapping.keys())):
-        output += f"{pycolor.warning}{i}{pycolor.endc}-{zabMapping[i]}\n"
-    print(output)
-    print(
-        f"{pycolor.okgreen}commandNumer{pycolor.endc}: (* no argument needed)\n0*: Reset\n1*: Home\n2: Rename (new zaber number)\n20: Move absolute (step)\n21: Move relative (+/-step)\n42: Set speed (speed)\n44: Set maximum position (step)\n53: Query command value (command number)\n60*: Get position\n"
-    )
-    quit()
-
-for arg in argv[1:]:
-    if arg[0] == "-":
-        if arg[1].upper() == "T":
-            try:
-                timeout = min(60, float(arg[arg.find("=") + 1 :]))
-            except:
-                print(f"{pycolor.fail}Fail: can't read -t={pycolor.endc}")
-                quit()
-        elif arg[1].upper() == "A":
-            try:
-                modeAstro = str(arg[arg.find("=") + 1 :])
-            except:
-                print(f"{pycolor.fail}Fail: can't read -a={pycolor.endc}")
-                quit()
-            if modeAstro[:3].upper() == "OFF":
-                modeAstro = False
-            else:
-                modeAstro = True
-        elif arg[1].upper() == "P":
-            giveAllPositions = True
-        elif arg[1].upper() == "S":
-            safeSpeed = True
-    else:
-        if inputNum == None:
-            zabNumber = int(arg)
-            inputNum = 1
-        elif inputNum == 1:
-            zabCommand = int(arg)
-            inputNum = 2
-        elif inputNum == 2:
-            zabArgument = int(arg)
-
-# connection
-try:
-    ser = serialSerial(zabdevice, brate, timeout=0.5)
-except:
-    print(f"{pycolor.fail}Fail: Can't connect to Zabers{pycolor.endc}")
-    quit()
-dummy = ser.readlines()  # flushes
-print(dummy)
-if modeAstro is not None:
-    make_them_astro(on=modeAstro)
-if safeSpeed is not None:
-    set_speed()
-if giveAllPositions is not None:
-    for i in list(zabMapping.keys()):
+def mian():
+    # checks options
+    modeAstro = None
+    safeSpeed = None
+    giveAllPositions = None
+    inputNum = None
+    if ("-h" in argv) or ("-H" in argv) or (len(argv) < 2) or (len(argv) > 8):
+        argv.append("-h")
+    if argv[-1][:2].upper() == "-H":
         print(
-            f"{pycolor.warning}{zabMapping[i]}{pycolor.endc}: {str(command(i, 60, 0, timeout))}"
+            f"\n{pycolor.fail}zab{pycolor.endc} [{pycolor.okblue}-h{pycolor.endc} (help)] {pycolor.okgreen}zabNumer commandNumer argument{pycolor.endc} [{pycolor.okblue}-t{pycolor.endc}='timeout' (15sec)] [{pycolor.okblue}-a{pycolor.endc}='on|off' set mode astro] [{pycolor.okblue}-s{pycolor.endc} set safe speeds] [{pycolor.okblue}-p{pycolor.endc} show all positions]\n"
         )
-if inputNum is not None:
-    try:
-        zabCommand
-    except:
-        print(f"{pycolor.fail}Fail: incomplete input{pycolor.endc}")
-        ser.close()
+        output = f"{pycolor.okgreen}zabNumer{pycolor.endc}:\n"
+        for i in sort(list(zabMapping.keys())):
+            output += f"{pycolor.warning}{i}{pycolor.endc}-{zabMapping[i]}\n"
+        print(output)
+        print(
+            f"{pycolor.okgreen}commandNumer{pycolor.endc}: (* no argument needed)\n0*: Reset\n1*: Home\n2: Rename (new zaber number)\n20: Move absolute (step)\n21: Move relative (+/-step)\n42: Set speed (speed)\n44: Set maximum position (step)\n53: Query command value (command number)\n60*: Get position\n"
+        )
         quit()
+
+    for arg in argv[1:]:
+        if arg[0] == "-":
+            if arg[1].upper() == "T":
+                try:
+                    timeout = min(60, float(arg[arg.find("=") + 1 :]))
+                except:
+                    print(f"{pycolor.fail}Fail: can't read -t={pycolor.endc}")
+                    quit()
+            elif arg[1].upper() == "A":
+                try:
+                    modeAstro = str(arg[arg.find("=") + 1 :])
+                except:
+                    print(f"{pycolor.fail}Fail: can't read -a={pycolor.endc}")
+                    quit()
+                if modeAstro[:3].upper() == "OFF":
+                    modeAstro = False
+                else:
+                    modeAstro = True
+            elif arg[1].upper() == "P":
+                giveAllPositions = True
+            elif arg[1].upper() == "S":
+                safeSpeed = True
+        else:
+            if inputNum == None:
+                zabNumber = int(arg)
+                inputNum = 1
+            elif inputNum == 1:
+                zabCommand = int(arg)
+                inputNum = 2
+            elif inputNum == 2:
+                zabArgument = int(arg)
+
+    # connection
     try:
-        zabArgument
+        ser = serialSerial(zabdevice, brate, timeout=0.5)
     except:
-        zabArgument = 0
-    if int(zabNumber) not in list(zabMapping.keys()):
-        print(f"{pycolor.fail}Fail: zaber number unknown{pycolor.endc}")
-        ser.close()
+        print(f"{pycolor.fail}Fail: Can't connect to Zabers{pycolor.endc}")
         quit()
-    print(command(zabNumber, zabCommand, zabArgument, timeout))
-ser.close()
+    dummy = ser.readlines()  # flushes
+    print(dummy)
+    if modeAstro is not None:
+        make_them_astro(on=modeAstro)
+    if safeSpeed is not None:
+        set_speed()
+    if giveAllPositions is not None:
+        for i in list(zabMapping.keys()):
+            print(
+                f"{pycolor.warning}{zabMapping[i]}{pycolor.endc}: {str(command(i, 60, 0, timeout))}"
+            )
+    if inputNum is not None:
+        try:
+            zabCommand
+        except:
+            print(f"{pycolor.fail}Fail: incomplete input{pycolor.endc}")
+            ser.close()
+            quit()
+        try:
+            zabArgument
+        except:
+            zabArgument = 0
+        if int(zabNumber) not in list(zabMapping.keys()):
+            print(f"{pycolor.fail}Fail: zaber number unknown{pycolor.endc}")
+            ser.close()
+            quit()
+        print(command(zabNumber, zabCommand, zabArgument, timeout))
+    ser.close()

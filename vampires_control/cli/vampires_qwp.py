@@ -33,7 +33,7 @@ Rotator commands:
 """
 
 # setp 4. action
-if __name__ == "__main__":
+def main():
     args = docopt(__doc__)
     if len(sys.argv) == 1:
         print(args)
@@ -57,3 +57,6 @@ if __name__ == "__main__":
         qwp.reset()
     else:
         print(args)
+
+if __name__ == "__main__":
+    main()
