@@ -93,5 +93,6 @@ def main():
         position = int(args["<position>"])
         pupil_wheel.move_position(position, wait=args["--wait"])
 
+
 if __name__ == "__main__":
     main()

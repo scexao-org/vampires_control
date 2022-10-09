@@ -11,6 +11,7 @@ Options:
     -h --help   Print this screen
 """
 
+
 def main():
     args = docopt(__doc__)
     if args["<key>"] is not None:
@@ -18,6 +19,7 @@ def main():
     else:
         out = "\n".join(f"{k}: {v}" for k, v in VAMPIRES.state_dict.items())
         print(out)
+
 
 if __name__ == "__main__":
     main()

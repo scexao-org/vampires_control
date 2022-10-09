@@ -72,5 +72,6 @@ def main():
         position = int(args["<position>"])
         differential_filter.move_position(position, wait=args["--wait"])
 
+
 if __name__ == "__main__":
     main()

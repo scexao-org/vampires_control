@@ -2,7 +2,12 @@
 from docopt import docopt
 import os
 
-from vampires_control.devices.devices import beamsplitter, differential_filter, focus, pupil_wheel
+from vampires_control.devices.devices import (
+    beamsplitter,
+    differential_filter,
+    focus,
+    pupil_wheel,
+)
 
 NOMINAL_FOCUS = 16
 
@@ -23,6 +28,7 @@ Options:
     -h --help      Display this help message
 """
 
+
 def main():
     args = docopt(__doc__)
     # 1. Return beamsplitter to 50/50 polarizing
@@ -39,6 +45,7 @@ def main():
     # Instrument-Control-Main scripts over SSH
     cmd_path = "/home/scexao/bin/devices/vampires_fieldstop"
     os.system(f"ssh scexao@scexao2 '{cmd_path} {fieldstop_nominal}'")
+
 
 if __name__ == "__main__":
     main()

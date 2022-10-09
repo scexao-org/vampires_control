@@ -6,7 +6,14 @@ import logging
 import time
 from logging.handlers import SysLogHandler
 
-from vampires_control.devices.devices import beamsplitter, differential_filter, focus, pupil_wheel, qwp_1, qwp_2
+from vampires_control.devices.devices import (
+    beamsplitter,
+    differential_filter,
+    focus,
+    pupil_wheel,
+    qwp_1,
+    qwp_2,
+)
 
 formatter = "%(asctime)s|%(levelname)s|%(name)s - %(message)s"
 logging.basicConfig(
@@ -48,7 +55,7 @@ CONFIG_ACTION_MAP = {
     "focus": focus.move_absolute,
     "qwp1": qwp_1.move_absolute,
     "qwp2": qwp_2.move_absolute,
-    "pupil": pupil_wheel.move_position
+    "pupil": pupil_wheel.move_position,
 }
 
 CONFIG_INFO_MAP = {
@@ -58,7 +65,7 @@ CONFIG_INFO_MAP = {
     "focus": focus.move_absolute,
     "qwp1": qwp_1.move_absolute,
     "qwp2": qwp_2.move_absolute,
-    "pupil": pupil_wheel.move_position
+    "pupil": pupil_wheel.move_position,
 }
 
 # setp 4. action
@@ -73,6 +80,7 @@ def main():
             filename = args["--load"]
         else:
             filename = CONFIG_FILENAME_MAP[args["<name>"]]
+
 
 if __name__ == "__main__":
     main()

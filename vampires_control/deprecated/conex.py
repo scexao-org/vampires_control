@@ -38,6 +38,7 @@ class pycolor:
     fail = "\033[91m"
     endc = "\033[0m"
 
+
 conexWait = True
 conexAddress = {
     "1": [
@@ -88,6 +89,7 @@ COMMAND_MAP = {
     "9": "vampires_diffwheel wheel",
 }
 
+
 def main():
     # checks options and arguments
     if ("-h" in argv) or ("-H" in argv) or (len(argv) < 3) or (len(argv) > 5):
@@ -98,7 +100,9 @@ def main():
         )
         output = f"{pycolor.okgreen}conexDeviceNumber{pycolor.endc}:\n"
         for i in conexAddress.keys():
-            output = f"{output}{pycolor.warning}{i}{pycolor.endc}- {conexAddress[i][1]}\n"
+            output = (
+                f"{output}{pycolor.warning}{i}{pycolor.endc}- {conexAddress[i][1]}\n"
+            )
         print(output)
         print(
             f"{pycolor.okgreen}command{pycolor.endc}: (* no argument needed)\nRS*: Reset\nOR*: Home\nPA: Move absolute (deg)\nPR: Move relative (deg)\nTH*: Get target position\nTP*: Get current position\nST*: Stop motion\n"
@@ -113,7 +117,9 @@ def main():
         newcmd = COMMAND_MAP[conexNumber]
         origcmd = " ".join(argv[1:])
         print(f"{pycolor.fail}DEPRECATION WARNING{pycolor.endc}")
-        print(f"Please use the new {pycolor.okblue}vampires_control{pycolor.endc} scripts")
+        print(
+            f"Please use the new {pycolor.okblue}vampires_control{pycolor.endc} scripts"
+        )
         print(f"Instead of\n\n\t{pycolor.okgreen}conex {origcmd}{pycolor.endc}\n")
         if conexCommand == "OR":
             try:
