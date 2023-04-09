@@ -83,7 +83,7 @@ class ConexDevice:
         cmd = b"1TH?\r\n"
         self.logger.debug(f"TARGET POSITION command: {cmd}")
         self.serial.write(cmd)
-        retval = self.serial.read(1024).decode("utf-8").split("\r\n", 1)[0]
+        retval = self.serial.read_until(b'\r\n')[:-2].decode("utf-8")
         self.logger.debug(f"returned value: {retval}")
         # cut off leading command
         return float(retval[3:])
@@ -92,7 +92,7 @@ class ConexDevice:
         cmd = b"1TP?\r\n"
         self.logger.debug(f"TRUE POSITION command: {cmd}")
         self.serial.write(cmd)
-        retval = self.serial.read(1024).decode("utf-8").split("\r\n", 1)[0]
+        retval = self.serial.read_until(b'\r\n')[:-2].decode("utf-8")
         self.logger.debug(f"returned value: {retval}")
         # cut off leading command
         value = float(retval[3:])
