@@ -1,0 +1,11 @@
+[Unit]
+Description=VAMPIRES QWP tracking daemon
+After=multi-user.target
+ 
+[Service]
+Type=simple
+User=lestat
+ExecStart=/home/lestat/anaconda3/bin/python3 -m vampires_control.daemons.qwp_daemon
+ 
+[Install]
+WantedBy=multi-user.target

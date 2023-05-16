@@ -8,35 +8,24 @@ description = "VAMPIRES control software"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [{name = "Miles Lucas", email = "mdlucas@hawaii.edu"}]
-requires-python = ">=3.7,<3.10"
+requires-python = ">=3.7"
 dependencies = [
     "docopt==0.6.*",
     "numpy==1.*",
-    "pyserial==3.*",
-    "python-daemon==2.*",
-    "pyzmq==18.*",
+    "swmain>=1",
     "scxkw==0.1",
-    "tqdm==4.*"
+    "tqdm==4.*",
+    "device_control"
 ]
 dynamic = ["version"]
 
-[tool.setuptools.packages.find]
-exclude = ["conf"]
-
 [project.optional-dependencies]
 test = ["pytest==7.*", "mock-serial==0.0.*", "pytest-cov==4.*"]
-docs = ["sphinx>=4.5<5", "sphinx-rtd-theme==1.*", "myst-parser==0.18.*"]
+docs = ["sphinx>=4.5,<5", "sphinx-rtd-theme==1.*", "myst-parser==0.18.*"]
 
 [project.scripts]
-conex = "vampires_control.cli.deprecated.conex:main"
-zaber = "vampires_control.cli.deprecated.zaber:main"
-vampires_beamsplitter = "vampires_control.cli.vampires_beamsplitter:main"
-vampires_diffwheel = "vampires_control.cli.vampires_diffwheel:main"
-vampires_focus = "vampires_control.cli.vampires_focus:main"
-vampires_qwp = "vampires_control.cli.vampires_qwp:main"
-vampires_pupil = "vampires_control.cli.vampires_pupil:main"
-vampires_status = "vampires_control.cli.vampires_status:main"
-vampires_nominal = "vampires_control.cli.vampires_nominal:main"
+vampires_qwp_daemon = "vampires_control.daemons.qwp_daemon:main"
+vampires_temp_daemon = "vampires_control.daemons.temp_poll_daemon:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_control.__version__"}
