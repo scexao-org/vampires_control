@@ -6,6 +6,7 @@ from device_control.vampires import PYRO_KEYS
 import pandas as pd
 from time import sleep
 import logging
+from swmain.redis import update_keys
 
 # set up logging
 formatter = logging.Formatter(
@@ -18,7 +19,9 @@ stream_handler.setLevel(logging.INFO)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-conf_dir = Path(os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/"))
+conf_dir = Path(
+    os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/")
+)
 
 parser = ArgumentParser(
     description="VAMPIRES QWP daemon",
@@ -45,6 +48,7 @@ def filter_tracking_mode(polling_time=5):
     diffwheel = connect(PYRO_KEYS["diffwheel"])
     qwp1 = connect(PYRO_KEYS["qwp1"])
     qwp2 = connect(PYRO_KEYS["qwp2"])
+    update_keys(U_QWPMOD="FILTER")
     while True:
         # check if Halpha or SII filters are in
         _, diff_filter = diffwheel.get_configuration()
@@ -69,6 +73,14 @@ def filter_tracking_mode(polling_time=5):
         qwp1.move_absolute(float(qwp1_pos))
         qwp2.move_absolute(float(qwp2_pos))
         # status and sleep
+        pos1 = qwp1.position
+        pos2 = qwp2.position
+        update_keys(
+            U_QWP1=pos1,
+            U_QWP1TH=pos1 + qwp1.offset,
+            U_QWP2=pos2,
+            U_QWP2TH=pos2 + qwp2.offset,
+        )
         sleep(polling_time)
 
 

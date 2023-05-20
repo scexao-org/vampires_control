@@ -7,6 +7,7 @@ TB = "\033[34m"
 TG = "\033[32m"
 CC = "\033[0m"
 
+
 def find_dark_settings(filelist):
     exp_set = set()
     for filename in filelist:

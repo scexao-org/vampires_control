@@ -6,6 +6,7 @@ from device_control.vampires import PYRO_KEYS
 import pandas as pd
 from time import sleep
 import logging
+from swmain.redis import update_keys
 
 
 # set up logging
@@ -31,16 +32,15 @@ parser.add_argument(
 )
 
 
-
 def main():
     args = parser.parse_args()
     tc = connect(PYRO_KEYS["tc"])
     while True:
         tc_temp = tc.temp
         logger.info(f"FLC = {tc_temp} °C")
+        update_keys(U_FLCTMP=tc_temp)
         # status and sleep
         sleep(args.t)
- 
 
 
 if __name__ == "__main__":
