@@ -36,7 +36,7 @@ def main():
     args = parser.parse_args()
     tc = connect(PYRO_KEYS["tc"])
     while True:
-        tc_temp = tc.temp
+        tc_temp = tc.get_temp()
         logger.info(f"FLC = {tc_temp} °C")
         update_keys(U_FLCTMP=tc_temp)
         # status and sleep

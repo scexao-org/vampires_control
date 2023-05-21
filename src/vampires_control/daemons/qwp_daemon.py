@@ -73,14 +73,8 @@ def filter_tracking_mode(polling_time=5):
         qwp1.move_absolute(float(qwp1_pos))
         qwp2.move_absolute(float(qwp2_pos))
         # status and sleep
-        pos1 = qwp1.position
-        pos2 = qwp2.position
-        update_keys(
-            U_QWP1=pos1,
-            U_QWP1TH=pos1 + qwp1.offset,
-            U_QWP2=pos2,
-            U_QWP2TH=pos2 + qwp2.offset,
-        )
+        qwp1.update_keys()
+        qwp2.update_keys()
         sleep(polling_time)
 
 

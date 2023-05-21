@@ -26,6 +26,7 @@ docs = ["sphinx>=4.5,<5", "sphinx-rtd-theme==1.*", "myst-parser==0.18.*"]
 
 [project.scripts]
 vampires_qwp_daemon = "vampires_control.daemons.qwp_daemon:main"
+vampires_sdi_daemon = "vampires_control.daemons.sdi_daemon:main"
 vampires_temp_daemon = "vampires_control.daemons.temp_poll_daemon:main"
 vampires_status = "vampires_control.daemons.status:main"
 
