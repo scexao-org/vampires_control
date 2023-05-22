@@ -1,4 +1,3 @@
-
 from vampires_control.acquisition import logger
 from swmain.infra.tmux import find_or_create, send_keys, kill_running
 from vampires_control.daemons import SDI_DAEMON_PORT, PDI_DAEMON_PORT
@@ -9,6 +8,7 @@ import sys
 from itertools import repeat
 import time
 
+
 def get_pdi_socket(ctx):
     pdi_socket = ctx.socket(zmq.REQ)
     pdi_socket.connect(PDI_DAEMON_PORT)
@@ -17,22 +17,26 @@ def get_pdi_socket(ctx):
 
 def trigger_acquisition(num_frames):
     logger.info("Starting acquisition")
-    acq_time = num_frames * 5e-3 * 1e9 # seconds -> ns
+    acq_time = num_frames * 5e-3 * 1e9  # seconds -> ns
     start_time = time.monotonic_ns()
     # TODO replace this with status call to logshim??
     while (time.monotonic_ns() - start_time) < acq_time:
         continue
     logger.info("Acquisition finished")
 
+
 def prepare_sdi(ctx, sdi_mode=None, sdi_num_per=1):
     logger.info("Initializing SDI daemon")
     sdi_pane = find_or_create("vampires_sdi_daemon")
-    
+
     logger.debug("Resetting tmux")
     kill_running(sdi_pane)
-    
+
     # Before the command runs, let's make sure we're ready to move the diff wheel:
-    result = Confirm.ask(f"Preparing for SDI mode - {sdi_mode}.\nConfirm when ready to move diff wheel.", default="y")
+    result = Confirm.ask(
+        f"Preparing for SDI mode - {sdi_mode}.\nConfirm when ready to move diff wheel.",
+        default="y",
+    )
     if not result:
         sys.exit(1)
     cmd = f"python -m vampires_control.daemons.sdi_daemon {sdi_mode} -N {sdi_num_per}"
@@ -49,20 +53,26 @@ def prepare_sdi(ctx, sdi_mode=None, sdi_num_per=1):
     result = Confirm.ask("Adjust camera settings. Confirm when ready.", default="y")
     if not result:
         sys.exit(1)
-    
+
     return sdi_socket
 
 
-def blocked_acquire_cubes(num_frames, num_cubes=None, pdi=False, sdi_mode=None, sdi_num_per=1):
+def blocked_acquire_cubes(
+    num_frames, num_cubes=None, pdi=False, sdi_mode=None, sdi_num_per=1
+):
     ctx = zmq.Context()
     pdi_socket = sdi_socket = None
     if pdi:
         if num_cubes is not None and num_cubes % 4 != 0:
-            raise ValueError("PDI Sequences must be multiples of 4 to allow for HWP rotation.")
+            raise ValueError(
+                "PDI Sequences must be multiples of 4 to allow for HWP rotation."
+            )
         pdi_socket = get_pdi_socket(ctx)
     if sdi_mode is not None:
         if num_cubes is not None and num_cubes % 2 != 0:
-            raise ValueError("SDI Sequences must be multiples of 2 to allow for differential wheel switching.")
+            raise ValueError(
+                "SDI Sequences must be multiples of 2 to allow for differential wheel switching."
+            )
         sdi_socket = prepare_sdi(ctx, sdi_mode=sdi_mode, sdi_num_per=sdi_num_per)
 
     if num_cubes is None:
@@ -83,5 +93,3 @@ def blocked_acquire_cubes(num_frames, num_cubes=None, pdi=False, sdi_mode=None, 
                     break
         ## acquire
         trigger_acquisition(num_frames=num_frames)
-
-

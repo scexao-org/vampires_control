@@ -43,8 +43,8 @@ from g2cam.util import common_task
 class VAMPIRES_Error(CamCommandError):
     pass
 
-class VAMPIRES(BASECAM):
 
+class VAMPIRES(BASECAM):
     def __init__(self, logger, env, ev_quit=None):
 
         super(VAMPIRES, self).__init__()
@@ -52,7 +52,7 @@ class VAMPIRES(BASECAM):
         self.logger = logger
         self.env = env
         self.ev_quit = ev_quit
-        self.insname = 'VAMPIRES'
+        self.insname = "VAMPIRES"
 
         # Holds our link to OCS delegate object
         self.ocs = None
@@ -65,11 +65,16 @@ class VAMPIRES(BASECAM):
         self.param.status_interval = 60.0
 
         # status we are interested in
-        self.s_aliases = ['FITS.SBR.RA', 'FITS.SBR.DEC', 'FITS.SBR.EQUINOX',
-                          'FITS.SBR.HA', 'FITS.SBR.AIRMASS',
-                          'TSCS.AZ', 'TSCS.EL',
-                          # add more here if you like
-                          ]
+        self.s_aliases = [
+            "FITS.SBR.RA",
+            "FITS.SBR.DEC",
+            "FITS.SBR.EQUINOX",
+            "FITS.SBR.HA",
+            "FITS.SBR.AIRMASS",
+            "TSCS.AZ",
+            "TSCS.EL",
+            # add more here if you like
+        ]
 
         self.framefile = "/tmp/frames.txt"
 
@@ -78,10 +83,9 @@ class VAMPIRES(BASECAM):
     #######################################
 
     def initialize(self, ocsint):
-        '''Initialize instrument.
-        '''
+        """Initialize instrument."""
         super(VAMPIRES, self).initialize(ocsint)
-        self.logger.info('***** INITIALIZE CALLED *****')
+        self.logger.info("***** INITIALIZE CALLED *****")
         # Grab my handle to the OCS interface.
         self.ocs = ocsint
 
@@ -93,41 +97,39 @@ class VAMPIRES(BASECAM):
         self.threadPool = self.ocs.threadPool
 
         # For task inheritance:
-        self.tag = 'vampires'
-        self.shares = ['logger', 'ev_quit', 'threadPool']
+        self.tag = "vampires"
+        self.shares = ["logger", "ev_quit", "threadPool"]
 
         # Get our 3 letter instrument code and full instrument name
         self.inscode = self.insconfig.getCodeByNumber(self.obcpnum)
         self.insname = self.insconfig.getNameByNumber(self.obcpnum)
 
         # Figure out our status table name.
-        tblName1 = ('%3.3sS%04.4d' % (self.inscode, 1))
+        tblName1 = "%3.3sS%04.4d" % (self.inscode, 1)
 
-        self.stattbl1 = self.ocs.addStatusTable(tblName1,
-                                                ['status', 'mode', 'count',
-                                                 'time'])
+        self.stattbl1 = self.ocs.addStatusTable(
+            tblName1, ["status", "mode", "count", "time"]
+        )
 
         # Add other tables here if you have more than one table...
 
         # Establish initial status values
-        self.stattbl1.setvals(status='ALIVE', mode='AVAILABLE', count=0,
-                              time=time.time())
+        self.stattbl1.setvals(
+            status="ALIVE", mode="AVAILABLE", count=0, time=time.time()
+        )
 
         # Handles to periodic tasks
         self.status_task = None
 
-
     def start(self, wait=True):
         super(VAMPIRES, self).start(wait=wait)
 
-        self.logger.info('VAMPIRES ocs interface started.')
+        self.logger.info("VAMPIRES ocs interface started.")
 
         # Start auto-generation of status task
-        t = common_task.IntervalTask(self.putstatus,
-                                     self.param.status_interval)
+        t = common_task.IntervalTask(self.putstatus, self.param.status_interval)
         self.status_task = t
         t.init_and_start(self)
-
 
     def stop(self, wait=True):
         super(VAMPIRES, self).stop(wait=wait)
@@ -140,18 +142,19 @@ class VAMPIRES(BASECAM):
 
         self.logger.info("VAMPIRES ocs interface stopped.")
 
-
     #######################################
     # INTERNAL METHODS
     #######################################
 
     def dispatchCommand(self, tag, cmdName, args, kwdargs):
-        self.logger.debug("tag=%s cmdName=%s args=%s kwdargs=%s" % (
-            tag, cmdName, str(args), str(kwdargs)))
+        self.logger.debug(
+            "tag=%s cmdName=%s args=%s kwdargs=%s"
+            % (tag, cmdName, str(args), str(kwdargs))
+        )
 
         params = {}
         params.update(kwdargs)
-        params['tag'] = tag
+        params["tag"] = tag
 
         try:
             # Try to look up the named method
@@ -177,7 +180,6 @@ class VAMPIRES(BASECAM):
         self.logger.info("Sleeping for %f sec..." % itime)
         time.sleep(itime)
 
-
     def putstatus(self, target="ALL", tag=None):
         """Forced export of our status.
         Useful command to test whether instrument status export is working.
@@ -188,7 +190,6 @@ class VAMPIRES(BASECAM):
 
         self.ocs.exportStatus()
 
-
     def getstatus(self, target="ALL", tag=None):
         """Forced import of our status using the normal status interface.
         Useful command to test whether instrument status request is working.
@@ -198,7 +199,6 @@ class VAMPIRES(BASECAM):
         d = self.ocs.requestOCSstatusList2Dict(self.s_aliases)
 
         self.logger.info("Status returned: %s" % (str(d)))
-
 
     def archive_fits(self, frame_no=None, path=None, tag=None):
         """Archive a local file to Gen2.
@@ -216,9 +216,11 @@ class VAMPIRES(BASECAM):
             raise VAMPIRES_Error("Missing frame number!")
 
         # Check frame_no
-        match = re.match('^(\w{3})(\w)(\d{8})$', frame_no)
+        match = re.match("^(\w{3})(\w)(\d{8})$", frame_no)
         if not match:
-            raise VAMPIRES_Error("frame_no: '%s' doesn't match expected format" % (frame_no))
+            raise VAMPIRES_Error(
+                "frame_no: '%s' doesn't match expected format" % (frame_no)
+            )
 
         if path is None:
             raise VAMPIRES_Error("Missing path!")
@@ -234,16 +236,14 @@ class VAMPIRES(BASECAM):
         self.logger.info("Submitting framelist '%s'" % str(framelist))
         self.ocs.archive_framelist(framelist)
 
-
-    def get_frames(self, frtype='A', num=1, tag=None):
+    def get_frames(self, frtype="A", num=1, tag=None):
         # obtain Gen2 frames
         framelist = self.ocs.getFrames(num, frtype)
-        #framelist = [('VMPA%08d' % i) for i in range(num)]
+        # framelist = [('VMPA%08d' % i) for i in range(num)]
 
         # write frame list to file
-        with open(self.framefile, 'w') as out_f:
-            out_f.write('\n'.join(framelist))
-
+        with open(self.framefile, "w") as out_f:
+            out_f.write("\n".join(framelist))
 
 
 # END

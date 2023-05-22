@@ -1,5 +1,6 @@
 from swmain.infra.tmux import find_or_create, kill_running, send_keys
 
+
 def main():
     # Device control daemon
     print("Initializing the device control daemon")
@@ -33,6 +34,7 @@ def main():
     kill_running(gen2_pane)
     send_keys(gen2_pane, "python -m vampires_control.gen2.main")
     print(f"Gen2 daemon launching in pane `{gen2_name}`.")
+
 
 if __name__ == "__main__":
     main()
