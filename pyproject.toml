@@ -27,6 +27,7 @@ test = ["pytest==7.*", "mock-serial==0.0.*", "pytest-cov==4.*"]
 docs = ["sphinx>=4.5,<5", "sphinx-rtd-theme==1.*", "myst-parser==0.18.*"]
 
 [project.scripts]
+"launch_daemons" = "vampires_control.launch:main"
 "acquire" = "vampires_control.acquisition.acquire:main"
 vampires_qwp_daemon = "vampires_control.daemons.qwp_daemon:main"
 vampires_sdi_daemon = "vampires_control.daemons.sdi_daemon:main"
