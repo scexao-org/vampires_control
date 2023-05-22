@@ -12,11 +12,13 @@ requires-python = ">=3.7"
 dependencies = [
     "docopt==0.6.*",
     "numpy==1.*",
+    "scxconf",
     "swmain>=1",
     "scxkw==0.1",
     "tqdm==4.*",
     "device_control",
-    "rich"
+    "rich",
+    "pyzmq"
 ]
 dynamic = ["version"]
 
@@ -25,6 +27,7 @@ test = ["pytest==7.*", "mock-serial==0.0.*", "pytest-cov==4.*"]
 docs = ["sphinx>=4.5,<5", "sphinx-rtd-theme==1.*", "myst-parser==0.18.*"]
 
 [project.scripts]
+"acquire" = "vampires_control.acquisition.acquire:main"
 vampires_qwp_daemon = "vampires_control.daemons.qwp_daemon:main"
 vampires_sdi_daemon = "vampires_control.daemons.sdi_daemon:main"
 vampires_temp_daemon = "vampires_control.daemons.temp_poll_daemon:main"
