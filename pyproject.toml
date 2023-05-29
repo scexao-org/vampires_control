@@ -18,7 +18,8 @@ dependencies = [
     "tqdm==4.*",
     "device_control",
     "rich",
-    "pyzmq"
+    "pyzmq",
+    "trogon"
 ]
 dynamic = ["version"]
 
@@ -28,7 +29,7 @@ docs = ["sphinx>=4.5,<5", "sphinx-rtd-theme==1.*", "myst-parser==0.18.*"]
 
 [project.scripts]
 "launch_daemons" = "vampires_control.launch:main"
-"acquire" = "vampires_control.acquisition.acquire:main"
+"acquire" = "vampires_control.acquisition.acquire:integrate"
 vampires_qwp_daemon = "vampires_control.daemons.qwp_daemon:main"
 vampires_sdi_daemon = "vampires_control.daemons.sdi_daemon:main"
 vampires_temp_daemon = "vampires_control.daemons.temp_poll_daemon:main"
