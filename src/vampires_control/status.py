@@ -18,7 +18,7 @@ class Palette:
 
 
 default_style = f"{Palette.white} on default"
-unknown_style = f"{Palette.white} on {Palette.gold}"
+unknown_style = f"default on {Palette.gold}"
 active_style = f"{Palette.white} on {Palette.green}"
 blue_style = f"{Palette.white} on {Palette.blue}"
 danger_style = f"{Palette.white} on {Palette.red}"
