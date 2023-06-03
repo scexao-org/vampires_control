@@ -1,0 +1,13 @@
+procs:
+  device_control:
+    shell: "ipython -i -m device_control.daemons.vampires:main"
+  gen2:
+    shell: "vampires_gen2_daemon"
+    autostart: false
+  qwp_tracking:
+    shell: "vampires_qwp_daemon"
+  temp_status:
+    shell: "vampires_temp_daemon"
+  sdi_daemon:
+    shell: "vampires_sdi_daemon"
+    autostart: false
