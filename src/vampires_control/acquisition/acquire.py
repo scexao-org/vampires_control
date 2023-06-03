@@ -6,7 +6,7 @@ import sys
 from rich.spinner import Spinner
 from rich.progress import track
 import click
-from trogon import tui
+from trogon import tui, Trogon
 
 from functools import partial
 
@@ -81,18 +81,65 @@ DATA_TYPES = (
 #     help="(SDI mode only) Number of acquisitions per differential wheel position,  by default %(default)d.",
 # )
 
+
 def handle_metadata():
     pass
 
-@tui()
-@click.command(name="int")
-@click.argument("num_frames", type=int)
-@click.option("--data-type", "-t", default="OBJECT", type=click.Choice(DATA_TYPES, case_sensitive=False), help="Data type")
+
+def open_tui(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    didx = None
+    # remove --tui from context
+    for i, par in enumerate(ctx.command.params):
+        if par.name == "tui":
+            didx = i
+    if didx is not None:
+        del ctx.command.params[didx]
+    Trogon(ctx.command, app_name=ctx.info_name, click_context=ctx).run()
+    ctx.exit()
+
+
+@click.option(
+    "--tui",
+    help="Launch TUI.",
+    is_flag=True,
+    callback=open_tui,
+    expose_value=False,
+    is_eager=True,
+)
+@click.argument("num_frames", type=int, required=False)
+@click.option(
+    "--data-type",
+    "-t",
+    default="OBJECT",
+    type=click.Choice(DATA_TYPES, case_sensitive=False),
+    help="Data type",
+)
 @click.option("--archive", "-a", is_flag=True, default=False, help="Archive to Gen2")
-@click.option("--num-cubes", "-N", default=-1, help="Number of cubes to acquire. If less than 1 will acquire indefinitely.")
-@click.option("--pdi", "-P", is_flag=True, default=False, help="Enable PDI mode for synchronizing with the SCExAO HWP daemon.")
-@click.option("--sdi", "-S", type=(click.Choice(["Halpha", "SII"], case_sensitive=False), int), help="Enable SDI mode with given filter and number of cubes per filter state.")
-def integrate(num_frames, num_cubes=-1, data_type="OBJECT", archive=False, pdi=False, sdi=None):
+@click.option(
+    "--num-cubes",
+    "-N",
+    default=-1,
+    help="Number of cubes to acquire. If less than 1 will acquire indefinitely.",
+)
+@click.option(
+    "--pdi",
+    "-P",
+    is_flag=True,
+    default=False,
+    help="Enable PDI mode for synchronizing with the SCExAO HWP daemon.",
+)
+@click.option(
+    "--sdi",
+    "-S",
+    type=(click.Choice(["Halpha", "SII"], case_sensitive=False), int),
+    help="Enable SDI mode with given filter and number of cubes per filter state.",
+)
+@click.command()
+def main(
+    num_frames, num_cubes=-1, data_type="OBJECT", archive=False, pdi=False, sdi=None
+):
     # args = parser.parse_args()
 
     # determine whether using blocked triggering or free-running
@@ -122,4 +169,4 @@ def integrate(num_frames, num_cubes=-1, data_type="OBJECT", archive=False, pdi=F
 
 
 if __name__ == "__main__":
-    integrate()
+    main()

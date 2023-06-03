@@ -10,30 +10,30 @@ license = {file = "LICENSE"}
 authors = [{name = "Miles Lucas", email = "mdlucas@hawaii.edu"}]
 requires-python = ">=3.7"
 dependencies = [
-    "docopt==0.6.*",
-    "numpy==1.*",
+    "docopt",
+    "numpy",
     "scxconf",
-    "swmain>=1",
-    "scxkw==0.1",
-    "tqdm==4.*",
+    "swmain",
+    "scxkw",
+    "tqdm",
     "device_control",
     "rich",
     "pyzmq",
-    "trogon"
+    "trogon",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-test = ["pytest==7.*", "mock-serial==0.0.*", "pytest-cov==4.*"]
-docs = ["sphinx>=4.5,<5", "sphinx-rtd-theme==1.*", "myst-parser==0.18.*"]
+test = ["pytest", "pytest-cov"]
+docs = ["sphinx", "sphinx-rtd-theme", "myst-parser", "sphinx-autobuild"]
 
 [project.scripts]
-"launch_daemons" = "vampires_control.launch:main"
-"acquire" = "vampires_control.acquisition.acquire:integrate"
+launch_daemons = "vampires_control.launch:main"
+acquire = "vampires_control.acquisition.acquire:main"
 vampires_qwp_daemon = "vampires_control.daemons.qwp_daemon:main"
 vampires_sdi_daemon = "vampires_control.daemons.sdi_daemon:main"
 vampires_temp_daemon = "vampires_control.daemons.temp_poll_daemon:main"
-vampires_status = "vampires_control.daemons.status:main"
+vampires_status = "vampires_control.status:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_control.__version__"}
