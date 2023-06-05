@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
-from astropy.io import fits
+
 import tqdm.auto as tqdm
+from astropy.io import fits
 
 # color codes
 TB = "\033[34m"

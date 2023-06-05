@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-from docopt import docopt
 import os
+
+from docopt import docopt
 
 from vampires_control.devices.devices import (
     beamsplitter,

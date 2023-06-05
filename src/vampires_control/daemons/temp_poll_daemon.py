@@ -1,13 +1,9 @@
-from argparse import ArgumentParser
-import os
-from pathlib import Path
-from swmain.network.pyroclient import connect
-from device_control.vampires import PYRO_KEYS
-import pandas as pd
-from time import sleep
 import logging
-from swmain.redis import update_keys
+from argparse import ArgumentParser
+from time import sleep
 
+from device_control.pyro_keys import VAMPIRES
+from swmain.network.pyroclient import connect
 
 # set up logging
 formatter = logging.Formatter(
@@ -34,7 +30,7 @@ parser.add_argument(
 
 def main():
     args = parser.parse_args()
-    tc = connect(PYRO_KEYS["tc"])
+    tc = connect(VAMPIRES.TC)
     while True:
         tc_temp = tc.get_temp()
         aux_temp = tc.get_aux_temp()

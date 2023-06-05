@@ -1,12 +1,28 @@
-from vampires_control.acquisition import logger
-from swmain.infra.tmux import find_or_create, send_keys, kill_running
-from vampires_control.daemons import SDI_DAEMON_PORT, PDI_DAEMON_PORT
-import zmq
-from rich.prompt import Confirm
-from rich.progress import track
-import sys
-from itertools import repeat
+import logging
 import time
+
+import click
+import tqdm.auto as tqdm
+import zmq
+from rich.logging import RichHandler
+from rich.progress import Progress
+
+from swmain.network.pyroclient import connect
+from vampires_control.acquisition import logger
+from vampires_control.daemons import PDI_DAEMON_PORT
+
+# set up logging
+formatter = logging.Formatter(
+    "%(asctime)s | %(name)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger("block_acq")
+rich_handler = RichHandler(level=logging.INFO, show_path=False)
+logger.addHandler(rich_handler)
+# logger.setLevel(logging.INFO)
+# stream_handler = logging.StreamHandler()
+# stream_handler.setLevel(logging.INFO)
+# stream_handler.setFormatter(formatter)
+# logger.addHandler(stream_handler)
 
 
 def get_pdi_socket(ctx):
@@ -15,53 +31,57 @@ def get_pdi_socket(ctx):
     return pdi_socket
 
 
-def trigger_acquisition(num_frames):
+def trigger_acquisition(num_frames: int, num_cubes: int = 1, progress=None):
     logger.info("Starting acquisition")
     acq_time = num_frames * 5e-3 * 1e9  # seconds -> ns
-    start_time = time.monotonic_ns()
-    # TODO replace this with status call to logshim??
-    while (time.monotonic_ns() - start_time) < acq_time:
-        continue
+    for _ in tqdm.trange(num_cubes, leave=False):
+        start_time = time.monotonic_ns()
+        # TODO replace this with status call to logshim??
+        while (time.monotonic_ns() - start_time) < acq_time:
+            continue
     logger.info("Acquisition finished")
 
 
-def prepare_sdi(ctx, sdi_mode=None, sdi_num_per=1):
-    logger.info("Initializing SDI daemon")
-    sdi_pane = find_or_create("vampires_sdi_daemon")
+class SDIStateMachine:
+    def __init__(self, mode: str) -> None:
+        if mode == "Halpha":
+            self.indices = 4, 8
+        elif mode == "SII":
+            self.indices = 3, 6
+        else:
+            raise ValueError(f"SDI mode {mode} not recognized")
+        self.mode = mode
+        self.diffwheel = connect("VAMPIRES_DIFFWHEEL")
 
-    logger.debug("Resetting tmux")
-    kill_running(sdi_pane)
+    def prepare(self, confirm=True):
+        if confirm:
+            click.confirm(
+                f"Preparing for {self.mode} SDI.\nConfirm when ready to move diff wheel.",
+                default=True,
+                abort=True,
+            )
+        logger.info(f"Moving diff wheel into first {self.mode} position")
+        self.diffwheel.move_configuration_idx(self.indices[0])
+        self.current_idx = 0
 
-    # Before the command runs, let's make sure we're ready to move the diff wheel:
-    result = Confirm.ask(
-        f"Preparing for SDI mode - {sdi_mode}.\nConfirm when ready to move diff wheel.",
-        default="y",
-    )
-    if not result:
-        sys.exit(1)
-    cmd = f"python -m vampires_control.daemons.sdi_daemon {sdi_mode} -N {sdi_num_per}"
-    logger.debug(f"launching SDI daemon with tmux command '{cmd}'")
-    send_keys(sdi_pane, cmd)
-
-    logger.debug("connecting to SDI port")
-    sdi_socket = ctx.socket(zmq.REQ)
-    try:
-        sdi_socket.connect(SDI_DAEMON_PORT)
-    except zmq.ZMQError as e:
-        logger.error("Could not connect to SDI port.", exc_info=True)
-    # Now let's pause and allow for adjusting exposure times
-    result = Confirm.ask("Adjust camera settings. Confirm when ready.", default="y")
-    if not result:
-        sys.exit(1)
-
-    return sdi_socket
+    def next(self):
+        self.current_idx = (self.current_idx + 1) % 2
+        logger.info(
+            f"[State {self.current_idx + 1} / 2] moving diff wheel to configuration: {self.indices[self.current_idx]}"
+        )
+        self.diffwheel.move_configuration_idx(self.indices[self.current_idx])
 
 
 def blocked_acquire_cubes(
-    num_frames, num_cubes=None, pdi=False, sdi_mode=None, sdi_num_per=1
+    num_frames,
+    num_cubes=None,
+    pdi=False,
+    sdi_mode=None,
+    pdi_num_per_hwp=1,
+    sdi_num_per=1,
 ):
     ctx = zmq.Context()
-    pdi_socket = sdi_socket = None
+    pdi_socket = None
     if pdi:
         if num_cubes is not None and num_cubes % 4 != 0:
             raise ValueError(
@@ -73,23 +93,22 @@ def blocked_acquire_cubes(
             raise ValueError(
                 "SDI Sequences must be multiples of 2 to allow for differential wheel switching."
             )
-        sdi_socket = prepare_sdi(ctx, sdi_mode=sdi_mode, sdi_num_per=sdi_num_per)
+        sdi_state = SDIStateMachine(sdi_mode)
+        sdi_state.prepare()
+        # Now let's pause and allow for adjusting exposure times
+        click.confirm(
+            "Adjust camera settings. Confirm when ready.", default=True, abort=True
+        )
 
-    if num_cubes is None:
-        iterator = repeat()
-    else:
-        iterator = track(range(num_cubes), description="Acquiring cubes")
-    for _ in iterator:
-        if sdi_mode is not None:
-            # wait until SDI process says we're good to go
-            while True:
-                msg = "status READY"
-                logger.debug(f"Sending message {msg}")
-                sdi_socket.send_string(msg)
-                logger.info("Waiting for response from SDI daemon...")
-                response = sdi_socket.recv_string()
-                logger.debug(f"received response {response}")
-                if response == "trigger GO":
-                    break
-        ## acquire
-        trigger_acquisition(num_frames=num_frames)
+    with Progress(expand=True) as progress:
+        if num_cubes is None:
+            iter = progress.add_task("Acquiring cubes", total=None)
+        else:
+            iter = progress.add_task("Acquiring cubes", total=num_cubes)
+        while not progress.finished:
+            if sdi_mode is not None:
+                ## acquire
+                trigger_acquisition(num_frames=num_frames, num_cubes=sdi_num_per)
+                ## move diffwheel
+                sdi_state.next()
+            progress.update(iter, advance=1)

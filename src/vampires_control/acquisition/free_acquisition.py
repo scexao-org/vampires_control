@@ -1,7 +1,9 @@
-from itertools import repeat
-from rich.progress import track
-from vampires_control.acquisition import logger
 import time
+from itertools import repeat
+
+from rich.progress import track
+
+from vampires_control.acquisition import logger
 
 
 def acquire_cubes(num_frames, num_cubes=None):

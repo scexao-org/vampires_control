@@ -29,14 +29,16 @@ Looking at the methods below the comment "VAMPIRES INSTRUMENT COMMANDS"
 you can get a sense of how to implement new commands.
 """
 from __future__ import print_function
-import sys, os, time
+
+import os
 import re
+import time
 
 # gen2 base imports
-from g2base import Bunch, Task
+from g2base import Bunch
 
 # g2cam imports
-from g2cam.Instrument import BASECAM, CamError, CamCommandError
+from g2cam.Instrument import BASECAM, CamCommandError
 from g2cam.util import common_task
 
 

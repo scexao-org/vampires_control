@@ -1,4 +1,4 @@
-from scxconf import IP_VAMPIRES, IP_SC2
+from scxconf import IP_SC2, IP_VAMPIRES
 
 TRIGGER_READY_PORT = f"tcp://{IP_VAMPIRES}:10000"
 PDI_DAEMON_PORT = f"tcp://{IP_SC2}:10020"

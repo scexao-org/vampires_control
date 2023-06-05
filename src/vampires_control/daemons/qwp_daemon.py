@@ -1,11 +1,13 @@
-from argparse import ArgumentParser
-import os
-from pathlib import Path
-from swmain.network.pyroclient import connect
-from device_control.vampires import PYRO_KEYS
-import pandas as pd
-from time import sleep
 import logging
+import os
+from argparse import ArgumentParser
+from pathlib import Path
+from time import sleep
+
+import pandas as pd
+
+from device_control.pyro_keys import VAMPIRES
+from swmain.network.pyroclient import connect
 from swmain.redis import update_keys
 
 # set up logging
@@ -44,10 +46,10 @@ parser.add_argument(
 
 def filter_tracking_mode(polling_time=5):
     conf_data = pd.read_csv(conf_dir / "data" / "conf_vampires_qwp_filter_data.csv")
-    filter = connect(PYRO_KEYS["filter"])
-    diffwheel = connect(PYRO_KEYS["diffwheel"])
-    qwp1 = connect(PYRO_KEYS["qwp1"])
-    qwp2 = connect(PYRO_KEYS["qwp2"])
+    filter = connect(VAMPIRES.FILT)
+    diffwheel = connect(VAMPIRES.DIFF)
+    qwp1 = connect(VAMPIRES.QWP1)
+    qwp2 = connect(VAMPIRES.QWP2)
     update_keys(U_QWPMOD="FILTER")
     while True:
         # check if Halpha or SII filters are in

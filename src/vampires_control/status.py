@@ -1,28 +1,31 @@
+from time import sleep
+
+import click
+import numpy as np
 from rich.live import Live
+from rich.rule import Rule
 from rich.table import Table
 from rich.text import Text
-from rich.rule import Rule
-from time import sleep
+
 from swmain.redis import get_values
-import numpy as np
-import click
 
 
 class Palette:
     red = "#721817"
     gold = "#FA9F42"
+    orange = "#e85d04"
     blue = "#2B4162"
     green = "#0B6E4F"
     white = "#E0E0E2"
-    gray = "#A9A9A9"
+    gray = "#A3A3A3"
 
 
 default_style = f"{Palette.white} on default"
-unknown_style = f"default on {Palette.gold}"
+unknown_style = f"{Palette.white} on {Palette.orange}"
 active_style = f"{Palette.white} on {Palette.green}"
 blue_style = f"{Palette.white} on {Palette.blue}"
 danger_style = f"{Palette.white} on {Palette.red}"
-inactive_style = f"{Palette.gray} on default"
+inactive_style = f"{Palette.gray} on #111111"
 
 
 def get_table():
@@ -122,13 +125,13 @@ def get_table():
     else:
         status = "UNKNOWN"
         style = unknown_style
-    table.add_row("HWP", status, f"θ={status_dict['P_RTAGL1']:.3f} deg", style=style)
+    table.add_row("HWP", status, f"θ={status_dict['P_RTAGL1']:6.02f} deg", style=style)
 
     ## Image rotator
     table.add_row(
         "Image rotator",
         status_dict["D_IMRMOD"],
-        f"θ={status_dict['D_IMRANG']:.3f} deg",
+        f"θ={status_dict['D_IMRANG']:6.02f} deg",
         style=default_style,
     )
 
@@ -143,21 +146,21 @@ def get_table():
     table.add_row(
         "LP",
         status_dict["X_POLAR"],
-        f"θ={status_dict['X_POLARP']:.3f} deg",
+        f"θ={status_dict['X_POLARP']:6.02f} deg",
         style=style,
     )
     ## QWP
     table.add_row("QWP mode", str(status_dict["U_QWPMOD"]), "", style=inactive_style)
     table.add_row(
         "QWP 1",
-        f"θ={status_dict['U_QWP1']:.3f} deg",
-        f"θ={status_dict['U_QWP1TH']:.3f} deg",
+        f"θ={status_dict['U_QWP1']:6.02f} deg",
+        f"θ={status_dict['U_QWP1TH']:6.02f} deg",
         style=default_style,
     )
     table.add_row(
         "QWP 2",
-        f"θ={status_dict['U_QWP2']:.3f} deg",
-        f"θ={status_dict['U_QWP2TH']:.3f} deg",
+        f"θ={status_dict['U_QWP2']:6.02f} deg",
+        f"θ={status_dict['U_QWP2TH']:6.02f} deg",
         style=default_style,
     )
 
@@ -174,7 +177,7 @@ def get_table():
     table.add_row(
         "Fieldstop",
         str(status_dict["U_FLDSTP"]),
-        f"x={status_dict['U_FLDSTX']:.3f} mm, y={status_dict['U_FLDSTY']:.3f} mm",
+        f"x={status_dict['U_FLDSTX']:6.03f} mm, y={status_dict['U_FLDSTY']:6.03f} mm",
         style=default_style,
     )
 
@@ -188,7 +191,7 @@ def get_table():
     table.add_row(
         "FIRST pickoff",
         status_dict["X_FIRPKO"],
-        f"p={status_dict['X_FIRPKP']:.3f} mm",
+        f"p={status_dict['X_FIRPKP']:5.02f} mm",
         style=style,
     )
 
@@ -201,7 +204,7 @@ def get_table():
         style = default_style
     style = inactive_style  # override
     temp_text = Text(
-        f"T(AFLC)={status_dict['U_FLCTMP']:.01f} °C | T(bench)={status_dict['U_BENTMP']:.01f} °C",
+        f"T(AFLC)={status_dict['U_FLCTMP']:4.01f} °C | T(bench)={status_dict['U_BENTMP']:4.01f} °C",
         style=style,
     )
     table.add_row("AFLC", str(status_dict["U_FLCEN"]), temp_text, style=style)
@@ -215,26 +218,29 @@ def get_table():
     table.add_row(
         "AFLC Stage",
         str(status_dict["U_FLCST"]),
-        f"p={status_dict['U_FLCSTP']:.3f} mm",
+        f"p={status_dict['U_FLCSTP']:5.02f} mm",
         style=style,
     )
     ## Pupil mask
-    if status_dict["U_MASK"].lower() != "open":
-        style = active_style
-    elif status_dict["U_MASK"].lower() == "unknown":
+    if status_dict["U_MASK"].strip() == "Open":
+        style = default_style
+    elif status_dict["U_MASK"].strip() == "Unknown":
         style = unknown_style
     else:
-        style = default_style
+        style = active_style
     table.add_row(
         "Mask wheel",
         str(status_dict["U_MASK"]),
-        f"θ={status_dict['U_MASKTH']:.3f} deg, x={status_dict['U_MASKX']:.3f} mm, y={status_dict['U_MASKY']:.3f} mm",
+        f"θ={status_dict['U_MASKTH']:6.02f} deg, x={status_dict['U_MASKX']:6.03f} mm, y={status_dict['U_MASKY']:6.03f} mm",
         style=style,
     )
 
     ## filter
     table.add_row(
-        "Filter", str(status_dict["U_FILTER"]), f"{status_dict['U_FILTTH']:.0f}"
+        "Filter",
+        str(status_dict["U_FILTER"]),
+        f"{status_dict['U_FILTTH']:.0f}",
+        style=default_style,
     )
 
     ## MBI
@@ -248,7 +254,7 @@ def get_table():
     table.add_row(
         "MBI",
         str(status_dict["U_MBI"]),
-        f"θ={status_dict['U_MBITH']:.3f} deg",
+        f"θ={status_dict['U_MBITH']:6.02f} deg",
         style=style,
     )
 
@@ -269,7 +275,7 @@ def get_table():
     table.add_row(
         "Focus",
         str(status_dict["U_FCS"]),
-        f"f={status_dict['U_FCSF']:.3f} mm",
+        f"f={status_dict['U_FCSF']:5.02f} mm",
         style=style,
     )
 
@@ -283,7 +289,7 @@ def get_table():
     table.add_row(
         "Beamsplitter",
         str(status_dict["U_BS"]),
-        f"θ={status_dict['U_BSTH']:.3f} deg",
+        f"θ={status_dict['U_BSTH']:6.02f} deg",
         style=style,
     )
 
@@ -301,7 +307,7 @@ def get_table():
     table.add_row(
         "Diff. wheel",
         f"{str(status_dict['U_DIFFL1'])} / {str(status_dict['U_DIFFL2'])}",
-        f"θ={status_dict['U_DIFFTH']:.3f} deg",
+        f"θ={status_dict['U_DIFFTH']:6.02f} deg",
         style=style,
     )
 
@@ -310,7 +316,7 @@ def get_table():
     table.add_row(
         "Cam focus",
         str(status_dict["U_CAMFCS"]),
-        f"f={status_dict['U_CAMFCF']:.3f} mm",
+        f"f={status_dict['U_CAMFCF']:5.02f} mm",
         style=style,
     )
 
@@ -323,7 +329,7 @@ def get_table():
     table.add_row(
         "Trigger",
         "ENABLED" if status_dict["EXTTRIG"] else "DISABLED",
-        f"pw={status_dict['U_TRIGPW']} us, off={status_dict['U_FLCOFF']} us",
+        f"pw={status_dict['U_TRIGPW']:3d} us, off={status_dict['U_FLCOFF']:3d} us",
         style=style,
     )
 
