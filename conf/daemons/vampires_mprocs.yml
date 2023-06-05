@@ -1,13 +1,15 @@
+server: 127.0.0.1:8792
 procs:
   device_control:
-    shell: "ipython -i -m device_control.daemons.vampires:main"
-  gen2:
-    shell: "vampires_gen2_daemon"
-    autostart: false
-  qwp_tracking:
-    shell: "vampires_qwp_daemon"
-  temp_status:
-    shell: "vampires_temp_daemon"
-  sdi_daemon:
-    shell: "vampires_sdi_daemon"
-    autostart: false
+    shell: "ipython -i /home/lestat/src/device_control/src/device_control/daemons/vampires_devices.py"
+  qwp_tracking: "sleep 2.0; vampires_qwp_daemon"
+  temp_status: "sleep 2.0; vampires_temp_daemon"
+  # prepare_sdi: 
+  #   shell: "prepare_sdi"
+  #   autostart: false
+  # prepare_pdi: 
+  #   shell: "prepare_pdi"
+  #   autostart: false
+  # nominal:
+  #   shell: "vampires_nominal"
+  #   autostart: false
