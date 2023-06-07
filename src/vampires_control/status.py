@@ -51,52 +51,54 @@ def get_table():
 
     status_dict = get_values(
         [
+            "D_IMRANG",
+            "D_IMRMOD",
+            "EXTTRIG",
             "P_RTAGL1",
             "P_STGPS1",
             "P_STGPS2",
-            "D_IMRMOD",
-            "D_IMRANG",
-            "X_POLAR",
-            "X_POLARP",
-            "U_QWPMOD",
-            "U_QWP1",
-            "U_QWP1TH",
-            "U_QWP2",
-            "U_QWP2TH",
+            "U_BENTMP",
+            "U_BS",
+            "U_BSTH",
+            "U_CAMFCF",
+            "U_CAMFCS",
+            "U_DIFFL1",
+            "U_DIFFL2",
+            "U_DIFFTH",
+            "U_FCS",
+            "U_FCSF",
+            "U_FILTER",
+            "U_FILTTH",
+            "U_FLCEN",
+            "U_FLCOFF",
+            "U_FLCST",
+            "U_FLCSTP",
+            "U_FLCTMP",
             "U_FLDSTP",
             "U_FLDSTX",
             "U_FLDSTY",
-            "X_FIRPKO",
-            "X_FIRPKP",
-            "U_BENTMP",
-            "U_FLCEN",
-            "U_FLCTMP",
-            "U_FLCST",
-            "U_FLCSTP",
             "U_MASK",
             "U_MASKTH",
             "U_MASKX",
             "U_MASKY",
-            "U_FILTER",
-            "U_FILTTH",
             "U_MBI",
             "U_MBITH",
             "U_PUPST",
-            "U_FCS",
-            "U_FCSF",
-            "U_BS",
-            "U_BSTH",
-            "U_DIFFL1",
-            "U_DIFFL2",
-            "U_DIFFTH",
-            "U_CAMFCS",
-            "U_CAMFCF",
-            "EXTTRIG",
+            "U_QWP1",
+            "U_QWP1TH",
+            "U_QWP2",
+            "U_QWP2TH",
+            "U_QWPMOD",
             "U_TRIGPW",
-            "U_FLCOFF",
             "U_VLOG1",
             "U_VLOG2",
             "U_VLOGP",
+            "X_FIRPKO",
+            "X_FIRPKP",
+            "X_NPS11",
+            "X_NPS14",
+            "X_POLAR",
+            "X_POLARP",
         ]
     )
     ## AO188 LP
@@ -150,7 +152,8 @@ def get_table():
         style=style,
     )
     ## QWP
-    table.add_row("QWP mode", str(status_dict["U_QWPMOD"]), "", style=inactive_style)
+    style = active_style if status_dict["U_QWPMOD"] != "NONE" else default_style
+    table.add_row("QWP mode", status_dict["U_QWPMOD"], "", style=style)
     table.add_row(
         "QWP 1",
         f"θ={status_dict['U_QWP1']:6.02f} deg",
@@ -342,17 +345,24 @@ def get_table():
         # "OFF": default_style,
         "ON": active_style,
     }
+    power_style = {"ON": default_style, "OFF": danger_style}
+    power_status = Text(
+        f"Power: {status_dict['X_NPS11']}", style=power_style[status_dict["X_NPS11"]]
+    )
     table.add_row(
         "CAM 1",
         "Logging" if logging_cam1 else "",
-        "",
+        power_status,
         style=styles[status_dict["U_VLOG1"]],
+    )
+    power_status = Text(
+        f"Power: {status_dict['X_NPS14']}", style=power_style[status_dict["X_NPS14"]]
     )
     table.add_row(
         "CAM 2",
         "Logging" if logging_cam2 else "",
-        "",
-        style=styles[status_dict["U_VLOG1"]],
+        power_status,
+        style=styles[status_dict["U_VLOG2"]],
     )
     table.add_row(
         "Pupil Cam",

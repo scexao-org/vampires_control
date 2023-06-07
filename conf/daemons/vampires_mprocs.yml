@@ -1,7 +1,7 @@
 server: 127.0.0.1:8792
 procs:
   device_control:
-    shell: "ipython -i /home/lestat/src/device_control/src/device_control/daemons/vampires_devices.py"
+    shell: "python -i /home/lestat/src/device_control/src/device_control/daemons/vampires_devices.py"
   qwp_tracking: "sleep 2.0; vampires_qwp_daemon"
   temp_status: "sleep 2.0; vampires_temp_daemon"
   # prepare_sdi: 

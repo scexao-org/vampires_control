@@ -83,7 +83,11 @@ def filter_tracking_mode(polling_time=5):
 def main():
     args = parser.parse_args()
     if args.mode == "filter":
-        filter_tracking_mode(args.t)
+        try:
+            filter_tracking_mode(args.t)
+        finally:
+            # update mode to off:
+            update_keys(U_QWPMOD="NONE")
 
 
 if __name__ == "__main__":
