@@ -60,7 +60,7 @@ def filter_tracking_mode(polling_time=5):
             curr_filter = "SII"
         else:
             # Otherwise get from VAMPIRES filter
-            curr_filter = filter.status()
+            curr_filter = filter.get_status()
 
         # lookup values from table, fall back to default if unknown
         indices = conf_data["filter"] == curr_filter
@@ -72,11 +72,9 @@ def filter_tracking_mode(polling_time=5):
         qwp1_pos = conf_row["qwp1"].iloc[0]
         qwp2_pos = conf_row["qwp2"].iloc[0]
         logger.info(f"filter={curr_filter}, QWP1 = {qwp1_pos}°, QWP2 = {qwp2_pos}°")
-        qwp1.move_absolute(float(qwp1_pos))
-        qwp2.move_absolute(float(qwp2_pos))
+        qwp1.move_absolute__oneway(float(qwp1_pos))
+        qwp2.move_absolute__oneway(float(qwp2_pos))
         # status and sleep
-        qwp1.update_keys()
-        qwp2.update_keys()
         sleep(polling_time)
 
 

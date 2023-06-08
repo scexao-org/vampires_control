@@ -217,7 +217,6 @@ def get_table():
         style = default_style
     else:
         style = unknown_style
-    style = inactive_style  # override
     table.add_row(
         "AFLC Stage",
         str(status_dict["U_FLCST"]),
