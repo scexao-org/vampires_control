@@ -21,9 +21,8 @@ class Palette:
 
 
 default_style = f"{Palette.white} on default"
-unknown_style = f"{Palette.white} on {Palette.orange}"
+unknown_style = f"{Palette.white} on {Palette.blue}"
 active_style = f"{Palette.white} on {Palette.green}"
-blue_style = f"{Palette.white} on {Palette.blue}"
 danger_style = f"{Palette.white} on {Palette.red}"
 inactive_style = f"{Palette.gray} on #111111"
 
@@ -33,15 +32,11 @@ def get_table():
     caption = Text.assemble(
         "",
         (" ACTIVE ", active_style),
-        "/",
-        (" ACTIVE ", blue_style),
-        " | ",
-        (" WARNING ", danger_style),
-        " | ",
+        (" | ", f"bold {Palette.gold}"),
         (" UNKNOWN ", unknown_style),
-        " | ",
-        (" NOT READY ", inactive_style),
-        "",
+        (" | ", f"bold {Palette.gold}"),
+        (" WARNING ", danger_style),
+        " ",
     )
     table = Table(title=title, style=f"bold {Palette.gold}", caption=caption)
 
@@ -200,12 +195,11 @@ def get_table():
 
     ## FLC
     if np.abs(status_dict["U_FLCTMP"] - 45) > 1:
-        style = unknown_style
+        style = danger_style
     elif status_dict["U_FLCEN"] == "ON":
         style = active_style
     else:
         style = default_style
-    style = inactive_style  # override
     temp_text = Text(
         f"T(AFLC)={status_dict['U_FLCTMP']:4.01f} °C | T(bench)={status_dict['U_BENTMP']:4.01f} °C",
         style=style,
@@ -252,7 +246,6 @@ def get_table():
         style = default_style
     else:
         style = unknown_style
-    style = inactive_style  # override
     table.add_row(
         "MBI",
         str(status_dict["U_MBI"]),
@@ -267,7 +260,6 @@ def get_table():
         style = active_style
     else:
         style = unknown_style
-    style = inactive_style  # override
     table.add_row("Pupil lens", status_dict["U_PUPST"], "", style=style)
 
     ## Focusing lens
@@ -327,7 +319,6 @@ def get_table():
         style = default_style
     else:
         style = danger_style
-    style = inactive_style  # override
     table.add_row(
         "Trigger",
         "ENABLED" if status_dict["EXTTRIG"] else "DISABLED",
@@ -340,8 +331,7 @@ def get_table():
     logging_cam2 = status_dict["U_VLOG2"].strip() == "ON"
     logging_pupil = status_dict["U_VLOGP"].strip() == "ON"
     styles = {
-        "OFF": inactive_style,  # override
-        # "OFF": default_style,
+        "OFF": default_style,
         "ON": active_style,
     }
     power_style = {"ON": default_style, "OFF": danger_style}
@@ -369,9 +359,6 @@ def get_table():
         "",
         style=styles[status_dict["U_VLOGP"]],
     )
-
-    style = inactive_style  # override
-    table.add_row("Gen2 Status", "", "", style=style)
 
     return table
 
