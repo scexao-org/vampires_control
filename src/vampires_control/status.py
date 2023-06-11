@@ -151,13 +151,13 @@ def get_table():
     table.add_row("QWP mode", status_dict["U_QWPMOD"], "", style=style)
     table.add_row(
         "QWP 1",
-        f"θ={status_dict['U_QWP1']:6.02f} deg",
+        f"{status_dict['U_QWP1']:6.02f} deg",
         f"θ={status_dict['U_QWP1TH']:6.02f} deg",
         style=default_style,
     )
     table.add_row(
         "QWP 2",
-        f"θ={status_dict['U_QWP2']:6.02f} deg",
+        f"{status_dict['U_QWP2']:6.02f} deg",
         f"θ={status_dict['U_QWP2TH']:6.02f} deg",
         style=default_style,
     )
