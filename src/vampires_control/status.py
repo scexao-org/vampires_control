@@ -48,11 +48,9 @@ def get_table():
         [
             "D_IMRANG",
             "D_IMRMOD",
-            "EXTTRIG",
             "P_RTAGL1",
             "P_STGPS1",
             "P_STGPS2",
-            "U_BENTMP",
             "U_BS",
             "U_BSTH",
             "U_CAMFCF",
@@ -84,6 +82,8 @@ def get_table():
             "U_QWP2",
             "U_QWP2TH",
             "U_QWPMOD",
+            "U_TRIGDL",
+            "U_TRIGEN",
             "U_TRIGPW",
             "U_VLOG1",
             "U_VLOG2",
@@ -196,15 +196,16 @@ def get_table():
     ## FLC
     if np.abs(status_dict["U_FLCTMP"] - 45) > 1:
         style = danger_style
-    elif status_dict["U_FLCEN"] == "ON":
+    elif status_dict["U_FLCEN"] == "True":
         style = active_style
     else:
         style = default_style
     temp_text = Text(
-        f"T(AFLC)={status_dict['U_FLCTMP']:4.01f} °C | T(bench)={status_dict['U_BENTMP']:4.01f} °C",
+        f"T(AFLC)={status_dict['U_FLCTMP']:4.01f} °C",
         style=style,
     )
-    table.add_row("AFLC", str(status_dict["U_FLCEN"]), temp_text, style=style)
+    status = "ENABLED" if status_dict["U_FLCEN"] == "True" else "DISABLED"
+    table.add_row("AFLC", status, temp_text, style=style)
     if status_dict["U_FLCST"].strip() == "IN":
         style = active_style
     elif status_dict["U_FLCST"].strip() == "OUT":
@@ -297,7 +298,7 @@ def get_table():
     elif "Ha" in status_dict["U_DIFFL1"] or "Ha" in status_dict["U_DIFFL2"]:
         style = active_style
     elif "SII" in status_dict["U_DIFFL1"] or "SII" in status_dict["U_DIFFL2"]:
-        style = blue_style
+        style = active_style
     table.add_row(
         "Diff. wheel",
         f"{str(status_dict['U_DIFFL1'])} / {str(status_dict['U_DIFFL2'])}",
@@ -315,14 +316,14 @@ def get_table():
     )
 
     ## Trigger
-    if status_dict["EXTTRIG"]:
+    if status_dict["U_TRIGEN"] == "True":
         style = default_style
     else:
         style = danger_style
     table.add_row(
         "Trigger",
-        "ENABLED" if status_dict["EXTTRIG"] else "DISABLED",
-        f"pw={status_dict['U_TRIGPW']:3d} us, off={status_dict['U_FLCOFF']:3d} us",
+        "ENABLED" if status_dict["U_TRIGEN"] == "True" else "DISABLED",
+        f"dl={status_dict['U_TRIGDL']:3d} us, pw={status_dict['U_TRIGPW']:3d} us, off={status_dict['U_FLCOFF']:3d} us",
         style=style,
     )
 

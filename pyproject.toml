@@ -35,6 +35,12 @@ vampires_gen2_daemon = "vampires_control.gen2.main:main"
 vampires_qwp_daemon = "vampires_control.daemons.qwp_daemon:main"
 vampires_temp_daemon = "vampires_control.daemons.temp_poll_daemon:main"
 vampires_status = "vampires_control.status:main"
+# camera control
+get_tint = "vampires_control.cameras:get_tint"
+set_tint = "vampires_control.cameras:set_tint"
+set_external_trigger = "vampires_control.cameras:set_external_trigger"
+set_readout_mode = "vampires_control.cameras:set_readout_mode"
+set_camera_mode = "vampires_control.cameras:set_camera_mode"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_control.__version__"}
