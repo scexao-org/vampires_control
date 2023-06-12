@@ -36,6 +36,7 @@ def set_readout_mode(mode: str):
         cam.set_readout_mode__oneway(mode)
 
 
+@click.command("set_camera_mode")
 @click.argument(
     "mode", type=click.Choice(["STANDARD", "MBI", "MBI_REDUCED"], case_sensitive=False)
 )
