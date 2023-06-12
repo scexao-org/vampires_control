@@ -13,7 +13,7 @@ from vampires_control import conf_dir
     type=click.Path(exists=True, readable=True, path_type=Path),
 )
 @click.command("launch_daemons")
-def main(port, config):
+def main(config):
     # Device control daemon
     print(f"Initializing mprocs server from {config}")
     name = "daemons"

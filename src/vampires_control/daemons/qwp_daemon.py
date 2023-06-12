@@ -1,10 +1,12 @@
 import logging
+import multiprocessing as mp
 import os
 from argparse import ArgumentParser
 from pathlib import Path
 from time import sleep
 
 import pandas as pd
+from Pyro4.errors import CommunicationError
 
 from device_control.pyro_keys import VAMPIRES
 from swmain.network.pyroclient import connect
@@ -44,23 +46,31 @@ parser.add_argument(
 )
 
 
+def move_qwp(qwpnum, theta):
+    if qwpnum == 1:
+        qwp = connect(VAMPIRES.QWP1)
+    elif qwpnum == 2:
+        qwp = connect(VAMPIRES.QWP2)
+    return qwp.move_absolute(theta)
+
+
 def filter_tracking_mode(polling_time=5):
     conf_data = pd.read_csv(conf_dir / "data" / "conf_vampires_qwp_filter_data.csv")
-    filter = connect(VAMPIRES.FILT)
-    diffwheel = connect(VAMPIRES.DIFF)
-    qwp1 = connect(VAMPIRES.QWP1)
-    qwp2 = connect(VAMPIRES.QWP2)
+    # filt = connect(VAMPIRES.FILT)
+    # diffwheel = connect(VAMPIRES.DIFF)
     update_keys(U_QWPMOD="FILTER")
     while True:
         # check if Halpha or SII filters are in
-        _, diff_filter = diffwheel.get_configuration()
+        # _, diff_filter = diffwheel.get_configuration()
+        diff_filter = "NA"  # TODO temporary
         if "H-alpha" in diff_filter:
             curr_filter = "H-alpha"
         elif "SII" in diff_filter:
             curr_filter = "SII"
         else:
             # Otherwise get from VAMPIRES filter
-            curr_filter = filter.get_status()
+            # curr_filter = filt.get_status()
+            curr_filter = "625-50"  # TODO temporary
 
         # lookup values from table, fall back to default if unknown
         indices = conf_data["filter"] == curr_filter
@@ -69,20 +79,25 @@ def filter_tracking_mode(polling_time=5):
             conf_row = conf_data.loc[conf_data["filter"] == "default"]
         else:
             conf_row = conf_data.loc[indices]
-        qwp1_pos = conf_row["qwp1"].iloc[0]
-        qwp2_pos = conf_row["qwp2"].iloc[0]
+        qwp1_pos = float(conf_row["qwp1"].iloc[0])
+        qwp2_pos = float(conf_row["qwp2"].iloc[0])
         logger.info(f"filter={curr_filter}, QWP1 = {qwp1_pos}°, QWP2 = {qwp2_pos}°")
-        qwp1.move_absolute__oneway(float(qwp1_pos))
-        qwp2.move_absolute__oneway(float(qwp2_pos))
-        # status and sleep
+        # launch two processes to move each QWP simultaneously
+        with mp.Pool(2) as pool:
+            pool.apply_async(move_qwp, args=(1, qwp1_pos))
+            pool.apply_async(move_qwp, args=(2, qwp2_pos))
+            # wait for previous two results to complete
+            pool.close()
+            pool.join()
         sleep(polling_time)
 
 
 def main():
     args = parser.parse_args()
-    if args.mode == "filter":
+    # connect to cameras
+    if args.mode.lower() == "filter":
         try:
-            filter_tracking_mode(args.t)
+            filter_tracking_mode(polling_time=args.t)
         finally:
             # update mode to off:
             update_keys(U_QWPMOD="NONE")

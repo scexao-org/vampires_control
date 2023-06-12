@@ -63,7 +63,6 @@ def get_table():
             "U_FILTER",
             "U_FILTTH",
             "U_FLCEN",
-            "U_FLCOFF",
             "U_FLCST",
             "U_FLCSTP",
             "U_FLCTMP",
@@ -84,6 +83,7 @@ def get_table():
             "U_QWPMOD",
             "U_TRIGDL",
             "U_TRIGEN",
+            "U_TRIGOF",
             "U_TRIGPW",
             "U_VLOG1",
             "U_VLOG2",
@@ -323,7 +323,7 @@ def get_table():
     table.add_row(
         "Trigger",
         "ENABLED" if status_dict["U_TRIGEN"] == "True" else "DISABLED",
-        f"dl={status_dict['U_TRIGDL']:3d} us, pw={status_dict['U_TRIGPW']:3d} us, off={status_dict['U_FLCOFF']:3d} us",
+        f"dl={status_dict['U_TRIGDL']:3d} us, pw={status_dict['U_TRIGPW']:3d} us, off={status_dict['U_TRIGOF']:3d} us",
         style=style,
     )
 
