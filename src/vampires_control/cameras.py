@@ -1,3 +1,5 @@
+import subprocess
+
 import click
 
 from swmain.network.pyroclient import connect
@@ -9,37 +11,62 @@ def connect_cameras():
     return vcam1, vcam2
 
 
-@click.command("get_tint")
+@click.command("get_tint", help="Print each camera's detector integration time.")
 def get_tint():
     tints = [cam.get_tint() for cam in connect_cameras()]
-    click.echo(f"Cam 1: {tints[0]:6.03f}, Cam 2: {tints[1]:6.03f}")
+    click.echo(
+        f"Cam 1: {tints[0]:6.03f} s / {int(tints[0] * 1e6):d} us, Cam 2: {tints[1]:6.03f} s / {int(tints[1] * 1e6):d} us"
+    )
 
 
-@click.command("set_tint")
+@click.command("get_fps", help="Print each camera's framerate.")
+def get_fps():
+    frates = [cam.get_fps() for cam in connect_cameras()]
+    click.echo(f"Cam 1: {frates[0]:6.02f} Hz, Cam 2: {frates[1]:6.02f} Hz")
+
+
+@click.command("set_tint", help="Set both cameras' detector integration time")
 @click.argument("tint", type=float)
 def set_tint(tint: float):
     for cam in connect_cameras():
         cam.set_tint__oneway(tint)
 
 
-@click.command("set_external_trigger")
-@click.option("--enable/--disable", is_flag=True)
-def set_external_trigger(enable: bool):
+@click.command(
+    "set_trigger", help="Control the external trigger mode for both cameras."
+)
+@click.argument(
+    "enable", type=click.Choice(["enable", "disable"], case_sensitive=False)
+)
+def set_trigger(enable: bool):
     for cam in connect_cameras():
         cam.set_external_trigger__oneway(enable)
 
 
-@click.command("set_readout_mode")
+@click.command("set_readout_mode", help="Set both cameras' readout modes.")
 @click.argument("mode", type=click.Choice(["FAST", "SLOW"], case_sensitive=False))
 def set_readout_mode(mode: str):
     for cam in connect_cameras():
         cam.set_readout_mode__oneway(mode)
 
 
-@click.command("set_camera_mode")
+@click.command("set_mode", help="Set both cameras' crop modes.")
 @click.argument(
-    "mode", type=click.Choice(["STANDARD", "MBI", "MBI_REDUCED"], case_sensitive=False)
+    "mode",
+    type=click.Choice(["STANDARD", "MBI", "MBI_REDUCED", "FULL"], case_sensitive=False),
 )
-def set_camera_mode(mode: str):
+def set_mode(mode: str):
     for cam in connect_cameras():
         cam.set_camera_mode__oneway(mode)
+
+
+@click.command("start_cameras")
+@click.argument("mode", default="STANDARD")
+@click.option(
+    "-c", "--cam", type=int, required=False, help="Start a single camera by number"
+)
+def start_cameras(mode, cam=None):
+    if cam is None or cam == 1:
+        subprocess.run(["ssh", "sc5", "cam-vcam1start", "mode"], shell=True, check=True)
+    if cam is None or cam == 2:
+        subprocess.run(["ssh", "sc5", "cam-vcam2start", "mode"], shell=True, check=True)

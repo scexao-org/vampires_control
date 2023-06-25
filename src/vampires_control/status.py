@@ -8,6 +8,7 @@ from rich.table import Table
 from rich.text import Text
 
 from swmain.redis import get_values
+from vampires_control.helpers import get_dominant_filter
 
 
 class Palette:
@@ -90,12 +91,29 @@ def get_table():
             "U_VLOGP",
             "X_FIRPKO",
             "X_FIRPKP",
-            "X_NPS11",
+            "X_GRDAMP",
+            "X_GRDMOD",
+            "X_GRDSEP",
+            "X_GRDST",
+            "X_INTSPH",
             "X_NPS14",
+            "X_NPS15",
+            "X_NPS216",
             "X_POLAR",
             "X_POLARP",
+            "X_PYWPKO",
+            "X_PYWPKP",
+            "X_SRCFFT",
+            "X_SRCFIR",
+            "X_SRCFOP",
+            "X_SRCSEL",
         ]
     )
+    # normalize all inputs into UPPERCASE
+    for k, v in status_dict.items():
+        if isinstance(status_dict[k], str):
+            status_dict[k] = v.strip()
+
     ## AO188 LP
     if status_dict["P_STGPS1"] == 0:
         status = "OUT"
@@ -122,53 +140,87 @@ def get_table():
     else:
         status = "UNKNOWN"
         style = unknown_style
-    table.add_row("HWP", status, f"θ={status_dict['P_RTAGL1']:6.02f} deg", style=style)
+    table.add_row("HWP", status, f"θ={status_dict['P_RTAGL1']:6.02f}°", style=style)
 
     ## Image rotator
     table.add_row(
         "Image rotator",
         status_dict["D_IMRMOD"],
-        f"θ={status_dict['D_IMRANG']:6.02f} deg",
+        f"θ={status_dict['D_IMRANG']:6.02f}°",
         style=default_style,
     )
 
     ## AO188 -> SCExAO
+
+    ## source
     table.add_section()
+    style = default_style
+    if status_dict["X_NPS15"].upper() == "ON":
+        style = active_style
+    info = f"Filt={status_dict['X_SRCFFT'].replace(' ', '')}, Opt={status_dict['X_SRCFOP'].replace(' ', '')}, IR={status_dict['X_SRCFIR'].replace(' ', '')}"
+    table.add_row("Source", status_dict["X_SRCSEL"], info, style=style)
+
+    ## integrating sphere
+    style = default_style
+    if status_dict["X_INTSPH"].upper() == "IN":
+        style = active_style
+    table.add_row("Int Sphere", status_dict["X_INTSPH"], style=style)
+
+    ## astrogrid
+    style = default_style
+    if status_dict["X_GRDST"].upper() == "ON":
+        style = active_style
+    info = f"{status_dict['X_GRDSEP']:4.01f} λ/D, {status_dict['X_GRDAMP']:4.01f} um, {status_dict['X_GRDMOD']:4d} Hz"
+    table.add_row("Astrogrid", status_dict["X_GRDST"], info, style=style)
 
     ## LP
-    if status_dict["X_POLAR"].strip() == "OUT":
+    if status_dict["X_POLAR"].upper() == "OUT":
         style = default_style
-    elif status_dict["X_POLAR"].strip() == "IN":
+    elif status_dict["X_POLAR"].upper() == "IN":
         style = active_style
     table.add_row(
         "LP",
         status_dict["X_POLAR"],
-        f"θ={status_dict['X_POLARP']:6.02f} deg",
+        f"θ={status_dict['X_POLARP']:6.02f}°",
         style=style,
     )
-    ## QWP
-    style = active_style if status_dict["U_QWPMOD"] != "NONE" else default_style
+    ## QWPs
+    style = active_style if status_dict["U_QWPMOD"] != "None" else default_style
     table.add_row("QWP mode", status_dict["U_QWPMOD"], "", style=style)
     table.add_row(
         "QWP 1",
-        f"{status_dict['U_QWP1']:6.02f} deg",
-        f"θ={status_dict['U_QWP1TH']:6.02f} deg",
+        f"{status_dict['U_QWP1']:6.02f}°",
+        f"θ={status_dict['U_QWP1TH']:6.02f}°",
         style=default_style,
     )
     table.add_row(
         "QWP 2",
-        f"{status_dict['U_QWP2']:6.02f} deg",
-        f"θ={status_dict['U_QWP2TH']:6.02f} deg",
+        f"{status_dict['U_QWP2']:6.02f}°",
+        f"θ={status_dict['U_QWP2TH']:6.02f}°",
         style=default_style,
     )
 
     ## SCExAO -> Vis
     table.add_section()
 
+    ## PyWFS pickoff
+    style = default_style
+    if is_pywfs_pickoff_interfering(
+        status_dict["X_PYWPKO"], status_dict["U_FILTER"], status_dict["U_DIFFL1"]
+    ):
+        style = danger_style
+
+    table.add_row(
+        "PyWFS Pickoff",
+        status_dict["X_PYWPKO"],
+        f"θ={status_dict['X_PYWPKP']:6.02f}°",
+        style=style,
+    )
+
     ## Fieldstop
-    if "open" in status_dict["U_FLDSTP"].lower():
+    if "OPEN" in status_dict["U_FLDSTP"].upper():
         style = active_style
-    elif status_dict["U_FLDSTP"].lower() == "unknown":
+    elif status_dict["U_FLDSTP"].upper() == "UNKNOWN":
         style = unknown_style
     else:
         style = default_style
@@ -180,9 +232,9 @@ def get_table():
     )
 
     ## First pickoff
-    if status_dict["X_FIRPKO"].strip() == "IN":
+    if status_dict["X_FIRPKO"].upper() == "IN":
         style = active_style
-    elif status_dict["X_FIRPKO"].strip() == "OUT":
+    elif status_dict["X_FIRPKO"].upper() == "OUT":
         style = default_style
     else:
         style = unknown_style
@@ -194,21 +246,23 @@ def get_table():
     )
 
     ## FLC
-    if np.abs(status_dict["U_FLCTMP"] - 45) > 1:
+    if np.abs(status_dict["U_FLCTMP"] - 45) > 5:
         style = danger_style
-    elif status_dict["U_FLCEN"] == "True":
+    elif status_dict["U_FLCEN"].upper() == "TRUE":
         style = active_style
+    elif status_dict["U_FLCST"].upper() == "IN":
+        style = danger_style
     else:
         style = default_style
     temp_text = Text(
         f"T(AFLC)={status_dict['U_FLCTMP']:4.01f} °C",
         style=style,
     )
-    status = "ENABLED" if status_dict["U_FLCEN"] == "True" else "DISABLED"
+    status = "Enabled" if status_dict["U_FLCEN"] == "True" else "Disabled"
     table.add_row("AFLC", status, temp_text, style=style)
-    if status_dict["U_FLCST"].strip() == "IN":
+    if status_dict["U_FLCST"].upper() == "IN":
         style = active_style
-    elif status_dict["U_FLCST"].strip() == "OUT":
+    elif status_dict["U_FLCST"].upper() == "OUT":
         style = default_style
     else:
         style = unknown_style
@@ -219,16 +273,16 @@ def get_table():
         style=style,
     )
     ## Pupil mask
-    if status_dict["U_MASK"].strip() == "Open":
+    if status_dict["U_MASK"].upper() == "OPEN":
         style = default_style
-    elif status_dict["U_MASK"].strip() == "Unknown":
+    elif status_dict["U_MASK"].upper() == "UNKNOWN":
         style = unknown_style
     else:
         style = active_style
     table.add_row(
         "Mask wheel",
         str(status_dict["U_MASK"]),
-        f"θ={status_dict['U_MASKTH']:6.02f} deg, x={status_dict['U_MASKX']:6.03f} mm, y={status_dict['U_MASKY']:6.03f} mm",
+        f"θ={status_dict['U_MASKTH']:6.02f}°, x={status_dict['U_MASKX']:6.03f} mm, y={status_dict['U_MASKY']:6.03f} mm",
         style=style,
     )
 
@@ -241,23 +295,23 @@ def get_table():
     )
 
     ## MBI
-    if status_dict["U_MBI"] == "IN":
+    if status_dict["U_MBI"].upper() == "DICHROICS":
         style = active_style
-    elif status_dict["U_MBI"] == "OUT":
+    elif status_dict["U_MBI"].upper() == "MIRROR":
         style = default_style
     else:
         style = unknown_style
     table.add_row(
         "MBI",
         str(status_dict["U_MBI"]),
-        f"θ={status_dict['U_MBITH']:6.02f} deg",
+        f"θ={status_dict['U_MBITH']:6.02f}°",
         style=style,
     )
 
     ## Pupil lens
-    if status_dict["U_PUPST"].strip() == "OUT":
+    if status_dict["U_PUPST"].upper() == "OUT":
         style = default_style
-    elif status_dict["U_PUPST"].strip() == "IN":
+    elif status_dict["U_PUPST"].upper() == "IN":
         style = active_style
     else:
         style = unknown_style
@@ -265,7 +319,7 @@ def get_table():
 
     ## Focusing lens
     style = default_style
-    if status_dict["U_FCS"].lower() == "unknown":
+    if status_dict["U_FCS"].upper() == "UNKNOWN":
         style = unknown_style
     table.add_row(
         "Focus",
@@ -275,34 +329,34 @@ def get_table():
     )
 
     ## Beamsplitter
-    if status_dict["U_BS"].lower() == "open":
+    if status_dict["U_BS"].upper() == "OPEN":
         style = active_style
-    elif status_dict["U_BS"].lower() == "unknown":
+    elif status_dict["U_BS"].upper() == "UNKNOWN":
         style = unknown_style
     else:
         style = default_style
     table.add_row(
         "Beamsplitter",
         str(status_dict["U_BS"]),
-        f"θ={status_dict['U_BSTH']:6.02f} deg",
+        f"θ={status_dict['U_BSTH']:6.02f}°",
         style=style,
     )
 
     ## Differential filter wheel
     style = default_style
     if (
-        status_dict["U_DIFFL1"].lower() == "unknown"
-        or status_dict["U_DIFFL2"].lower() == "unknown"
+        status_dict["U_DIFFL1"].upper() == "UNKNOWN"
+        or status_dict["U_DIFFL2"].upper() == "UNKNOWN"
     ):
         style = unknown_style
-    elif "Ha" in status_dict["U_DIFFL1"] or "Ha" in status_dict["U_DIFFL2"]:
+    elif "HA" in status_dict["U_DIFFL1"] or "HA" in status_dict["U_DIFFL2"]:
         style = active_style
     elif "SII" in status_dict["U_DIFFL1"] or "SII" in status_dict["U_DIFFL2"]:
         style = active_style
     table.add_row(
-        "Diff. wheel",
+        "Diff wheel",
         f"{str(status_dict['U_DIFFL1'])} / {str(status_dict['U_DIFFL2'])}",
-        f"θ={status_dict['U_DIFFTH']:6.02f} deg",
+        f"θ={status_dict['U_DIFFTH']:6.02f}°",
         style=style,
     )
 
@@ -316,52 +370,85 @@ def get_table():
     )
 
     ## Trigger
-    if status_dict["U_TRIGEN"] == "True":
+    if status_dict["U_TRIGEN"].upper() == "TRUE":
         style = default_style
     else:
         style = danger_style
     table.add_row(
         "Trigger",
-        "ENABLED" if status_dict["U_TRIGEN"] == "True" else "DISABLED",
+        "Enabled" if status_dict["U_TRIGEN"] == "True" else "Disabled",
         f"dl={status_dict['U_TRIGDL']:3d} us, pw={status_dict['U_TRIGPW']:3d} us, off={status_dict['U_TRIGOF']:3d} us",
         style=style,
     )
 
     table.add_section()
-    logging_cam1 = status_dict["U_VLOG1"].strip() == "ON"
-    logging_cam2 = status_dict["U_VLOG2"].strip() == "ON"
-    logging_pupil = status_dict["U_VLOGP"].strip() == "ON"
+    logging_cam1 = status_dict["U_VLOG1"].upper() == "ON"
+    logging_cam2 = status_dict["U_VLOG2"].upper() == "ON"
+    logging_pupil = status_dict["U_VLOGP"].upper() == "ON"
     styles = {
         "OFF": default_style,
         "ON": active_style,
     }
     power_style = {"ON": default_style, "OFF": danger_style}
     power_status = Text(
-        f"Power: {status_dict['X_NPS11']}", style=power_style[status_dict["X_NPS11"]]
+        f"Power: {status_dict['X_NPS14']}",
+        style=power_style[status_dict["X_NPS14"].upper()],
     )
     table.add_row(
         "CAM 1",
         "Logging" if logging_cam1 else "",
         power_status,
-        style=styles[status_dict["U_VLOG1"]],
+        style=styles[status_dict["U_VLOG1"].upper()],
     )
     power_status = Text(
-        f"Power: {status_dict['X_NPS14']}", style=power_style[status_dict["X_NPS14"]]
+        f"Power: {status_dict['X_NPS216']}",
+        style=power_style[status_dict["X_NPS216"].upper()],
     )
     table.add_row(
         "CAM 2",
         "Logging" if logging_cam2 else "",
         power_status,
-        style=styles[status_dict["U_VLOG2"]],
+        style=styles[status_dict["U_VLOG2"].upper()],
     )
     table.add_row(
         "Pupil Cam",
         "Logging" if logging_pupil else "",
         "",
-        style=styles[status_dict["U_VLOGP"]],
+        style=styles[status_dict["U_VLOGP"].upper()],
     )
 
     return table
+
+
+def is_pywfs_pickoff_interfering(pywfs_pickoff, vamp_filter, vamp_diff_filter):
+    # these pickoffs do not cut off any wavelengths of VAMPIRES
+    if pywfs_pickoff in ("Open", "50/50 spt", "850 nm sp"):
+        return False
+    # these pickoffs always cut off VAMPIRES
+    if pywfs_pickoff in ("Silver mirror", "650 nm SP", "800 nm LP", "850 nm LP"):
+        return True
+    # otherwise, determine based on the filters used in VAMPIRES
+    curr_filter = get_dominant_filter(vamp_filter, vamp_diff_filter)
+    if pywfs_pickoff == "700 nm SP":
+        return curr_filter in ("SII", "675-50", "725-50", "750-50", "775-50", "Open")
+    elif pywfs_pickoff == "750 nm SP":
+        return curr_filter in ("725-50", "750-50", "775-50", "Open")
+    elif pywfs_pickoff == "800 nm SP (dflt)":
+        return curr_filter in ("775-50", "Open")
+    elif pywfs_pickoff == "750 nm LP":
+        return curr_filter in (
+            "Halpha",
+            "SII",
+            "625-50",
+            "675-50",
+            "725-50",
+            "750-50",
+            "Open",
+        )
+
+    # be conservative by default and raise alarms
+    # if something went wrong in our logic
+    return True
 
 
 @click.command("vampires_status")

@@ -5,13 +5,14 @@ from time import sleep
 from Pyro4.errors import CommunicationError
 
 from device_control.pyro_keys import VAMPIRES
+from swmain.autoretry import autoretry
 from swmain.network.pyroclient import connect
 
 # set up logging
 formatter = logging.Formatter(
-    "%(asctime)s | %(name)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
 )
-logger = logging.getLogger("vampires_temp")
+logger = logging.getLogger("vamp_temps")
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.INFO)
@@ -25,7 +26,7 @@ parser = ArgumentParser(
 parser.add_argument(
     "-t",
     type=float,
-    default=5,
+    default=10,
     help="Polling time in seconds, by default %(default)f s",
 )
 
@@ -43,19 +44,26 @@ def connect_cameras():
     return vcam1, vcam2
 
 
+@autoretry
+def get_temperature_status(tc, cams):
+    tc_temp = tc.get_temp()
+    tc.update_keys(temperature=tc_temp)
+    status = f"FLC={tc_temp:4.01f}°C"
+    for i, cam in enumerate(cams):
+        if cam is None:
+            continue
+        cam_temp = cam.get_temperature()
+        status += f", VCAM{i+1}={cam_temp:4.01f}°C"
+
+    return status
+
+
 def main():
     args = parser.parse_args()
     tc = connect(VAMPIRES.TC)
     cams = connect_cameras()
     while True:
-        tc_temp = tc.get_temp()
-        tc.update_keys(temperature=tc_temp)
-        status = f"FLC={tc_temp:4.01f} °C"
-        for i, cam in enumerate(cams):
-            if cam is None:
-                continue
-            cam_temp = cam.get_temperature()
-            status += f", VCAM{i+1}={cam_temp:4.01f} °C"
+        status = get_temperature_status(tc, cams)
         logger.info(status)
         # status and sleep
         sleep(args.t)
