@@ -81,7 +81,13 @@ class Autofocuser:
 
     def autofocus_stage_one(self, step_size=0.05, num_frames=100):
         logger.info("Focusing camera 2 with lens")
-        focus_range = np.arange(0.8, 2.8, step_size)
+
+        search_width = 1.5
+        start_point = self.focus_stage.get_configurations()[0]["value"]
+        focus_range = np.arange(
+            start_point - search_width / 2, start_point + search_width / 2, step_size
+        )
+
         metrics = np.empty_like(focus_range)
         for i, position in enumerate(
             tqdm.tqdm(focus_range, desc="Scanning focus", leave=False)
@@ -105,7 +111,13 @@ class Autofocuser:
 
     def autofocus_stage_two(self, step_size=0.05, num_frames=100):
         logger.info("Focusing camera 1 with camfocus stage")
-        focus_range = np.arange(9.5, 11.5, step_size)
+
+        search_width = 1.5
+        start_point = self.camfocus_stage.get_configurations()[0]["value"]
+        focus_range = np.arange(
+            start_point - search_width / 2, start_point + search_width / 2, step_size
+        )
+
         metrics = np.empty_like(focus_range)
         for i, position in enumerate(
             tqdm.tqdm(focus_range, desc="Scanning focus", leave=False)
