@@ -1,8 +1,11 @@
 import subprocess
+import time
 
 import click
 
 from swmain.network.pyroclient import connect
+
+DEFAULT_DELAY = 15  # s
 
 
 def connect_cameras():
@@ -27,7 +30,7 @@ def get_fps():
 
 @click.command("set_tint", help="Set both cameras' detector integration time")
 @click.argument("tint", type=float)
-def set_tint(tint: float):
+def set_tint(tint):
     for cam in connect_cameras():
         cam.set_tint__oneway(tint)
 
@@ -58,6 +61,7 @@ def set_readout_mode(mode: str):
 def set_mode(mode: str):
     for cam in connect_cameras():
         cam.set_camera_mode__oneway(mode)
+        time.sleep(DEFAULT_DELAY)
 
 
 @click.command("start_cameras")
@@ -66,7 +70,9 @@ def set_mode(mode: str):
     "-c", "--cam", type=int, required=False, help="Start a single camera by number"
 )
 def start_cameras(mode, cam=None):
-    if cam is None or cam == 1:
-        subprocess.run(["ssh", "sc5", "cam-vcam1start", "mode"], shell=True, check=True)
-    if cam is None or cam == 2:
-        subprocess.run(["ssh", "sc5", "cam-vcam2start", "mode"], shell=True, check=True)
+    if cam is None:
+        subprocess.run(["ssh", "sc5", "cam-vcamstart"], shell=True)
+    elif cam == 1:
+        subprocess.run(["ssh", "sc5", "cam-vcam1start"], shell=True)
+    elif cam == 2:
+        subprocess.run(["ssh", "sc5", "cam-vcam2start"], shell=True)

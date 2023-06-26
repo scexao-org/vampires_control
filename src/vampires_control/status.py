@@ -82,8 +82,8 @@ def get_table():
             "U_QWP2",
             "U_QWP2TH",
             "U_QWPMOD",
-            "U_TRIGDL",
             "U_TRIGEN",
+            "U_TRIGJT",
             "U_TRIGOF",
             "U_TRIGPW",
             "U_VLOG1",
@@ -377,7 +377,7 @@ def get_table():
     table.add_row(
         "Trigger",
         "Enabled" if status_dict["U_TRIGEN"] == "True" else "Disabled",
-        f"dl={status_dict['U_TRIGDL']:3d} us, pw={status_dict['U_TRIGPW']:3d} us, off={status_dict['U_TRIGOF']:3d} us",
+        f"off={status_dict['U_TRIGOF']:2d} us, jt={status_dict['U_TRIGJT']:2d} us, pw={status_dict['U_TRIGPW']:2d} us",
         style=style,
     )
 
@@ -452,8 +452,8 @@ def is_pywfs_pickoff_interfering(pywfs_pickoff, vamp_filter, vamp_diff_filter):
 
 
 @click.command("vampires_status")
-@click.option("-p", "--poll", default=1, type=float, help="Polling time, in seconds")
-@click.option("-r", "--refresh", default=1, type=float, help="Refresh rate, in Hz")
+@click.option("-p", "--poll", default=0.2, type=float, help="Polling time, in seconds")
+@click.option("-r", "--refresh", default=5, type=float, help="Refresh rate, in Hz")
 def main(poll: float, refresh: float):
     min_poll = 1 / refresh
     if poll < min_poll:
