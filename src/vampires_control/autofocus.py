@@ -81,7 +81,7 @@ class Autofocuser:
 
     def autofocus_stage_one(self, step_size=0.05, num_frames=100):
         logger.info("Focusing camera 2 with lens")
-        focus_range = np.arange(1.5, 2.5, step_size)
+        focus_range = np.arange(0, 2.5, step_size)
         metrics = np.empty_like(focus_range)
         for i, position in enumerate(
             tqdm.tqdm(focus_range, desc="Scanning focus", leave=False)
@@ -132,7 +132,8 @@ def get_focus_from_metric(focus, metrics):
     # fit quadratic to curve
     poly = np.polynomial.Polynomial.fit(focus, metrics, deg=2)
     # vertex is at -b / 2a
-    return -poly.coef[1] / (2 * poly.coef[2])
+    coefs = poly.convert().coef
+    return -coefs[1] / (2 * coefs[2])
 
 
 def autofocus_metric(frame):
@@ -144,7 +145,7 @@ def autofocus_metric(frame):
 
 @click.command("autofocus")
 @click.argument("mode", type=click.Choice(["dual", "single"], case_sensitive=False))
-@click.option("-n", "--num-frames", type=int, default=100)
+@click.option("-n", "--num-frames", type=int, default=100, show_default=True)
 def autofocus(mode: str, num_frames: int = 100):
     af = Autofocuser()
     if mode == "dual":
