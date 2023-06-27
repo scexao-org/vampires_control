@@ -218,7 +218,7 @@ class Autofocuser:
             )
             if save:
                 self.focus_stage.save_configuration(
-                    idx=config["idx"], name=config["name"], position=best_fit
+                    index=config["idx"], name=config["name"], position=best_fit
                 )
             self.focus_stage.move_configuration_name(config["name"])
 
@@ -251,7 +251,7 @@ class Autofocuser:
             )
             if save:
                 self.camfocus_stage.save_configuration(
-                    idx=config["idx"], name=config["name"], position=best_fit
+                    index=config["idx"], name=config["name"], position=best_fit
                 )
             self.camfocus_stage.move_configuration_name(config["name"])
 

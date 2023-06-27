@@ -6,13 +6,11 @@ VAMPIRES uses two [Hamamatsu ORCA-Quest](https://www.hamamatsu.com/us/en/product
 
 Each camera has its own framegrabber and viewer class which inherits a common interface from `camstack`. To start the camera framegrabber (which should not be done unless necessary)
 ```
+cam-vcamstart # start both cameras
 cam-vcam1start # start vcam1
 cam-vcam2start # start vcam2
 cam-vpupcamstart # start vpupcam
 ```
-
-
-Start each viewer from a separate terminal so their respective outputs are organized
 
 **Main science viewers**
 ```
@@ -28,12 +26,12 @@ vpupcam.py
 
 ## Readout Modes
 
-VAMPIRES has two readout modes: "SLOW" and "FAST". The main differences are the maximum framerate and read noise. The slow mode uses the extra readout time to reduce the jitter in the ADC conversion, which enables sensitivity low enough for photon number resolving.
+VAMPIRES has two readout modes: "Slow" and "Fast". The main differences are the maximum framerate and read noise. The slow mode uses the extra readout time to reduce the jitter in the ADC conversion, which enables sensitivity low enough for photon number resolving.
 
 | mode | framerate (Hz) | bias (adu) | read noise (e-) | gain (e- / adu) |
 |:----:|---------------:|-----------:|----------------:|----------------:|
-| FAST | 500            | 200        | 0.45            | 0.11            |
-| SLOW | 60             | 200        | 0.21            | 0.11            |
+| Fast | 500            | 200        | 0.45            | 0.11            |
+| Slow | 60             | 200        | 0.21            | 0.11            |
 
 
 ```{admonition} Framegrabber reset
