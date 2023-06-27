@@ -3,6 +3,8 @@ import logging
 import click
 import numpy as np
 import tqdm.auto as tqdm
+from numpy.polynomial import Polynomial
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 from pyMilk.interfacing.isio_shmlib import SHM
 from swmain.network.pyroclient import connect
@@ -33,9 +35,9 @@ class Autofocuser:
     The focusing is done in the following order:
     1. beamsplitter in, focus camera 2 using lens ("standard")
     2. beamsplitter in, focus camera 1 using camfocus ("dual")
-    3. beampslitter out, focus camera 1 using camfocus ("single")
-    4. beamsplitter in, narrowband in, focus camera 1 and 2 using lens ("sdi")
-    5. beamsplitter out, pupil lens in, focus camera 1 using camfocus ("pupil")
+    3. beamsplitter in, narrowband in, focus camera 1 and 2 using lens ("sdi")
+    4. beampslitter out, focus camera 1 using camfocus ("single")
+    5. TODO beamsplitter out, pupil lens in, focus camera 1 using camfocus ("pupil")
     """
 
     def __init__(self):
@@ -67,16 +69,31 @@ class Autofocuser:
             self.beamsplitter.move_configuration_name(bs)
 
         # prepare cameras
-        click.confirm(
-            "Adjust camera settings and confirm when ready", default=True, abort=True
+        num_frames = click.prompt(
+            "Adjust camera settings and specify num frames per position when ready",
+            default=100,
+            type=int,
         )
 
-        # focus the lens
-        self.autofocus_stage_one()
-        # focus the camera focus
-        self.autofocus_stage_two()
-
-        # done!
+        ## 1. focus the lens to set standard focus
+        config = self.focus_stage.get_configurations()[0]
+        logger.info("Focusing camera 2 with the focusing lens")
+        self.autofocus_lens(
+            shm=self.shms[2],
+            start_point=config["value"],
+            num_frames=num_frames,
+            config=config,
+        )
+        ## 2. focus the camera focus
+        config = self.camfocus_stage.get_configurations()[0]
+        logger.info("Focusing camera 1 with the camera focus stage")
+        self.autofocus_camfocus(
+            shm=self.shms[1],
+            start_point=config["value"],
+            num_frames=num_frames,
+            config=config,
+        )
+        ## Done!
         logger.info("Finished dual-cam autofocus")
 
     def autofocus_sdi(self):
@@ -115,13 +132,22 @@ class Autofocuser:
                 self.diff_wheel.move_configuration_name("SII-cont / SII")
 
         # prepare cameras
-        click.confirm(
-            "Adjust camera settings and confirm when ready", default=True, abort=True
+        num_frames = click.prompt(
+            "Adjust camera settings and specify num frames per position when ready",
+            default=100,
+            type=int,
         )
 
-        # focus the lens
-        self.autofocus_stage_three()
-        # done!
+        ## 1. focus the lens to set sdi focus
+        config = self.focus_stage.get_configurations()[1]
+        logger.info("Focusing both cameras with the focusing lens")
+        self.autofocus_lens(
+            shm=(self.shms[1], self.shms[2]),
+            start_point=config["value"],
+            num_frames=num_frames,
+            config=config,
+        )
+        ## Done!
         logger.info("Finished SDI autofocus")
 
     def autofocus_singlecam(self):
@@ -141,158 +167,106 @@ class Autofocuser:
                 self.beamsplitter.move_configuration_idx(3)
 
         # prepare cameras
-        click.confirm(
-            "Adjust camera settings and confirm when ready", default=True, abort=True
+        num_frames = click.prompt(
+            "Adjust camera settings and specify num frames per position when ready",
+            default=100,
+            type=int,
         )
 
-        # focus the camera focus
-        self.autofocus_stage_four()
-        # done!
+        ## 1. focus the lens to set single focus
+        config = self.camfocus_stage.get_configurations()[1]
+        logger.info("Focusing both cameras with the focusing lens")
+        self.autofocus_camfocus(
+            shm=self.shms[1],
+            start_point=config["value"],
+            num_frames=num_frames,
+            config=config,
+        )
+        ## Done!
         logger.info("Finished single-cam autofocus")
 
-    def autofocus_stage_one(self, step_size=0.05, num_frames=100):
-        logger.info("Focusing camera 2 with lens")
-
+    def autofocus_lens(
+        self, shm, start_point, step_size=0.05, num_frames=100, config=None
+    ):
         search_width = 1.5
-        start_point = self.focus_stage.get_configurations()[0]["value"]
         focus_range = np.arange(
             max(0, start_point - search_width / 2),
-            start_point + search_width / 2,
+            min(23, start_point + search_width / 2),
             step_size,
         )
-
         metrics = np.empty_like(focus_range)
-        for i, position in enumerate(
-            tqdm.tqdm(focus_range, desc="Scanning focus", leave=False)
-        ):
-            logger.info(f"Moving focus lens to {position:4.02f} mm")
-            self.focus_stage.move_absolute(position)
-            cube = self.shms[2].multi_recv_data(num_frames, outputFormat=2, timeout=10)
-            frame = np.median(cube, axis=0, overwrite_input=True)
-            metrics[i] = autofocus_metric(frame)
+        with logging_redirect_tqdm():
+            for i, position in enumerate(
+                tqdm.tqdm(focus_range, desc="Scanning lens", leave=False)
+            ):
+                logger.info(f"Moving focus lens to {position:4.02f} mm")
+                self.focus_stage.move_absolute(position)
+                if isinstance(shm, tuple) or isinstance(shm, list):
+                    metrics[i] = np.mean(
+                        [self.measure_metric(s, num_frames) for s in shm]
+                    )
+                else:
+                    metrics[i] = self.measure_metric(shm, num_frames)
 
-        best_fit = get_focus_from_metric(focus_range, metrics)
+        best_fit = fit_optimal_focus(focus_range, metrics)
         logger.info(f"Best-fit focus was {best_fit:4.02f} mm")
         self.focus_stage.move_absolute(best_fit)
-        save = click.confirm(
-            'Would you like to save this to the "standard" configuration?', default=True
-        )
-        if save:
-            self.focus_stage.save_configuration(index=1, position=best_fit)
-        self.focus_stage.move_configuration_name("standard")
-        logger.info("Finished focusing camera 2")
+        if config is not None:
+            save = click.confirm(
+                f"Would you like to save this to the \"{config['name']}\" configuration?",
+                default=True,
+            )
+            if save:
+                self.focus_stage.save_configuration(
+                    idx=config["idx"], name=config["name"], position=best_fit
+                )
+            self.focus_stage.move_configuration_name(config["name"])
 
-    def autofocus_stage_two(self, step_size=0.05, num_frames=100):
-        logger.info("Focusing camera 1 with camfocus stage")
-
+    def autofocus_camfocus(
+        self, shm, start_point, step_size=0.05, num_frames=100, config=None
+    ):
         search_width = 1.5
-        start_point = self.camfocus_stage.get_configurations()[0]["value"]
         focus_range = np.arange(
             max(0, start_point - search_width / 2),
-            start_point + search_width / 2,
+            min(25, start_point + search_width / 2),
             step_size,
         )
 
         metrics = np.empty_like(focus_range)
-        for i, position in enumerate(
-            tqdm.tqdm(focus_range, desc="Scanning focus", leave=False)
-        ):
-            logger.info(f"Moving camfocus stage to {position:4.02f} mm")
-            self.camfocus_stage.move_absolute(position)
-            cube = self.shms[1].multi_recv_data(num_frames, outputFormat=2, timeout=10)
-            frame = np.median(cube, axis=0, overwrite_input=True)
-            metrics[i] = autofocus_metric(frame)
+        with logging_redirect_tqdm():
+            for i, position in enumerate(
+                tqdm.tqdm(focus_range, desc="Scanning camfocus", leave=False)
+            ):
+                logger.info(f"Moving camera focus to {position:4.02f} mm")
+                self.camfocus_stage.move_absolute(position)
+                metrics[i] = self.measure_metric(shm, num_frames)
 
-        best_fit = get_focus_from_metric(focus_range, metrics)
+        best_fit = fit_optimal_focus(focus_range, metrics)
         logger.info(f"Best-fit focus was {best_fit:4.02f} mm")
         self.camfocus_stage.move_absolute(best_fit)
-        save = click.confirm(
-            'Would you like to save this to the "dual" configuration?', default=True
-        )
-        if save:
-            self.camfocus_stage.save_configuration(index=1, position=best_fit)
-        self.camfocus_stage.move_configuration_name("dual")
-        logger.info("Finished focusing camera 1")
+        if config is not None:
+            save = click.confirm(
+                f"Would you like to save this to the \"{config['name']}\" configuration?",
+                default=True,
+            )
+            if save:
+                self.camfocus_stage.save_configuration(
+                    idx=config["idx"], name=config["name"], position=best_fit
+                )
+            self.camfocus_stage.move_configuration_name(config["name"])
 
-    def autofocus_stage_three(self, step_size=0.05, num_frames=100):
-        logger.info("Focusing both cameras simultaneously with lens")
-
-        search_width = 1.5
-        start_point = self.focus_stage.get_configurations()[1]["value"]
-        focus_range = np.arange(
-            max(0, start_point - search_width / 2),
-            start_point + search_width / 2,
-            step_size,
-        )
-
-        metrics_cam1 = np.empty_like(focus_range)
-        metrics_cam2 = np.empty_like(focus_range)
-        for i, position in enumerate(
-            tqdm.tqdm(focus_range, desc="Scanning focus", leave=False)
-        ):
-            logger.info(f"Moving focus lens to {position:4.02f} mm")
-            self.focus_stage.move_absolute(position)
-            cube1 = self.shms[1].multi_recv_data(num_frames, outputFormat=2, timeout=10)
-            cube2 = self.shms[2].multi_recv_data(num_frames, outputFormat=2, timeout=10)
-            frame1 = np.median(cube1, axis=0, overwrite_input=True)
-            frame2 = np.median(cube2, axis=0, overwrite_input=True)
-            metrics_cam1[i] = autofocus_metric(frame1)
-            metrics_cam2[i] = autofocus_metric(frame2)
-
-        best_fit1 = get_focus_from_metric(focus_range, metrics_cam1)
-        logger.info(f"Best-fit focus for cam1 was {best_fit1:4.02f} mm")
-        best_fit2 = get_focus_from_metric(focus_range, metrics_cam2)
-        logger.info(f"Best-fit focus for cam2 was {best_fit2:4.02f} mm")
-        ave_fit = 0.5 * (best_fit1 + best_fit2)
-        logger.info(f"Using average best-fit focus {ave_fit:4.02f} mm")
-        self.focus_stage.move_absolute(ave_fit)
-        save = click.confirm(
-            'Would you like to save this to the "SDI" configuration?', default=True
-        )
-        if save:
-            self.focus_stage.save_configuration(index=2, position=ave_fit)
-        self.focus_stage.move_configuration_name("SDI")
-        logger.info("Finished focusing camera 2")
-
-    def autofocus_stage_four(self, step_size=0.05, num_frames=100):
-        logger.info("Focusing camera 1 with camfocus stage")
-
-        search_width = 1.5
-        start_point = self.camfocus_stage.get_configurations()[1]["value"]
-        focus_range = np.arange(
-            max(0, start_point - search_width / 2),
-            start_point + search_width / 2,
-            step_size,
-        )
-
-        metrics = np.empty_like(focus_range)
-        for i, position in enumerate(
-            tqdm.tqdm(focus_range, desc="Scanning focus", leave=False)
-        ):
-            logger.info(f"Moving camfocus stage to {position:4.02f} mm")
-            self.camfocus_stage.move_absolute(position)
-            cube = self.shms[1].multi_recv_data(num_frames, outputFormat=2, timeout=10)
-            frame = np.median(cube, axis=0, overwrite_input=True)
-            metrics[i] = autofocus_metric(frame)
-
-        best_fit = get_focus_from_metric(focus_range, metrics)
-        logger.info(f"Best-fit focus was {best_fit:4.02f} mm")
-        self.camfocus_stage.move_absolute(best_fit)
-        save = click.confirm(
-            'Would you like to save this to the "single" configuration?', default=True
-        )
-        if save:
-            self.camfocus_stage.save_configuration(index=2, position=best_fit)
-        self.camfocus_stage.move_configuration_name("single")
-        logger.info("Finished focusing camera 1")
+    def measure_metric(self, shm, num_frames, **kwargs):
+        cube = shm.multi_recv_data(num_frames, outputFormat=2, **kwargs)
+        frame = np.median(cube, axis=0, overwrite_input=True)
+        return autofocus_metric(frame)
 
 
-def get_focus_from_metric(focus, metrics):
-    # fit quadratic to curve
-    poly = np.polynomial.Polynomial.fit(focus, metrics, deg=2)
-    # vertex is at -b / 2a
-    coefs = poly.convert().coef
-    return -coefs[1] / (2 * coefs[2])
+def fit_optimal_focus(focus, metrics):
+    # fit quadratic to curve, make sure
+    # to convert back to origina domain and range
+    poly = Polynomial.fit(focus, metrics, deg=2).convert()
+    # vertex of polynomial
+    return -poly.coef[1] / (2 * poly.coef[2])
 
 
 def autofocus_metric(frame):
@@ -306,14 +280,20 @@ def autofocus_metric(frame):
 @click.argument(
     "mode", type=click.Choice(["dual", "sdi", "single", "all"], case_sensitive=False)
 )
-@click.option("-n", "--num-frames", type=int, default=100, show_default=True)
-def autofocus(mode: str, num_frames: int = 100):
+def autofocus(mode: str):
     af = Autofocuser()
-    if mode in ("all", "dual"):
+    if mode == "all":
+        if click.confirm("Would you like to do dual-cam autofocus?", default=True):
+            af.autofocus_dualcam()
+        if click.confirm("Would you like to do SDI autofocus?", default=True):
+            af.autofocus_sdi()
+        if click.confirm("Would you like to do single-cam autofocus?", default=True):
+            af.autofocus_singlecam()
+    elif mode == "dual":
         af.autofocus_dualcam()
-    if mode in ("all", "sdi"):
+    elif mode == "sdi":
         af.autofocus_sdi()
-    if mode in ("all", "single"):
+    elif mode == "single":
         af.autofocus_singlecam()
 
 
