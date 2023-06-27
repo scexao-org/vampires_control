@@ -158,7 +158,7 @@ class Autofocuser:
         if bs_config.upper() != "OPEN":
             # if beamsplitter is not inserted, prompt
             logger.warn("Beamsplitter is inserted")
-            remove_bs = click.ask(
+            remove_bs = click.prompt(
                 "Would you like to remove the beamsplitter?", default=True
             )
             if remove_bs:
