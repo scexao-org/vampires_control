@@ -167,7 +167,7 @@ class Autofocuser:
         ):
             logger.info(f"Moving focus lens to {position:4.02f} mm")
             self.focus_stage.move_absolute(position)
-            cube = self.shms[2].multi_recv_data(num_frames, outputFormat=2)
+            cube = self.shms[2].multi_recv_data(num_frames, outputFormat=2, timeout=10)
             frame = np.median(cube, axis=0, overwrite_input=True)
             metrics[i] = autofocus_metric(frame)
 
@@ -199,7 +199,7 @@ class Autofocuser:
         ):
             logger.info(f"Moving camfocus stage to {position:4.02f} mm")
             self.camfocus_stage.move_absolute(position)
-            cube = self.shms[1].multi_recv_data(num_frames, outputFormat=2)
+            cube = self.shms[1].multi_recv_data(num_frames, outputFormat=2, timeout=10)
             frame = np.median(cube, axis=0, overwrite_input=True)
             metrics[i] = autofocus_metric(frame)
 
@@ -232,8 +232,8 @@ class Autofocuser:
         ):
             logger.info(f"Moving focus lens to {position:4.02f} mm")
             self.focus_stage.move_absolute(position)
-            cube1 = self.shms[1].multi_recv_data(num_frames, outputFormat=2)
-            cube2 = self.shms[2].multi_recv_data(num_frames, outputFormat=2)
+            cube1 = self.shms[1].multi_recv_data(num_frames, outputFormat=2, timeout=10)
+            cube2 = self.shms[2].multi_recv_data(num_frames, outputFormat=2, timeout=10)
             frame1 = np.median(cube1, axis=0, overwrite_input=True)
             frame2 = np.median(cube2, axis=0, overwrite_input=True)
             metrics_cam1[i] = autofocus_metric(frame1)
@@ -271,7 +271,7 @@ class Autofocuser:
         ):
             logger.info(f"Moving camfocus stage to {position:4.02f} mm")
             self.camfocus_stage.move_absolute(position)
-            cube = self.shms[1].multi_recv_data(num_frames, outputFormat=2)
+            cube = self.shms[1].multi_recv_data(num_frames, outputFormat=2, timeout=10)
             frame = np.median(cube, axis=0, overwrite_input=True)
             metrics[i] = autofocus_metric(frame)
 
