@@ -125,8 +125,8 @@ def get_table():
         status = "WireGrid(NIR)"
         style = active_style
     else:
-        status = "UNKNOWN"
-        unknown_style
+        status = "Unknown"
+        style = unknown_style
 
     table.add_row("LP", status, "", style=style)
 
@@ -138,7 +138,7 @@ def get_table():
     elif status_dict["P_STGPS2"] == 0:
         status = "OUT"
     else:
-        status = "UNKNOWN"
+        status = "Unknown"
         style = unknown_style
     table.add_row("HWP", status, f"θ={status_dict['P_RTAGL1']:6.02f}°", style=style)
 
@@ -382,12 +382,12 @@ def get_table():
     )
 
     table.add_section()
-    logging_cam1 = status_dict["U_VLOG1"].upper() == "ON"
-    logging_cam2 = status_dict["U_VLOG2"].upper() == "ON"
-    logging_pupil = status_dict["U_VLOGP"].upper() == "ON"
+    logging_cam1 = status_dict["U_VLOG1"].upper() == "TRUE"
+    logging_cam2 = status_dict["U_VLOG2"].upper() == "TRUE"
+    logging_pupil = status_dict["U_VLOGP"].upper() == "TRUE"
     styles = {
-        "OFF": default_style,
-        "ON": active_style,
+        "FALSE": default_style,
+        "TRUE": active_style,
     }
     power_style = {"ON": default_style, "OFF": danger_style}
     power_status = Text(

@@ -1,99 +1,46 @@
-from functools import partial
+import time
+from datetime import datetime
+from pathlib import Path
 
-import click
-from trogon import Trogon
+from camstack.core.tmux import find_or_create_remote
+from swmain.redis import update_keys
 
-from vampires_control.acquisition.blocked_acquisition import blocked_acquire_cubes
-from vampires_control.acquisition.free_acquisition import acquire_cubes
-
-DATA_TYPES = (
-    "OBJECT",
-    "DARK",
-    "FLAT",
-    "BIAS",
-    "SKYFLAT",
-    "DOMEFLAT",
-    "COMPARISON",
-    "TEST",
-)
+DATA_DIR_BASE = Path("/mnt/tier0/")
 
 
-def handle_metadata():
-    pass
+def start_acq_one_camera(base_dir: Path, cam_num: int, num_per_cube: int):
+    tmux = find_or_create_remote(f"vcam{cam_num}_log", "scexao@scexao6")
+    save_dir = base_dir / f"vcam{cam_num}"
+    tmux.send_keys(f"mkdir -p {save_dir.absolute()}")
+    tmux.send_keys(f"milk-logshim vcam{cam_num} {num_per_cube} {save_dir.absolute()} &")
 
 
-def open_tui(ctx, param, value):
-    if not value or ctx.resilient_parsing:
-        return
-    didx = None
-    # remove --tui from context
-    for i, par in enumerate(ctx.command.params):
-        if par.name == "tui":
-            didx = i
-    if didx is not None:
-        del ctx.command.params[didx]
-    Trogon(ctx.command, app_name=ctx.info_name, click_context=ctx).run()
-    ctx.exit()
+def kill_acq_one_camera(cam_num):
+    tmux = find_or_create_remote(f"vcam{cam_num}_log", "scexao@scexao6")
+    tmux.send_keys(f"milk-logshimoff vcam{cam_num}")
+    time.sleep(4)
+    tmux.send_keys(f"milk-logshimkill vcam{cam_num}")
 
 
-@click.option(
-    "--tui",
-    help="Launch TUI.",
-    is_flag=True,
-    callback=open_tui,
-    expose_value=False,
-    is_eager=True,
-)
-@click.argument("num_frames", type=int, required=False)
-@click.option(
-    "--data-type",
-    "-T",
-    default="OBJECT",
-    type=click.Choice(DATA_TYPES, case_sensitive=False),
-    help="Data type",
-)
-@click.option("--archive", "-a", is_flag=True, default=False, help="Archive to Gen2")
-@click.option(
-    "--num-cubes",
-    "-N",
-    default=-1,
-    help="Number of cubes to acquire. If less than 1 will acquire indefinitely.",
-)
-@click.option(
-    "--pdi",
-    "-P",
-    is_flag=True,
-    default=False,
-    help="Enable PDI mode for synchronizing with the SCExAO HWP daemon.",
-)
-@click.option(
-    "--sdi",
-    "-S",
-    type=(click.Choice(["Halpha", "SII"], case_sensitive=False), int),
-    help="Enable SDI mode with given filter and number of cubes per filter state.",
-)
-@click.command()
-def main(
-    num_frames, num_cubes=-1, data_type="OBJECT", archive=False, pdi=False, sdi=None
+def start_acquisition(
+    num_per_cube,
+    cams=None,
+    base_dir=DATA_DIR_BASE / datetime.utcnow().strftime("%Y%m%d"),
 ):
-    # determine whether using blocked triggering or free-running
-    # The blocked mode is used whenever doing PDI or SDI to ensure
-    # synchronization with devices (like the HWP or diff wheel)
-    if pdi or sdi is not None:
-        acquisition_func = partial(
-            blocked_acquire_cubes,
-            pdi=pdi,
-            sdi_mode=sdi[0],
-            sdi_num_per=sdi[1],
-        )
-    else:
-        acquisition_func = acquire_cubes
-
-    if num_cubes > 0:
-        acquisition_func(num_frames, num_cubes)
-    else:
-        acquisition_func(num_frames, None)
+    print(f"Saving data to base directory {base_dir}")
+    if cams is None or cams == 1:
+        start_acq_one_camera(base_dir, 1, num_per_cube)
+        update_keys(U_VLOG1=str(True))
+    if cams is None or cams == 2:
+        start_acq_one_camera(base_dir, 2, num_per_cube)
+        update_keys(U_VLOG2=str(True))
 
 
-if __name__ == "__main__":
-    main()
+def stop_acquisition(cams=None):
+    print(f"Stopping data acquisition")
+    if cams is None or cams == 1:
+        kill_acq_one_camera(1)
+        update_keys(U_VLOG1=str(False))
+    if cams is None or cams == 2:
+        kill_acq_one_camera(2)
+        update_keys(U_VLOG2=str(False))

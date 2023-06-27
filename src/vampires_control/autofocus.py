@@ -79,13 +79,86 @@ class Autofocuser:
         # done!
         logger.info("Finished dual-cam autofocus")
 
+    def autofocus_sdi(self):
+        logger.info("Beginning dual-cam autofocus")
+        # check if beamsplitter is inserted
+        _, bs_config = self.beamsplitter.get_configuration()
+        logger.debug(f"beamsplitter: {bs_config}")
+        if not bs_config.upper() in ("PBS", "NPBS"):
+            # if beamsplitter is not inserted, prompt
+            logger.warn("Beamsplitter is not inserted")
+            bs = click.prompt(
+                "Would you like to insert a beamsplitter?",
+                type=click.Choice(["PBS", "NPBS"], case_sensitive=False),
+                default="PBS",
+            )
+            # insert beamsplitter
+            logger.info(f"Inserting {bs} beamsplitter")
+            self.beamsplitter.move_configuration_name(bs)
+
+        # insert diff filter
+        _, diff_config = self.diff_wheel.get_configuration()
+        logger.debug(f"diff filter: {diff_config}")
+        if not diff_config.upper() in ("PBS", "NPBS"):
+            # if filter is not inserted, prompt
+            logger.warn("Differential filter is not inserted")
+            diff_filt = click.prompt(
+                "Would you like to insert a filter?",
+                type=click.Choice(["Halpha", "SII"], case_sensitive=False),
+                default="SII",
+            )
+            # insert diff filter
+            logger.info(f"Inserting {diff_filt} filter pair")
+            if diff_filt == "Halpha":
+                self.diff_wheel.move_configuration_name("Ha-cont / Halhpa")
+            elif diff_filt == "SII":
+                self.diff_wheel.move_configuration_name("SII-cont / SII")
+
+        # prepare cameras
+        click.confirm(
+            "Adjust camera settings and confirm when ready", default=True, abort=True
+        )
+
+        # focus the lens
+        self.autofocus_stage_three()
+        # done!
+        logger.info("Finished SDI autofocus")
+
+    def autofocus_singlecam(self):
+        logger.info("Beginning single-cam autofocus")
+        # check if beamsplitter is inserted
+        _, bs_config = self.beamsplitter.get_configuration()
+        logger.debug(f"beamsplitter: {bs_config}")
+        if bs_config.upper() != "OPEN":
+            # if beamsplitter is not inserted, prompt
+            logger.warn("Beamsplitter is inserted")
+            remove_bs = click.ask(
+                "Would you like to remove the beamsplitter?", default=True
+            )
+            if remove_bs:
+                # remove beamsplitter
+                logger.info(f"Removing beamsplitter")
+                self.beamsplitter.move_configuration_idx(3)
+
+        # prepare cameras
+        click.confirm(
+            "Adjust camera settings and confirm when ready", default=True, abort=True
+        )
+
+        # focus the camera focus
+        self.autofocus_stage_four()
+        # done!
+        logger.info("Finished single-cam autofocus")
+
     def autofocus_stage_one(self, step_size=0.05, num_frames=100):
         logger.info("Focusing camera 2 with lens")
 
         search_width = 1.5
         start_point = self.focus_stage.get_configurations()[0]["value"]
         focus_range = np.arange(
-            start_point - search_width / 2, start_point + search_width / 2, step_size
+            max(0, start_point - search_width / 2),
+            start_point + search_width / 2,
+            step_size,
         )
 
         metrics = np.empty_like(focus_range)
@@ -115,7 +188,9 @@ class Autofocuser:
         search_width = 1.5
         start_point = self.camfocus_stage.get_configurations()[0]["value"]
         focus_range = np.arange(
-            start_point - search_width / 2, start_point + search_width / 2, step_size
+            max(0, start_point - search_width / 2),
+            start_point + search_width / 2,
+            step_size,
         )
 
         metrics = np.empty_like(focus_range)
@@ -139,6 +214,78 @@ class Autofocuser:
         self.camfocus_stage.move_configuration_name("dual")
         logger.info("Finished focusing camera 1")
 
+    def autofocus_stage_three(self, step_size=0.05, num_frames=100):
+        logger.info("Focusing both cameras simultaneously with lens")
+
+        search_width = 1.5
+        start_point = self.focus_stage.get_configurations()[1]["value"]
+        focus_range = np.arange(
+            max(0, start_point - search_width / 2),
+            start_point + search_width / 2,
+            step_size,
+        )
+
+        metrics_cam1 = np.empty_like(focus_range)
+        metrics_cam2 = np.empty_like(focus_range)
+        for i, position in enumerate(
+            tqdm.tqdm(focus_range, desc="Scanning focus", leave=False)
+        ):
+            logger.info(f"Moving focus lens to {position:4.02f} mm")
+            self.focus_stage.move_absolute(position)
+            cube1 = self.shms[1].multi_recv_data(num_frames, outputFormat=2)
+            cube2 = self.shms[2].multi_recv_data(num_frames, outputFormat=2)
+            frame1 = np.median(cube1, axis=0, overwrite_input=True)
+            frame2 = np.median(cube2, axis=0, overwrite_input=True)
+            metrics_cam1[i] = autofocus_metric(frame1)
+            metrics_cam2[i] = autofocus_metric(frame2)
+
+        best_fit1 = get_focus_from_metric(focus_range, metrics_cam1)
+        logger.info(f"Best-fit focus for cam1 was {best_fit1:4.02f} mm")
+        best_fit2 = get_focus_from_metric(focus_range, metrics_cam2)
+        logger.info(f"Best-fit focus for cam2 was {best_fit2:4.02f} mm")
+        ave_fit = 0.5 * (best_fit1 + best_fit2)
+        logger.info(f"Using average best-fit focus {ave_fit:4.02f} mm")
+        self.focus_stage.move_absolute(ave_fit)
+        save = click.confirm(
+            'Would you like to save this to the "SDI" configuration?', default=True
+        )
+        if save:
+            self.focus_stage.save_configuration(index=2, position=ave_fit)
+        self.focus_stage.move_configuration_name("SDI")
+        logger.info("Finished focusing camera 2")
+
+    def autofocus_stage_four(self, step_size=0.05, num_frames=100):
+        logger.info("Focusing camera 1 with camfocus stage")
+
+        search_width = 1.5
+        start_point = self.camfocus_stage.get_configurations()[1]["value"]
+        focus_range = np.arange(
+            max(0, start_point - search_width / 2),
+            start_point + search_width / 2,
+            step_size,
+        )
+
+        metrics = np.empty_like(focus_range)
+        for i, position in enumerate(
+            tqdm.tqdm(focus_range, desc="Scanning focus", leave=False)
+        ):
+            logger.info(f"Moving camfocus stage to {position:4.02f} mm")
+            self.camfocus_stage.move_absolute(position)
+            cube = self.shms[1].multi_recv_data(num_frames, outputFormat=2)
+            frame = np.median(cube, axis=0, overwrite_input=True)
+            metrics[i] = autofocus_metric(frame)
+
+        best_fit = get_focus_from_metric(focus_range, metrics)
+        logger.info(f"Best-fit focus was {best_fit:4.02f} mm")
+        self.camfocus_stage.move_absolute(best_fit)
+        save = click.confirm(
+            'Would you like to save this to the "single" configuration?', default=True
+        )
+        if save:
+            self.camfocus_stage.save_configuration(index=2, position=best_fit)
+        self.camfocus_stage.move_configuration_name("single")
+        logger.info("Finished focusing camera 1")
+
 
 def get_focus_from_metric(focus, metrics):
     # fit quadratic to curve
@@ -156,14 +303,18 @@ def autofocus_metric(frame):
 
 
 @click.command("autofocus")
-@click.argument("mode", type=click.Choice(["dual", "single"], case_sensitive=False))
+@click.argument(
+    "mode", type=click.Choice(["dual", "sdi", "single", "all"], case_sensitive=False)
+)
 @click.option("-n", "--num-frames", type=int, default=100, show_default=True)
 def autofocus(mode: str, num_frames: int = 100):
     af = Autofocuser()
-    if mode == "dual":
+    if mode in ("all", "dual"):
         af.autofocus_dualcam()
-    elif mode == "single":
-        click.echo("Not ready yet")
+    if mode in ("all", "sdi"):
+        af.autofocus_sdi()
+    if mode in ("all", "single"):
+        af.autofocus_singlecam()
 
 
 if __name__ == "__main__":

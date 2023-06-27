@@ -31,7 +31,7 @@ docs = ["sphinx", "sphinx-rtd-theme", "myst-parser", "sphinx-autobuild"]
 
 [project.scripts]
 launch_daemons = "vampires_control.launch:main"
-acquire = "vampires_control.acquisition.acquire:main"
+acquire = "vampires_control.acquisition.main:main"
 autofocus = "vampires_control.autofocus:autofocus"
 vampires_gen2_daemon = "vampires_control.gen2.main:main"
 vampires_qwp_daemon = "vampires_control.daemons.qwp_daemon:main"
