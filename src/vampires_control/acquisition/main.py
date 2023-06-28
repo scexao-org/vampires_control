@@ -3,8 +3,7 @@ from functools import partial
 import click
 from trogon import Trogon
 
-from vampires_control.acquisition.blocked_acquisition import \
-    blocked_acquire_cubes
+from vampires_control.acquisition.blocked_acquisition import blocked_acquire_cubes
 from vampires_control.acquisition.free_acquisition import acquire_cubes
 from vampires_control.cameras import connect_cameras
 

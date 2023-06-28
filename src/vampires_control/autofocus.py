@@ -130,6 +130,19 @@ class Autofocuser:
                 self.diff_wheel.move_configuration_name("Ha-cont / Halhpa")
             elif diff_filt == "SII":
                 self.diff_wheel.move_configuration_name("SII-cont / SII")
+        # check if focus is at standard
+        _, camfcs_config = self.camfocus_stage.get_configuration()
+        logger.debug(f"focus: {camfcs_config}")
+        if camfcs_config.upper() != "DUAL":
+            # if focus is not at dual, prompt
+            logger.warn("Not at dual focus")
+            move_focus = click.prompt(
+                "Would you like to move the camera focus?", default=True
+            )
+            if move_focus:
+                # remove beamsplitter
+                logger.info(f"Moving camfocus")
+                self.camfocus_stage.move_configuration_idx(1)
 
         # prepare cameras
         num_frames = click.prompt(
@@ -165,6 +178,17 @@ class Autofocuser:
                 # remove beamsplitter
                 logger.info(f"Removing beamsplitter")
                 self.beamsplitter.move_configuration_idx(3)
+        # check if focus is at standard
+        _, fcs_config = self.focus_stage.get_configuration()
+        logger.debug(f"focus: {fcs_config}")
+        if fcs_config.upper() != "STANDARD":
+            # if focus is not at standard, prompt
+            logger.warn("Not at standard focus")
+            move_focus = click.prompt("Would you like to move the focus?", default=True)
+            if move_focus:
+                # remove beamsplitter
+                logger.info(f"Moving focus")
+                self.focus_stage.move_configuration_idx(1)
 
         # prepare cameras
         num_frames = click.prompt(
