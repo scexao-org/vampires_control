@@ -4,6 +4,9 @@ procs:
     shell: "python -i /home/lestat/src/device_control/src/device_control/daemons/vampires_devices.py"
   qwp_tracking: "sleep 2.0; vampires_qwp_daemon"
   temp_status: "sleep 2.0; vampires_temp_daemon"
+  healthcheck:
+    shell: "healthcheck"
+    autostart: false
   autofocus: 
     shell: "autofocus all"
     autostart: false

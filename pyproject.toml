@@ -50,6 +50,8 @@ cam_hists = "vampires_control.plotting:histogram"
 prep_nominal = "vampires_control.configurations:nominal"
 prep_sdi = "vampires_control.configurations:prep_sdi"
 prep_pdi = "vampires_control.configurations:prep_pdi"
+# health
+healthcheck = "vampires_control.health:healthcheck"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_control.__version__"}

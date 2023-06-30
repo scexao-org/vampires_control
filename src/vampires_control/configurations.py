@@ -15,10 +15,11 @@ from swmain.network.pyroclient import connect
     prompt=True,
 )
 def prep_sdi(beamsplitter: str = "NPBS"):
-    with mp.Pool(5) as pool:
+    with mp.Pool() as pool:
         pool.apply_async(move_fcs, args=("SDI",))
         pool.apply_async(move_camfcs, args=("dual",))
         pool.apply_async(move_bs, args=(beamsplitter,))
+        pool.apply_async(move_filter, args=("Open",))
         # wait for previous results to complete
         pool.close()
         pool.join()
@@ -27,7 +28,7 @@ def prep_sdi(beamsplitter: str = "NPBS"):
 @click.command("prep_pdi", help="Prepare VAMPIRES for PDI imaging")
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt=True)
 def prep_pdi(flc: bool):
-    with mp.Pool(5) as pool:
+    with mp.Pool() as pool:
         pool.apply_async(move_fcs, args=("standard",))
         pool.apply_async(move_camfcs, args=("dual",))
         pool.apply_async(move_diffwheel, args=(1,))
@@ -43,7 +44,7 @@ def prep_pdi(flc: bool):
 
 @click.command("prep_nominal", help="Return VAMPIRES to nominal bench status")
 def nominal():
-    with mp.Pool(5) as pool:
+    with mp.Pool() as pool:
         pool.apply_async(move_fcs, args=("standard",))
         pool.apply_async(move_camfcs, args=("dual",))
         pool.apply_async(move_diffwheel, args=(1,))
@@ -83,3 +84,9 @@ def move_bs(bsname):
     bs = connect(VAMPIRES.BS)
     click.echo(f"Moving beamsplitter to {bsname}")
     bs.move_configuration_name(bsname)
+
+
+def move_filter(filtname):
+    filt = connect(VAMPIRES.FILT)
+    click.echo(f"Moving filter to {filtname}")
+    filt.move_configuration_name(filtname)

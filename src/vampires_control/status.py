@@ -8,18 +8,7 @@ from rich.table import Table
 from rich.text import Text
 
 from swmain.redis import get_values
-from vampires_control.helpers import get_dominant_filter
-
-
-class Palette:
-    red = "#721817"
-    gold = "#FA9F42"
-    orange = "#e85d04"
-    blue = "#2B4162"
-    green = "#0B6E4F"
-    white = "#E0E0E2"
-    gray = "#A3A3A3"
-
+from vampires_control.helpers import Palette, get_dominant_filter
 
 default_style = f"{Palette.white} on default"
 unknown_style = f"{Palette.white} on {Palette.blue}"
@@ -170,7 +159,7 @@ def get_table():
     style = default_style
     if status_dict["X_GRDST"].upper() != "OFF":
         style = active_style
-    info = f"{status_dict['X_GRDSEP']:4.01f} λ/D, {status_dict['X_GRDAMP']:4.01f} um, {status_dict['X_GRDMOD']:4d} Hz"
+    info = f"s={status_dict['X_GRDSEP']:4.01f} λ/D, a={status_dict['X_GRDAMP']*1e3:4.0f} nm, r={status_dict['X_GRDMOD']:4d} Hz"
     table.add_row("Astrogrid", status_dict["X_GRDST"], info, style=style)
 
     ## LP
