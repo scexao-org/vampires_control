@@ -44,6 +44,12 @@ set_tint = "vampires_control.cameras:set_tint"
 set_trigger = "vampires_control.cameras:set_trigger"
 set_readout_mode = "vampires_control.cameras:set_readout_mode"
 set_mode = "vampires_control.cameras:set_mode"
+# plotting
+cam_hists = "vampires_control.plotting:histogram"
+# configurations
+prep_nominal = "vampires_control.configurations:nominal"
+prep_sdi = "vampires_control.configurations:prep_sdi"
+prep_pdi = "vampires_control.configurations:prep_pdi"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_control.__version__"}

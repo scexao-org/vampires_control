@@ -22,6 +22,9 @@ logger.addHandler(stream_handler)
 
 
 class Autofocuser:
+    # only get 30 fps over zmq, don't waste our time here
+    DEFAULT_NUM_FRAMES = 10
+
     """
         Autofocuser
 
@@ -71,7 +74,7 @@ class Autofocuser:
         # prepare cameras
         num_frames = click.prompt(
             "Adjust camera settings and specify num frames per position when ready",
-            default=100,
+            default=self.DEFAULT_NUM_FRAMES,
             type=int,
         )
 
@@ -147,7 +150,7 @@ class Autofocuser:
         # prepare cameras
         num_frames = click.prompt(
             "Adjust camera settings and specify num frames per position when ready",
-            default=100,
+            default=self.DEFAULT_NUM_FRAMES,
             type=int,
         )
 
@@ -193,7 +196,7 @@ class Autofocuser:
         # prepare cameras
         num_frames = click.prompt(
             "Adjust camera settings and specify num frames per position when ready",
-            default=100,
+            default=self.DEFAULT_NUM_FRAMES,
             type=int,
         )
 
@@ -210,7 +213,7 @@ class Autofocuser:
         logger.info("Finished single-cam autofocus")
 
     def autofocus_lens(
-        self, shm, start_point, step_size=0.05, num_frames=100, config=None
+        self, shm, start_point, step_size=0.05, num_frames=10, config=None
     ):
         search_width = 1.5
         focus_range = np.arange(
@@ -219,19 +222,15 @@ class Autofocuser:
             step_size,
         )
         metrics = np.empty_like(focus_range)
-        with logging_redirect_tqdm():
-            for i, position in enumerate(
-                tqdm.tqdm(focus_range, desc="Scanning lens", leave=False)
-            ):
-                logger.info(f"Moving focus lens to {position:4.02f} mm")
-                self.focus_stage.move_absolute(position)
-                if isinstance(shm, tuple) or isinstance(shm, list):
-                    metrics[i] = np.mean(
-                        [self.measure_metric(s, num_frames) for s in shm]
-                    )
-                else:
-                    metrics[i] = self.measure_metric(shm, num_frames)
-
+        pbar = tqdm.tqdm(focus_range, desc="Scanning lens", leave=False)
+        for i, position in enumerate(pbar):
+            pbar.write(f"Moving objective lens to {position:4.02f} mm", end=" | ")
+            self.focus_stage.move_absolute(position)
+            if isinstance(shm, tuple) or isinstance(shm, list):
+                metrics[i] = np.mean([self.measure_metric(s, num_frames) for s in shm])
+            else:
+                metrics[i] = self.measure_metric(shm, num_frames)
+            pbar.write(f"normalized variance: {metrics[i]:3.02e} (adu)")
         best_fit = fit_optimal_focus(focus_range, metrics)
         logger.info(f"Best-fit focus was {best_fit:4.02f} mm")
         self.focus_stage.move_absolute(best_fit)
@@ -257,13 +256,12 @@ class Autofocuser:
         )
 
         metrics = np.empty_like(focus_range)
-        with logging_redirect_tqdm():
-            for i, position in enumerate(
-                tqdm.tqdm(focus_range, desc="Scanning camfocus", leave=False)
-            ):
-                logger.info(f"Moving camera focus to {position:4.02f} mm")
-                self.camfocus_stage.move_absolute(position)
-                metrics[i] = self.measure_metric(shm, num_frames)
+        pbar = tqdm.tqdm(focus_range, desc="Scanning camfocus", leave=False)
+        for i, position in enumerate(pbar):
+            pbar.write(f"Moving camera focus to {position:4.02f} mm", end=" | ")
+            self.camfocus_stage.move_absolute(position)
+            metrics[i] = self.measure_metric(shm, num_frames)
+            pbar.write(f"normalized variance: {metrics[i]:3.02e} (adu)")
 
         best_fit = fit_optimal_focus(focus_range, metrics)
         logger.info(f"Best-fit focus was {best_fit:4.02f} mm")
@@ -306,6 +304,10 @@ def autofocus_metric(frame):
 )
 def autofocus(mode: str):
     af = Autofocuser()
+    welcome = "Welcome to the VAMPIRES autofocusing scripts"
+    click.echo("=" * len(welcome))
+    click.echo(welcome)
+    click.echo("=" * len(welcome))
     if mode == "all":
         if click.confirm("Would you like to do dual-cam autofocus?", default=True):
             af.autofocus_dualcam()

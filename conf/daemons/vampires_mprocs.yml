@@ -5,14 +5,14 @@ procs:
   qwp_tracking: "sleep 2.0; vampires_qwp_daemon"
   temp_status: "sleep 2.0; vampires_temp_daemon"
   autofocus: 
-    shell: "autofocus"
+    shell: "autofocus all"
     autostart: false
-  # prepare_sdi: 
-  #   shell: "prepare_sdi"
-  #   autostart: false
-  # prepare_pdi: 
-  #   shell: "prepare_pdi"
-  #   autostart: false
-  # nominal:
-  #   shell: "vampires_nominal"
-  #   autostart: false
+  prepare_nominal:
+    shell: "prep_nominal"
+    autostart: false
+  prepare_pdi: 
+    shell: "prep_pdi"
+    autostart: false
+  prepare_sdi: 
+    shell: "prep_sdi"
+    autostart: false

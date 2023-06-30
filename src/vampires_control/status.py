@@ -157,7 +157,7 @@ def get_table():
     style = default_style
     if status_dict["X_NPS15"].upper() == "ON":
         style = active_style
-    info = f"Filt={status_dict['X_SRCFFT'].replace(' ', '')}, Opt={status_dict['X_SRCFOP'].replace(' ', '')}, IR={status_dict['X_SRCFIR'].replace(' ', '')}"
+    info = f"Flt={status_dict['X_SRCFFT'].replace(' ', '')}, Opt={status_dict['X_SRCFOP'].replace(' ', '')}, IR={status_dict['X_SRCFIR'].replace(' ', '')}"
     table.add_row("Source", status_dict["X_SRCSEL"], info, style=style)
 
     ## integrating sphere
@@ -168,7 +168,7 @@ def get_table():
 
     ## astrogrid
     style = default_style
-    if status_dict["X_GRDST"].upper() == "ON":
+    if status_dict["X_GRDST"].upper() != "OFF":
         style = active_style
     info = f"{status_dict['X_GRDSEP']:4.01f} λ/D, {status_dict['X_GRDAMP']:4.01f} um, {status_dict['X_GRDMOD']:4d} Hz"
     table.add_row("Astrogrid", status_dict["X_GRDST"], info, style=style)
