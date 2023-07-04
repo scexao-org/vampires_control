@@ -119,7 +119,7 @@ class Autofocuser:
         # insert diff filter
         _, diff_config = self.diff_wheel.get_configuration()
         logger.debug(f"diff filter: {diff_config}")
-        if not diff_config.upper() in ("PBS", "NPBS"):
+        if "HA" not in diff_config.upper() or "SII" not in diff_config.upper():
             # if filter is not inserted, prompt
             logger.warn("Differential filter is not inserted")
             diff_filt = click.prompt(
