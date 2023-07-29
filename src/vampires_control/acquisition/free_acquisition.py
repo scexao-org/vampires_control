@@ -6,20 +6,24 @@ from rich.progress import track
 from device_control.pyro_keys import VAMPIRES
 from swmain.network.pyroclient import connect
 from vampires_control.acquisition import logger
-from vampires_control.acquisition.acquire import start_acquisition, stop_acquisition
+from vampires_control.acquisition.acquire import (start_acquisition,
+                                                  stop_acquisition)
 
 
-def acquire_cubes(num_frames, num_cubes=None):
+def acquire_cubes(num_frames, num_cubes=None, archive=False, use_trigger=False):
     if num_cubes is None:
         iterator = repeat(None)
     else:
         iterator = track(range(num_cubes), description="Acquiring cubes")
-    trigger = connect(VAMPIRES.TRIG)
+    if use_trigger:
+        trigger = connect(VAMPIRES.TRIG)
     # trigger.disable()
     logger.info("Starting acquisition")
-    trigger.disable()
+    if use_trigger:
+        trigger.disable()
     start_acquisition(num_frames)
-    trigger.enable()
+    if use_trigger:
+        trigger.enable()
     logger.info("Acquisition started")
     update_interval = 100
     it = 0

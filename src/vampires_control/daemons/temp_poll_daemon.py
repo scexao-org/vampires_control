@@ -53,7 +53,7 @@ def get_temperature_status(tc, cams):
         if cam is None:
             continue
         cam_temp = cam.get_temperature()
-        status += f", VCAM{i+1}={cam_temp:4.01f}°C"
+        status += f", VCAM{i+1}={cam_temp:4.01f} K"
 
     return status
 

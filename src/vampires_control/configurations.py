@@ -8,14 +8,23 @@ from swmain.network.pyroclient import connect
 
 @click.command("prep_sdi", help="Prepare VAMPIRES for SDI imaging")
 @click.option(
+    "-f",
+    "--filter",
+    "filt",
+    default="Halpha",
+    type=click.Choice(["Halpha", "SII"], case_sensitive=False),
+    prompt=True,
+)
+@click.option(
     "-bs",
     "--beamsplitter",
     default="NPBS",
     type=click.Choice(["PBS", "NPBS"], case_sensitive=False),
     prompt=True,
 )
-def prep_sdi(beamsplitter: str = "NPBS"):
+def prep_sdi(filt: str = "Halpha", beamsplitter: str = "NPBS"):
     with mp.Pool() as pool:
+        pool.apply_async(move_diffwheel, args=(filt,))
         pool.apply_async(move_fcs, args=("SDI",))
         pool.apply_async(move_camfcs, args=("dual",))
         pool.apply_async(move_bs, args=(beamsplitter,))
@@ -23,6 +32,7 @@ def prep_sdi(beamsplitter: str = "NPBS"):
         # wait for previous results to complete
         pool.close()
         pool.join()
+    click.echo("Finished!")
 
 
 @click.command("prep_pdi", help="Prepare VAMPIRES for PDI imaging")
@@ -40,6 +50,7 @@ def prep_pdi(flc: bool):
         # wait for previous results to complete
         pool.close()
         pool.join()
+    click.echo("Finished!")
 
 
 @click.command("prep_nominal", help="Return VAMPIRES to nominal bench status")
@@ -49,16 +60,23 @@ def nominal():
         pool.apply_async(move_camfcs, args=("dual",))
         pool.apply_async(move_diffwheel, args=(1,))
         pool.apply_async(move_flc, args=("OUT",))
-        pool.apply_async(move_bs, args=("NPBS",))
+        pool.apply_async(move_bs, args=("PBS",))
         # wait for previous results to complete
         pool.close()
         pool.join()
+    click.echo("Finished!")
 
 
 def move_fcs(pos):
     fcs = connect(VAMPIRES.FOCUS)
     click.echo(f"Moving focus to {pos}")
     fcs.move_configuration_name(pos)
+
+
+def move_puplens(posn):
+    pup = connect(VAMPIRES.PUPIL)
+    click.echo(f"Moving pupil lens {posn}")
+    pup.move_configuration_name(pup)
 
 
 def move_camfcs(pos):

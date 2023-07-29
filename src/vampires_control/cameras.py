@@ -56,7 +56,9 @@ def set_readout_mode(mode: str):
 @click.command("set_mode", help="Set both cameras' crop modes.")
 @click.argument(
     "mode",
-    type=click.Choice(["STANDARD", "MBI", "MBI_REDUCED", "FULL"], case_sensitive=False),
+    type=click.Choice(
+        ["STANDARD", "MBI", "MBI_REDUCED", "FULL", "PUPIL"], case_sensitive=False
+    ),
 )
 def set_mode(mode: str):
     for cam in connect_cameras():

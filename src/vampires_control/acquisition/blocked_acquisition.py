@@ -9,6 +9,11 @@ from rich.progress import Progress
 
 from swmain.network.pyroclient import connect
 from vampires_control.acquisition import logger
+from vampires_control.acquisition.acquire import (pause_acquisition,
+                                                  resume_acquisition,
+                                                  start_acquisition,
+                                                  stop_acquisition)
+from vampires_control.cameras import connect_cameras
 from vampires_control.daemons import PDI_DAEMON_PORT
 
 # set up logging
@@ -79,15 +84,15 @@ def blocked_acquire_cubes(
     sdi_mode=None,
     pdi_num_per_hwp=1,
     sdi_num_per=1,
+    archive=False,
 ):
-    ctx = zmq.Context()
-    pdi_socket = None
+    zmq.Context()
     if pdi:
         if num_cubes is not None and num_cubes % 4 != 0:
             raise ValueError(
                 "PDI Sequences must be multiples of 4 to allow for HWP rotation."
             )
-        pdi_socket = get_pdi_socket(ctx)
+        # pdi_socket = get_pdi_socket(ctx)
     if sdi_mode is not None:
         if num_cubes is not None and num_cubes % 2 != 0:
             raise ValueError(
@@ -105,10 +110,12 @@ def blocked_acquire_cubes(
             iter = progress.add_task("Acquiring cubes", total=None)
         else:
             iter = progress.add_task("Acquiring cubes", total=num_cubes)
+        start_acquisition()
         while not progress.finished:
             if sdi_mode is not None:
                 ## acquire
-                trigger_acquisition(num_frames=num_frames, num_cubes=sdi_num_per)
+                resume_acquisition()  # (num_frames=num_frames, num_cubes=sdi_num_per)
+
                 ## move diffwheel
                 sdi_state.next()
             progress.update(iter, advance=1)

@@ -54,8 +54,8 @@ class Autofocuser:
         self.focus_stage = connect("VAMPIRES_FOCUS")
         self.camfocus_stage = connect("VAMPIRES_CAMFCS")
 
-    def autofocus_dualcam(self):
-        logger.info("Beginning dual-cam autofocus")
+    def autofocus_dualcam(self, conf="standard"):
+        logger.info(f"Beginning dual-cam autofocus ({conf})")
         # check if beamsplitter is inserted
         _, bs_config = self.beamsplitter.get_configuration()
         logger.debug(f"beamsplitter: {bs_config}")
@@ -79,7 +79,13 @@ class Autofocuser:
         )
 
         ## 1. focus the lens to set standard focus
-        config = self.focus_stage.get_configurations()[0]
+        config = None
+        configs = self.focus_stage.get_configurations()
+        for cfg in configs:
+            if cfg["name"].lower() == conf.lower():
+                config = cfg
+        if config is None:
+            raise ValueError(f"Could not find configuration '{conf}'")
         logger.info("Focusing camera 2 with the focusing lens")
         self.autofocus_lens(
             shm=self.shms[2],

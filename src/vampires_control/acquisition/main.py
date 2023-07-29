@@ -3,7 +3,8 @@ from functools import partial
 import click
 from trogon import Trogon
 
-from vampires_control.acquisition.blocked_acquisition import blocked_acquire_cubes
+from vampires_control.acquisition.blocked_acquisition import \
+    blocked_acquire_cubes
 from vampires_control.acquisition.free_acquisition import acquire_cubes
 from vampires_control.cameras import connect_cameras
 
@@ -60,18 +61,25 @@ def open_tui(ctx, param, value):
     default=-1,
     help="Number of cubes to acquire. If less than 1 will acquire indefinitely.",
 )
+@click.option("-c", "--single-cam", type=int, is_flag=True, help="Only acquire ")
+# @click.option(
+#     "--pdi",
+#     "-P",
+#     is_flag=True,
+#     default=False,
+#     help="Enable PDI mode for synchronizing with the SCExAO HWP daemon.",
+# )
+# @click.option(
+#     "--sdi",
+#     "-S",
+#     type=(click.Choice(["Halpha", "SII"], case_sensitive=False), int),
+#     help="Enable SDI mode with given filter and number of cubes per filter state.",
+# )
 @click.option(
-    "--pdi",
-    "-P",
-    is_flag=True,
+    "-a/-na",
+    "--archive/--no-archive",
     default=False,
-    help="Enable PDI mode for synchronizing with the SCExAO HWP daemon.",
-)
-@click.option(
-    "--sdi",
-    "-S",
-    type=(click.Choice(["Halpha", "SII"], case_sensitive=False), int),
-    help="Enable SDI mode with given filter and number of cubes per filter state.",
+    help="Archive data to Gen2",
 )
 @click.command()
 def main(
@@ -94,9 +102,9 @@ def main(
         if cam is not None:
             cam.set_keyword("DATA-TYP", data_type)
     if num_cubes > 0:
-        acquisition_func(num_frames, num_cubes)
+        acquisition_func(num_frames, num_cubes, archive=archive)
     else:
-        acquisition_func(num_frames, None)
+        acquisition_func(num_frames, None, archive=archive)
 
 
 if __name__ == "__main__":

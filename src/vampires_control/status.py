@@ -96,6 +96,8 @@ def get_table():
             "X_SRCFIR",
             "X_SRCFOP",
             "X_SRCSEL",
+            "X_VPLPKO",
+            "X_VPLPKT",
         ]
     )
     # normalize all inputs into UPPERCASE
@@ -159,7 +161,7 @@ def get_table():
     style = default_style
     if status_dict["X_GRDST"].upper() != "OFF":
         style = active_style
-    info = f"s={status_dict['X_GRDSEP']:4.01f} λ/D, a={status_dict['X_GRDAMP']*1e3:4.0f} nm, r={status_dict['X_GRDMOD']:4d} Hz"
+    info = f"r={status_dict['X_GRDSEP']:4.01f} λ/D, a={status_dict['X_GRDAMP']*1e3:3.0f} nm, f={status_dict['X_GRDMOD']:4d} Hz"
     table.add_row("Astrogrid", status_dict["X_GRDST"], info, style=style)
 
     ## LP
@@ -207,17 +209,17 @@ def get_table():
     )
 
     ## Fieldstop
-    if "OPEN" in status_dict["U_FLDSTP"].upper():
-        style = active_style
+    if status_dict["U_FLDSTP"].upper() == "FIELDSTOP":
+        style = default_style
     elif status_dict["U_FLDSTP"].upper() == "UNKNOWN":
         style = unknown_style
     else:
-        style = default_style
+        style = active_style
     table.add_row(
         "Fieldstop",
         str(status_dict["U_FLDSTP"]),
         f"x={status_dict['U_FLDSTX']:6.03f} mm, y={status_dict['U_FLDSTY']:6.03f} mm",
-        style=default_style,
+        style=style,
     )
 
     ## First pickoff
@@ -234,10 +236,24 @@ def get_table():
         style=style,
     )
 
+    ## Visible Photonics pickoff
+    if status_dict["X_VPLPKO"].upper() == "OPEN":
+        style = default_style
+    elif status_dict["X_VPLPKO"].upper() == "UNKNOWN":
+        style = unknown_style
+    else:
+        style = active_style
+    table.add_row(
+        "VPL pickoff",
+        status_dict["X_VPLPKO"],
+        f"θ={status_dict['X_VPLPKT']:6.02f}°",
+        style=style,
+    )
+
     ## FLC
     if np.abs(status_dict["U_FLCTMP"] - 45) > 5:
         style = danger_style
-    elif status_dict["U_FLCEN"].upper() == "TRUE":
+    elif status_dict["U_FLCEN"]:
         style = active_style
     elif status_dict["U_FLCST"].upper() == "IN":
         style = danger_style
@@ -247,7 +263,7 @@ def get_table():
         f"T(AFLC)={status_dict['U_FLCTMP']:4.01f} °C",
         style=style,
     )
-    status = "Enabled" if status_dict["U_FLCEN"] == "True" else "Disabled"
+    status = "Enabled" if status_dict["U_FLCEN"] else "Disabled"
     table.add_row("AFLC", status, temp_text, style=style)
     if status_dict["U_FLCST"].upper() == "IN":
         style = active_style
@@ -359,51 +375,58 @@ def get_table():
     )
 
     ## Trigger
-    if status_dict["U_TRIGEN"].upper() == "TRUE":
+    if status_dict["U_TRIGEN"]:
         style = default_style
     else:
         style = danger_style
     table.add_row(
         "Trigger",
-        "Enabled" if status_dict["U_TRIGEN"] == "True" else "Disabled",
+        "Enabled" if status_dict["U_TRIGEN"] else "Disabled",
         f"off={status_dict['U_TRIGOF']:2d} us, jt={status_dict['U_TRIGJT']:2d} us, pw={status_dict['U_TRIGPW']:2d} us",
         style=style,
     )
 
     table.add_section()
-    logging_cam1 = status_dict["U_VLOG1"].upper() == "TRUE"
-    logging_cam2 = status_dict["U_VLOG2"].upper() == "TRUE"
-    logging_pupil = status_dict["U_VLOGP"].upper() == "TRUE"
+    logging_cam1 = status_dict["U_VLOG1"]
+    logging_cam2 = status_dict["U_VLOG2"]
+    logging_pupil = status_dict["U_VLOGP"]
     styles = {
         "FALSE": default_style,
         "TRUE": active_style,
     }
-    power_style = {"ON": default_style, "OFF": danger_style}
-    power_status = Text(
-        f"Power: {status_dict['X_NPS14']}",
-        style=power_style[status_dict["X_NPS14"].upper()],
-    )
+    # cam 1
+    style = default_style
+    if status_dict["X_NPS14"].upper() == "OFF":
+        style = danger_style
+    elif logging_cam1:
+        style = active_style
     table.add_row(
         "CAM 1",
         "Logging" if logging_cam1 else "",
-        power_status,
-        style=styles[status_dict["U_VLOG1"].upper()],
+        f"Power: {status_dict['X_NPS14']}",
+        style=style,
     )
-    power_status = Text(
-        f"Power: {status_dict['X_NPS216']}",
-        style=power_style[status_dict["X_NPS216"].upper()],
-    )
+    # cam 2
+    style = default_style
+    if status_dict["X_NPS216"].upper() == "OFF":
+        style = danger_style
+    elif logging_cam2:
+        style = active_style
     table.add_row(
         "CAM 2",
-        "Logging" if logging_cam2 else "",
-        power_status,
-        style=styles[status_dict["U_VLOG2"].upper()],
+        "Logging" if logging_cam1 else "",
+        f"Power: {status_dict['X_NPS216']}",
+        style=style,
     )
+    # pup_cam
+    style = default_style
+    if logging_pupil:
+        style = active_style
     table.add_row(
         "Pupil Cam",
         "Logging" if logging_pupil else "",
         "",
-        style=styles[status_dict["U_VLOGP"].upper()],
+        style=style,
     )
 
     return table
