@@ -16,6 +16,71 @@ active_style = f"{Palette.white} on {Palette.green}"
 danger_style = f"{Palette.white} on {Palette.red}"
 inactive_style = f"{Palette.gray} on #111111"
 
+REDIS_KEYS = [
+    "D_IMRANG",
+    "D_IMRMOD",
+    "P_RTAGL1",
+    "P_STGPS1",
+    "P_STGPS2",
+    "U_BS",
+    "U_BSTH",
+    "U_CAMFCF",
+    "U_CAMFCS",
+    "U_DIFFL1",
+    "U_DIFFL2",
+    "U_DIFFTH",
+    "U_FCS",
+    "U_FCSF",
+    "U_FILTER",
+    "U_FILTTH",
+    "U_FLCEN",
+    "U_FLCST",
+    "U_FLCSTP",
+    "U_FLCTMP",
+    "U_FLDSTP",
+    "U_FLDSTX",
+    "U_FLDSTY",
+    "U_MASK",
+    "U_MASKTH",
+    "U_MASKX",
+    "U_MASKY",
+    "U_MBI",
+    "U_MBITH",
+    "U_PUPST",
+    "U_QWP1",
+    "U_QWP1TH",
+    "U_QWP2",
+    "U_QWP2TH",
+    "U_QWPMOD",
+    "U_TRIGEN",
+    "U_TRIGJT",
+    "U_TRIGOF",
+    "U_TRIGPW",
+    "U_VLOG1",
+    "U_VLOG2",
+    "U_VLOGP",
+    "X_FIRPKO",
+    "X_FIRPKP",
+    "X_GRDAMP",
+    "X_GRDMOD",
+    "X_GRDSEP",
+    "X_GRDST",
+    "X_INTSPH",
+    "X_NPS14",
+    "X_NPS15",
+    "X_NPS216",
+    "X_POLAR",
+    "X_POLARP",
+    "X_PYWPKO",
+    "X_PYWPKP",
+    "X_SRCFFT",
+    "X_SRCFIR",
+    "X_SRCFOP",
+    "X_SRCSEL",
+    "X_VPLPKO",
+    "X_VPLPKT",
+]
+
 
 def get_table():
     title = Rule(Text("VAMPIRES status", style="italic"), style=f"bold {Palette.gold}")
@@ -34,72 +99,8 @@ def get_table():
     table.add_column("Status")
     table.add_column("Position")
 
-    status_dict = get_values(
-        [
-            "D_IMRANG",
-            "D_IMRMOD",
-            "P_RTAGL1",
-            "P_STGPS1",
-            "P_STGPS2",
-            "U_BS",
-            "U_BSTH",
-            "U_CAMFCF",
-            "U_CAMFCS",
-            "U_DIFFL1",
-            "U_DIFFL2",
-            "U_DIFFTH",
-            "U_FCS",
-            "U_FCSF",
-            "U_FILTER",
-            "U_FILTTH",
-            "U_FLCEN",
-            "U_FLCST",
-            "U_FLCSTP",
-            "U_FLCTMP",
-            "U_FLDSTP",
-            "U_FLDSTX",
-            "U_FLDSTY",
-            "U_MASK",
-            "U_MASKTH",
-            "U_MASKX",
-            "U_MASKY",
-            "U_MBI",
-            "U_MBITH",
-            "U_PUPST",
-            "U_QWP1",
-            "U_QWP1TH",
-            "U_QWP2",
-            "U_QWP2TH",
-            "U_QWPMOD",
-            "U_TRIGEN",
-            "U_TRIGJT",
-            "U_TRIGOF",
-            "U_TRIGPW",
-            "U_VLOG1",
-            "U_VLOG2",
-            "U_VLOGP",
-            "X_FIRPKO",
-            "X_FIRPKP",
-            "X_GRDAMP",
-            "X_GRDMOD",
-            "X_GRDSEP",
-            "X_GRDST",
-            "X_INTSPH",
-            "X_NPS14",
-            "X_NPS15",
-            "X_NPS216",
-            "X_POLAR",
-            "X_POLARP",
-            "X_PYWPKO",
-            "X_PYWPKP",
-            "X_SRCFFT",
-            "X_SRCFIR",
-            "X_SRCFOP",
-            "X_SRCSEL",
-            "X_VPLPKO",
-            "X_VPLPKT",
-        ]
-    )
+    status_dict = get_values(REDIS_KEYS)
+
     # normalize all inputs into UPPERCASE
     for k, v in status_dict.items():
         if isinstance(status_dict[k], str):
@@ -390,10 +391,7 @@ def get_table():
     logging_cam1 = status_dict["U_VLOG1"]
     logging_cam2 = status_dict["U_VLOG2"]
     logging_pupil = status_dict["U_VLOGP"]
-    styles = {
-        "FALSE": default_style,
-        "TRUE": active_style,
-    }
+
     # cam 1
     style = default_style
     if status_dict["X_NPS14"].upper() == "OFF":

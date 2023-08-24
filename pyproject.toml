@@ -45,6 +45,7 @@ set_readout_mode = "vampires_control.cameras:set_readout_mode"
 set_mode = "vampires_control.cameras:set_mode"
 # logging
 acquire = "vampires_control.acquisition.main:main"
+set_datatype = "vampires_control.acquisition.acquire:set_datatype"
 startlog = "vampires_control.acquisition.acquire:start_acquisition"
 stoplog = "vampires_control.acquisition.acquire:stop_acquisition"
 resumelog = "vampires_control.acquisition.acquire:resume_acquisition"

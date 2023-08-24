@@ -1,8 +1,8 @@
 import multiprocessing as mp
 
 import click
-
 from device_control.pyro_keys import VAMPIRES
+
 from swmain.network.pyroclient import connect
 
 
@@ -29,6 +29,7 @@ def prep_sdi(filt: str = "Halpha", beamsplitter: str = "NPBS"):
         pool.apply_async(move_camfcs, args=("dual",))
         pool.apply_async(move_bs, args=(beamsplitter,))
         pool.apply_async(move_filter, args=("Open",))
+        pool.apply_async(move_puplens, args=("OUT",))
         # wait for previous results to complete
         pool.close()
         pool.join()
@@ -47,6 +48,7 @@ def prep_pdi(flc: bool):
         else:
             pool.apply_async(move_flc, args=("OUT",))
         pool.apply_async(move_bs, args=("PBS",))
+        pool.apply_async(move_puplens, args=("OUT",))
         # wait for previous results to complete
         pool.close()
         pool.join()
@@ -54,13 +56,21 @@ def prep_pdi(flc: bool):
 
 
 @click.command("prep_nominal", help="Return VAMPIRES to nominal bench status")
-def nominal():
+@click.option(
+    "-bs",
+    "--beamsplitter",
+    default="PBS",
+    type=click.Choice(["PBS", "NPBS"], case_sensitive=False),
+    prompt=True,
+)
+def nominal(beamsplitter="PBS"):
     with mp.Pool() as pool:
         pool.apply_async(move_fcs, args=("standard",))
         pool.apply_async(move_camfcs, args=("dual",))
         pool.apply_async(move_diffwheel, args=(1,))
         pool.apply_async(move_flc, args=("OUT",))
-        pool.apply_async(move_bs, args=("PBS",))
+        pool.apply_async(move_bs, args=(beamsplitter,))
+        pool.apply_async(move_puplens, args=("OUT",))
         # wait for previous results to complete
         pool.close()
         pool.join()
@@ -73,9 +83,10 @@ def move_fcs(pos):
     fcs.move_configuration_name(pos)
 
 
-def move_puplens(posn):
+def move_puplens(pos):
     pup = connect(VAMPIRES.PUPIL)
-    click.echo(f"Moving pupil lens {posn}")
+    word = "Inserting" if pos.upper() == "IN" else "Removing"
+    click.echo(f"{word} pupil lens")
     pup.move_configuration_name(pup)
 
 
@@ -93,7 +104,7 @@ def move_diffwheel(idx):
 
 def move_flc(pos):
     flc_stage = connect(VAMPIRES.FLC)
-    word = "Inserting" if pos == "IN" else "Removing"
+    word = "Inserting" if pos.upper() == "IN" else "Removing"
     click.echo(f"{word} AFLC")
     flc_stage.move_configuration_name(pos)
 

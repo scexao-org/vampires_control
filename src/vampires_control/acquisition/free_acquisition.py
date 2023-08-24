@@ -1,9 +1,9 @@
 import time
 from itertools import repeat
 
+from device_control.pyro_keys import VAMPIRES
 from rich.progress import track
 
-from device_control.pyro_keys import VAMPIRES
 from swmain.network.pyroclient import connect
 from vampires_control.acquisition import logger
 from vampires_control.acquisition.acquire import (start_acquisition,

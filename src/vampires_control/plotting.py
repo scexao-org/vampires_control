@@ -30,13 +30,14 @@ def _hist_panels(cams):
     for cam in cams:
         if cam is not None:
             fig = _hist_fig(cam)
-            yield Panel(fig.get_text(), style="#FA9F42")
+            yield Panel(fig.get_string(), style="#FA9F42")
 
 
 def _hist_fig(shm):
     data = shm.get_data()
-    bins = np.arange(data.min(), data.mxx() + 1)
-    counts, bin_edges = np.histograme(data, bins=bins)
+    p1, p2 = np.percentile(data, [0.5, 99.5])
+    bins = np.arange(p1, p2 + 1)
+    counts, bin_edges = np.histogram(data, bins=bins)
     fig = tpl.figure()
-    fig.hist(counts, bin_edges)
+    fig.hist(counts, bin_edges, orientation="horizontal")
     return fig
