@@ -3,6 +3,7 @@ import multiprocessing as mp
 from pathlib import Path
 from typing import Union
 
+from astropy.io import fits
 import click
 import numpy as np
 import tqdm.auto as tqdm
@@ -39,39 +40,6 @@ class PTCAcquirer:
         self.diffwheel = connect(VAMPIRES.DIFF)
         self.base_dir = Path(base_dir)
 
-    def run(self, num_frames=5):
-        logger.info("Beginning PTC acquisition")
-        # check if beamsplitter is inserted
-        _, bs_config = self.beamsplitter.get_configuration()
-        logger.debug(f"beamsplitter: {bs_config}")
-        if not bs_config.upper() == "PBS":
-            # if beamsplitter is not inserted, prompt
-            logger.warn("Polarizing beamsplitter is not inserted")
-            click.confirm(
-                "Would you like to insert the beamsplitter?", abort=True, default=True
-            )
-            # insert beamsplitter
-            logger.info(f"Inserting PBS beamsplitter")
-            self.beamsplitter.move_configuration_name("PBS")
-
-        result_dict = {}
-        qwp_angles = None
-        for config in tqdm.tqdm(self.filter.get_configurations(), desc="Filter"):
-            if config["name"] == "625-50":
-                continue
-            self.filter.move_configuration_idx(config["idx"])
-            logger.info(f"Moving filter to {config['name']}")
-            # prepare cameras
-            click.confirm(
-                "Adjust camera settings and confirm when ready",
-                default=True,
-                abort=True,
-            )
-            qwp_angles, metrics = self.get_values_for_filter(num_frames=num_frames)
-            result_dict[config["name"]] = metrics
-
-        return qwp_angles, result_dict
-
     def acquire(self, nframes):
         with mp.Pool(2) as pool:
             res1 = pool.apply_async(get_cube, args=(1, nframes))
@@ -96,10 +64,48 @@ class PTCAcquirer:
         self.diffwheel.move_absolute(0)
 
         return cubes
+    
+    def take_data(self, exptimes, nframes=30, **kwargs):
+        logger.info("Beginning PTC acquisition")        
+        
+        total_time = np.sum(exptimes * nframes)
+        click.echo(f"{nframes} frames for {len(exptimes)} acquisitions will take {np.floor_divide(total_time, 60):02.0f}:{np.remainder(total_time, 60):02.0f}")
+        click.confirm("Confirm if ready to proceed", abort=True, default=True)
+        
+        actual_exptimes = []
+        cubes = []
+        pbar = tqdm.tqdm(exptimes)
+        for exptime in pbar:
+            pbar.desc = f"t={exptime:4.02e} s"
+            for cam in self.cameras.values():
+                tint = cam.set_tint(exptime)
+            actual_exptimes.append(tint)
+            cubes.append(np.array(self.acquire(nframes=nframes)))
 
+        
+        logger.info("Finished taking PTC data")
+        return np.array(actual_exptimes), np.array(cubes)
+    
+    def run(self, name, exptimes, nframes=30, nbias=1000, **kwargs):
+        ## take bias frames
+        bias_cubes = np.array(self.take_bias(nframes=nbias))
+        bias_path = self.base_dir / f"{name}_bias.fits"
+        fits.writeto(bias_path, bias_cubes, overwrite=True)
+        ## prepare for PTC
+        click.confirm("Confirm when ready to proceed", abort=True, default=True)
+        ## take PTC data
+        exptimes, cubes = self.take_data(exptimes=exptimes, nframes=nframes)
+        ## save to disk
+        cube_path = self.base_dir / f"{name}_data.fits"
+        fits.writeto(cube_path, cubes, overwrite=True)
+        logger.info(f"Saved data to {cube_path}")
+        texp_path = self.base_dir / f"{name}_texp.fits"
+        fits.writeto(texp_path, exptimes, overwrite=True)
+        logger.info(f"Saved exposure times to {texp_path}")
+        return exptimes, cubes
 
 def get_cube(shm, nframes):
-    return SHMS[shm].multi_recv_data(nframes, outputFormat=2)
+    return SHMS[shm].multi_recv_data(nframes, outputFormat=2, timeout=6)
 
 
 def main():
