@@ -136,7 +136,7 @@ class Autofocuser:
             # insert diff filter
             logger.info(f"Inserting {diff_filt} filter pair")
             if diff_filt == "Halpha":
-                self.diff_wheel.move_configuration_name("Ha-cont / Halhpa")
+                self.diff_wheel.move_configuration_name("Ha-cont / Halpha")
             elif diff_filt == "SII":
                 self.diff_wheel.move_configuration_name("SII-cont / SII")
         # check if focus is at standard

@@ -7,9 +7,9 @@ from time import sleep
 
 import numpy as np
 import pandas as pd
+from device_control.pyro_keys import VAMPIRES
 from Pyro4.errors import CommunicationError
 
-from device_control.pyro_keys import VAMPIRES
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values, update_keys
 from vampires_control.helpers import get_dominant_filter
@@ -30,7 +30,7 @@ conf_dir = Path(
 )
 
 parser = ArgumentParser(
-    description="VAMPIRES QWP daemon",
+    description="QWP daemon",
     usage="Enables tracking laws for the VAMPIRES quarter-wave plates. Right now, the only tracking law is the 'filter' law, which uses stored calibration values for counteracting the diattenuation of the visible periscope depending on the VAMPIRES filter and differential filter.",
 )
 parser.add_argument(

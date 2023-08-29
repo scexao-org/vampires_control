@@ -18,14 +18,8 @@ def connect_cameras():
 def get_tint():
     tints = [cam.get_tint() for cam in connect_cameras()]
     click.echo(
-        f"Cam 1: {tints[0]:6.03f} s / {int(tints[0] * 1e6):d} us, Cam 2: {tints[1]:6.03f} s / {int(tints[1] * 1e6):d} us"
+        f"Cam 1: {tints[0]:6.03f} s / {int(tints[0] * 1e6):d} us | Cam 2: {tints[1]:6.03f} s / {int(tints[1] * 1e6):d} us"
     )
-
-
-@click.command("get_fps", help="Print each camera's framerate.")
-def get_fps():
-    frates = [cam.get_fps() for cam in connect_cameras()]
-    click.echo(f"Cam 1: {frates[0]:6.02f} Hz, Cam 2: {frates[1]:6.02f} Hz")
 
 
 @click.command("set_tint", help="Set both cameras' detector integration time")
@@ -33,6 +27,25 @@ def get_fps():
 def set_tint(tint):
     for cam in connect_cameras():
         cam.set_tint__oneway(tint)
+
+
+@click.command("get_fps", help="Print each camera's framerate.")
+def get_fps():
+    frates = [cam.get_fps() for cam in connect_cameras()]
+    click.echo(f"Cam 1: {frates[0]:6.02f} Hz | Cam 2: {frates[1]:6.02f} Hz")
+
+
+@click.command("set_fps", help="Set each camera's framerate.")
+@click.argument("framerate", type=float)
+def set_fps(framerate):
+    frates = [cam.set_fps(framerate) for cam in connect_cameras()]
+    click.echo(f"Cam 1: {frates[0]:6.02f} Hz | Cam 2: {frates[1]:6.02f} Hz")
+
+
+@click.command("get_trigger", help="Get the external trigger mode for both cameras.")
+def get_trigger():
+    enab = [cam.get_external_trigger() for cam in connect_cameras()]
+    click.echo(f"Cam 1: {enab[0]} | Cam 2: {enab[1]}")
 
 
 @click.command(
@@ -46,11 +59,23 @@ def set_trigger(enable: bool):
         cam.set_external_trigger__oneway(enable)
 
 
+@click.command("get_readout_mode", help="Get the readout mode for both cameras.")
+def get_readout_mode():
+    mode = [cam.get_readout_mode() for cam in connect_cameras()]
+    click.echo(f"Cam 1: {mode[0]} | Cam 2: {mode[1]}")
+
+
 @click.command("set_readout_mode", help="Set both cameras' readout modes.")
 @click.argument("mode", type=click.Choice(["FAST", "SLOW"], case_sensitive=False))
 def set_readout_mode(mode: str):
     for cam in connect_cameras():
         cam.set_readout_mode__oneway(mode)
+
+
+@click.command("get_mode", help="Set both cameras' crop modes.")
+def get_mode():
+    mode = [cam.get_camera_mode() for cam in connect_cameras()]
+    click.echo(f"Cam 1: {mode[0]} | Cam 2: {mode[1]}")
 
 
 @click.command("set_mode", help="Set both cameras' crop modes.")

@@ -1,14 +1,14 @@
 server: 127.0.0.1:8792
 procs:
-  device_server:
+  device server:
     shell: "python -i /home/lestat/src/device_control/src/device_control/daemons/vampires_devices.py"
-  qwp_tracking: "sleep 5; vampires_qwp_daemon"
-  temp_status: "sleep 5; vampires_temp_daemon"
+  qwp daemon: "sleep 5; qwp_daemon"
+  temp status: "sleep 5; vampires_temp_daemon"
   healthcheck:
     shell: "healthcheck"
     autostart: false
-  set_datatype:
-    shell: "set_datatype"
+  set datatype:
+    shell: "datatype"
     autostart: false
   preplog:
     shell: "startlog"
@@ -19,7 +19,7 @@ procs:
   stoplog:
     shell: "pauselog"
     autostart: false
-  stoplog(wait):
+  stoplog (wait):
     shell: "pauselog --wait"
     autostart: false
   killlog:
@@ -28,13 +28,19 @@ procs:
   autofocus: 
     shell: "autofocus all"
     autostart: false
-  prepare_nominal:
+  filter sweep:
+    shell: "filter_sweep"
+    autostart: false
+  hwp calib:
+    shell: "hwp_calib"
+    autostart: false
+  prepare nominal:
     shell: "prep_nominal"
     autostart: false
-  prepare_pdi: 
+  prepare pdi: 
     shell: "prep_pdi"
     autostart: false
-  prepare_sdi: 
+  prepare sdi: 
     shell: "prep_sdi"
     autostart: false
   badseeing:

@@ -113,6 +113,12 @@ def resume_acq_one_camera(cam_num, num_cubes=-1):
     help="Subaru-style data type",
     prompt="Data type",
 )
+def start_acquisition_main(
+    nframes, ncubes=-1, data_type="OBJECT", cam=-1, archive=False
+):
+    return start_acquisition(nframes, ncubes, data_type, cam, archive)
+
+
 def start_acquisition(
     nframes, ncubes=-1, data_type="OBJECT", cam=-1, archive=False, base_dir=None
 ):
@@ -135,7 +141,7 @@ def start_acquisition(
     click.echo("\nLogger process started-\nlogging will start after running 'startlog'")
 
 
-@click.command("set_datatype")
+@click.command("datatype")
 @click.option(
     "--data-type",
     "-t",
@@ -144,6 +150,10 @@ def start_acquisition(
     help="Subaru-style data type",
     prompt="Data type",
 )
+def set_datatype_main(data_type: str) -> None:
+    set_datatype(data_type)
+
+
 def set_datatype(data_type: str) -> None:
     for i, cam in enumerate(CAMS):
         cam.set_keyword("DATA-TYP", data_type.upper())
@@ -160,6 +170,10 @@ def set_datatype(data_type: str) -> None:
     default=True,
     help="Kills logging process and closes tmux",
 )
+def stop_acquisition_main(cam=-1, kill=True):
+    stop_acquisition(cam, kill)
+
+
 def stop_acquisition(cam=-1, kill=True):
     logger.info(f"Stopping data acquisition")
     func = kill_acq_one_camera if kill else stop_acq_one_camera
@@ -179,6 +193,10 @@ def stop_acquisition(cam=-1, kill=True):
 @click.option(
     "-w/-nw", "--wait/--no-wait", default=False, help="Finish last cube before pausing"
 )
+def pause_acquisition_main(cam=-1, wait: bool = False):
+    pause_acquisition(cam, wait)
+
+
 def pause_acquisition(cam=-1, wait: bool = False):
     logger.info(f"Pausing data acquisition")
     with mp.Pool(2) as pool:
@@ -201,6 +219,10 @@ def pause_acquisition(cam=-1, wait: bool = False):
     default=-1,
     prompt="Specify number of cubes (-1 for infinite)",
 )
+def resume_acquisition_main(cam=-1, ncubes=-1):
+    resume_acquisition(cam, ncubes)
+
+
 def resume_acquisition(cam=-1, ncubes=-1):
     logger.info(f"Resuming data acquisition")
     with mp.Pool(2) as pool:

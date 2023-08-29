@@ -22,6 +22,10 @@ from swmain.network.pyroclient import connect
     type=click.Choice(["PBS", "NPBS"], case_sensitive=False),
     prompt=True,
 )
+def prep_sdi_main(filt: str = "Halpha", beamsplitter: str = "NPBS"):
+    return prep_sdi(filt, beamsplitter)
+
+
 def prep_sdi(filt: str = "Halpha", beamsplitter: str = "NPBS"):
     with mp.Pool() as pool:
         pool.apply_async(move_diffwheel, args=(filt,))
@@ -38,6 +42,10 @@ def prep_sdi(filt: str = "Halpha", beamsplitter: str = "NPBS"):
 
 @click.command("prep_pdi", help="Prepare VAMPIRES for PDI imaging")
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt=True)
+def prep_pdi_main(flc: bool):
+    return prep_pdi(flc)
+
+
 def prep_pdi(flc: bool):
     with mp.Pool() as pool:
         pool.apply_async(move_fcs, args=("standard",))
@@ -63,6 +71,10 @@ def prep_pdi(flc: bool):
     type=click.Choice(["PBS", "NPBS"], case_sensitive=False),
     prompt=True,
 )
+def nominal_main(beamsplitter="PBS"):
+    return nominal(beamsplitter)
+
+
 def nominal(beamsplitter="PBS"):
     with mp.Pool() as pool:
         pool.apply_async(move_fcs, args=("standard",))
