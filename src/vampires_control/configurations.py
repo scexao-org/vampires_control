@@ -71,11 +71,21 @@ def prep_pdi(flc: bool):
     type=click.Choice(["PBS", "NPBS"], case_sensitive=False),
     prompt=True,
 )
-def nominal_main(beamsplitter="PBS"):
-    return nominal(beamsplitter)
+@click.option(
+    "-m",
+    "--mbi",
+    default="Mirror",
+    type=click.Choice(["Mirror", "Dichroics"], case_sensitive=False),
+    prompt=True,
+)
+def nominal_main(beamsplitter, mbi):
+    return nominal(beamsplitter, mbi)
 
 
-def nominal(beamsplitter="PBS"):
+def nominal(beamsplitter="PBS", mbi="Mirror"):
+    mbi_nudge = 0
+    if beamsplitter == "NPBS":
+        mbi_nudge = 0.0653
     with mp.Pool() as pool:
         pool.apply_async(move_fcs, args=("standard",))
         pool.apply_async(move_camfcs, args=("dual",))
@@ -83,6 +93,13 @@ def nominal(beamsplitter="PBS"):
         pool.apply_async(move_flc, args=("OUT",))
         pool.apply_async(move_bs, args=(beamsplitter,))
         pool.apply_async(move_puplens, args=("OUT",))
+        pool.apply_async(
+            move_mbi,
+            args=(
+                mbi,
+                mbi_nudge,
+            ),
+        )
         # wait for previous results to complete
         pool.close()
         pool.join()
@@ -131,3 +148,10 @@ def move_filter(filtname):
     filt = connect(VAMPIRES.FILT)
     click.echo(f"Moving filter to {filtname}")
     filt.move_configuration_name(filtname)
+
+
+def move_mbi(mbiconf, theta=0):
+    mbi = connect(VAMPIRES.MBI)
+    click.echo(f"Moving MBI wheel to {mbiconf} with {theta} deg offset")
+    mbi.move_configuration_name(mbiconf)
+    mbi.move_relative(theta)

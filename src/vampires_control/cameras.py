@@ -2,7 +2,9 @@ import subprocess
 import time
 
 import click
+import numpy as np
 
+from pyMilk.interfacing.isio_shmlib import SHM
 from swmain.network.pyroclient import connect
 
 DEFAULT_DELAY = 15  # s
@@ -12,6 +14,10 @@ def connect_cameras():
     vcam1 = connect("VCAM1")
     vcam2 = connect("VCAM2")
     return vcam1, vcam2
+
+
+def connect_shms():
+    return SHM("vcam1"), SHM("vcam2")
 
 
 @click.command("get_tint", help="Print each camera's detector integration time.")
@@ -27,6 +33,27 @@ def get_tint():
 def set_tint(tint):
     for cam in connect_cameras():
         cam.set_tint__oneway(tint)
+
+
+@click.command("target_tint")
+@click.argument("target", type=float, default=1e4)
+@click.option("-s", "--sync", is_flag=True, default=True)
+def target_tint(target: float, niter=5, sync=True):
+    cams = connect_cameras()
+    shms = connect_shms()
+    tints = [cam.get_tint() for cam in cams]
+    best_guess = tints
+    for _ in range(niter):
+        tints = [cam.set_tint(t) for t, cam in zip(best_guess, cams)]
+        peaks = [shm.get_data(check=True).max() for shm in shms]
+        flux = np.array(peaks) / np.array(tints)
+        best_guess = target / flux
+        if sync:
+            best_guess[:] = best_guess.mean()
+    click.echo(
+        f"Cam 1: {best_guess[0]:6.03f} s / {int(best_guess[0] * 1e6):d} us | Cam 2: {best_guess[1]:6.03f} s / {int(best_guess[1] * 1e6):d} us"
+    )
+    return best_guess
 
 
 @click.command("get_fps", help="Print each camera's framerate.")
@@ -82,7 +109,8 @@ def get_mode():
 @click.argument(
     "mode",
     type=click.Choice(
-        ["STANDARD", "MBI", "MBI_REDUCED", "FULL", "PUPIL"], case_sensitive=False
+        ["STANDARD", "NPBS", "MBI", "MBI_REDUCED", "FULL", "PUPIL"],
+        case_sensitive=False,
     ),
 )
 def set_mode(mode: str):

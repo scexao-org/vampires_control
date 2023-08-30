@@ -1,16 +1,18 @@
 import logging
+import os
 import time
+from pathlib import Path
 
 import click
 import numpy as np
+import pandas as pd
 import tqdm.auto as tqdm
-from device_control.facility import WPU, ImageRotator
 from scxconf.pyrokeys import VAMPIRES
 
 from swmain.network.pyroclient import connect
+from swmain.redis import get_values
 from vampires_control.acquisition.acquire import (pause_acquisition,
                                                   resume_acquisition)
-from vampires_control.configurations import prep_pdi
 
 # set up logging
 formatter = logging.Formatter(
@@ -22,6 +24,11 @@ stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.INFO)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
+
+
+conf_dir = Path(
+    os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/")
+)
 
 
 class FilterSweeper:
@@ -44,15 +51,16 @@ class FilterSweeper:
             2: connect("VCAM2"),
         }
         self.filt = connect(VAMPIRES.FILT)
-        self.imr = ImageRotator.connect()
-        self.wpu = WPU()
         self.debug = debug
         if self.debug:
             # filthy, disgusting
             logger.setLevel(logging.DEBUG)
             logger.handlers[0].setLevel(logging.DEBUG)
+        self.conf_data = pd.read_csv(
+            conf_dir / "data" / "conf_vampires_qwp_filter_data.csv"
+        )
 
-    def run(self, time_per_cube=5, parity=False):
+    def run(self, time_per_cube=5, parity=False, wait=False):
         logger.info("Starting HWP + IMR loop")
         filts = self.FILTERS
         if parity:
@@ -64,7 +72,8 @@ class FilterSweeper:
                 logger.debug(f"MOVING FILTER TO {filt}")
             else:
                 self.filt.move_configuration(filt)
-            self.resume_cameras()
+            if wait:
+                self.wait_for_qwp_pos(filt)
             time.sleep(time_per_cube)
         self.pause_cameras()
 
@@ -81,13 +90,28 @@ class FilterSweeper:
         else:
             resume_acquisition()
 
+    def wait_for_qwp_pos(self, filt):
+        indices = self.conf_data["filter"] == filt
+        conf_row = self.conf_data.loc[indices]
+
+        qwp1_pos = float(conf_row["qwp1"].iloc[0])
+        qwp2_pos = float(conf_row["qwp2"].iloc[0])
+        while True:
+            last_qwp1, last_qwp2 = get_values(("U_QWP1", "U_QWP2")).values()
+            if np.abs(last_qwp1 - qwp1_pos) < 1 and np.abs(last_qwp2 - qwp2_pos) < 1:
+                break
+            time.sleep(0.5)
+
 
 @click.command("filter_sweep")
 @click.option("-t", "--time", type=float, default=5, prompt="Time (s) per position")
+@click.option(
+    "-w/-nw", "--wait/--no-wait", default=True, prompt="Wait for QWPs to settle"
+)
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
-def main(time, debug=False):
+def main(time, wait=False, debug=False):
     manager = FilterSweeper(debug=debug)
-    manager.run(time_per_cube=time)
+    manager.run(time_per_cube=time, wait=wait)
 
 
 if __name__ == "__main__":

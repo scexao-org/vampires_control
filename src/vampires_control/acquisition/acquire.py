@@ -1,5 +1,6 @@
 import multiprocessing as mp
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
 import click
@@ -40,8 +41,10 @@ def start_acq_one_camera(
     num_cubes: int = -1,
     data_type="OBJECT",
 ):
+    save_dir = base_dir / datetime.utcnow().strftime("%Y%m%d") / f"vcam{cam_num}"
+    click.echo(f"Saving data to directory {save_dir}")
     CAMS[cam_num - 1].set_keyword("DATA-TYP", data_type.upper())
-    cmd = [*BASE_COMMAND, "-z", f"{num_per_cube}", "-d", base_dir.absolute()]
+    cmd = [*BASE_COMMAND, "-z", f"{num_per_cube}", "-D", save_dir.absolute()]
     # cmd = f"ssh scexao@scexao6 milk-streamFITSlog -cset aol0log -z {num_per_cube} -d \"{base_dir.absolute()}\""
     if num_cubes > 0:
         cmd.extend(("-c", f"{num_cubes}"))

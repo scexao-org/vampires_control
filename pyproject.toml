@@ -37,6 +37,7 @@ vampires_status = "vampires_control.status:main"
 # camera control
 get_tint = "vampires_control.cameras:get_tint"
 set_tint = "vampires_control.cameras:set_tint"
+target_tint = "vampires_control.cameras:target_tint"
 get_fps = "vampires_control.cameras:get_fps"
 set_fps = "vampires_control.cameras:set_fps"
 get_trigger = "vampires_control.cameras:get_trigger"
@@ -62,6 +63,7 @@ healthcheck = "vampires_control.health:healthcheck"
 # calibrations
 autofocus = "vampires_control.autofocus:autofocus"
 filter_sweep = "vampires_control.calibration.filter_sweep:main"
+sdi_daemon = "vampires_control.acquisition.sdi_daemon:main"
 hwp_calib = "vampires_control.calibration.hwp_calibration:main"
 
 [tool.setuptools.dynamic]
