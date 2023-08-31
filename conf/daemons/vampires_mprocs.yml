@@ -28,6 +28,12 @@ procs:
   autofocus: 
     shell: "autofocus all"
     autostart: false
+  take cals:
+    shell: "take_cals"
+    autostart: false
+  sdi daemon:
+    shell: "sdi_daemon"
+    autostart: false
   filter sweep:
     shell: "filter_sweep"
     autostart: false
