@@ -62,6 +62,7 @@ prep_pdi = "vampires_control.configurations:prep_pdi_main"
 healthcheck = "vampires_control.health:healthcheck"
 # calibrations
 autofocus = "vampires_control.autofocus:autofocus"
+take_cals = "vampires_control.calibration.calibs:main"
 filter_sweep = "vampires_control.calibration.filter_sweep:main"
 sdi_daemon = "vampires_control.acquisition.sdi_daemon:main"
 hwp_calib = "vampires_control.calibration.hwp_calibration:main"

@@ -1,6 +1,5 @@
 import multiprocessing as mp
 import subprocess
-from datetime import datetime
 from pathlib import Path
 
 import click
@@ -40,22 +39,24 @@ def start_acq_one_camera(
     num_per_cube: int,
     num_cubes: int = -1,
     data_type="OBJECT",
+    start=False,
 ):
-    save_dir = base_dir / datetime.utcnow().strftime("%Y%m%d") / f"vcam{cam_num}"
+    save_dir = base_dir  # / datetime.utcnow().strftime("%Y%m%d") / f"vcam{cam_num}"
     click.echo(f"Saving data to directory {save_dir}")
     CAMS[cam_num - 1].set_keyword("DATA-TYP", data_type.upper())
-    cmd = [*BASE_COMMAND, "-z", f"{num_per_cube}", "-D", save_dir.absolute()]
-    # cmd = f"ssh scexao@scexao6 milk-streamFITSlog -cset aol0log -z {num_per_cube} -d \"{base_dir.absolute()}\""
+    cmd = [*BASE_COMMAND, "-z", f"{num_per_cube}", "-d", save_dir.absolute()]
+    # cmd = [*BASE_COMMAND, "-z", f"{num_per_cube}", "-D", save_dir.absolute()]
     if num_cubes > 0:
         cmd.extend(("-c", f"{num_cubes}"))
     cmd.extend((f"vcam{cam_num}", "pstart"))
-    subprocess.run(cmd)
-    resume_acq_one_camera(cam_num=cam_num)
+    subprocess.run(cmd, capture_output=True)
+    if start:
+        resume_acq_one_camera(cam_num=cam_num, num_cubes=num_cubes)
 
 
 def kill_acq_one_camera(cam_num):
-    cmd = [*BASE_COMMAND, f"vcam{cam_num}", "pstart"]
-    subprocess.run(cmd)
+    cmd = [*BASE_COMMAND, f"vcam{cam_num}", "kill"]
+    subprocess.run(cmd, capture_output=True)
     if cam_num == 1:
         update_keys(U_VLOG1=False)
     else:
@@ -64,7 +65,7 @@ def kill_acq_one_camera(cam_num):
 
 def stop_acq_one_camera(cam_num):
     cmd = [*BASE_COMMAND, f"vcam{cam_num}", "pstop"]
-    subprocess.run(cmd)
+    subprocess.run(cmd, capture_output=True)
     if cam_num == 1:
         update_keys(U_VLOG1=False)
     else:
@@ -74,7 +75,7 @@ def stop_acq_one_camera(cam_num):
 def pause_acq_one_camera(cam_num, wait_for_complete=False):
     cmd = [*BASE_COMMAND, f"vcam{cam_num}"]
     cmd.append("offc" if wait_for_complete else "off")
-    subprocess.run(cmd)
+    subprocess.run(cmd, capture_output=True)
     if cam_num == 1:
         update_keys(U_VLOG1=False)
     else:
@@ -86,7 +87,7 @@ def resume_acq_one_camera(cam_num, num_cubes=-1):
     if num_cubes > 0:
         cmd.extend(("-c", f"{num_cubes}"))
     cmd.extend((f"vcam{cam_num}", "on"))
-    subprocess.run(cmd)
+    subprocess.run(cmd, capture_output=True)
     if cam_num == 1:
         update_keys(U_VLOG1=True)
     else:
@@ -116,14 +117,40 @@ def resume_acq_one_camera(cam_num, num_cubes=-1):
     help="Subaru-style data type",
     prompt="Data type",
 )
+@click.option(
+    "-s",
+    "--start/--no-start",
+    default=False,
+    prompt="Immediately start logging after creating process",
+    show_default=True,
+)
 def start_acquisition_main(
-    nframes, ncubes=-1, data_type="OBJECT", cam=-1, archive=False
+    nframes, ncubes=-1, data_type="OBJECT", cam=-1, archive=False, start=False
 ):
-    return start_acquisition(nframes, ncubes, data_type, cam, archive)
+    if archive:
+        base_dir = ARCHIVE_DATA_DIR_BASE
+    else:
+        base_dir = click.prompt(
+            "Please enter save directory", type=Path, default=DATA_DIR_BASE
+        )
+    return start_acquisition(
+        nframes,
+        ncubes=ncubes,
+        data_type=data_type,
+        cam=cam,
+        base_dir=base_dir,
+        start=start,
+    )
 
 
 def start_acquisition(
-    nframes, ncubes=-1, data_type="OBJECT", cam=-1, archive=False, base_dir=None
+    nframes,
+    ncubes=-1,
+    data_type="OBJECT",
+    cam=-1,
+    archive=False,
+    base_dir=None,
+    start=False,
 ):
     if base_dir is None:
         base_dir = ARCHIVE_DATA_DIR_BASE if archive else DATA_DIR_BASE
@@ -133,15 +160,20 @@ def start_acquisition(
     with mp.Pool(2) as pool:
         if cam in (-1, 1):
             pool.apply_async(
-                start_acq_one_camera, args=(base_dir, 1, nframes, ncubes, data_type)
+                start_acq_one_camera,
+                args=(base_dir, 1, nframes, ncubes, data_type, start),
             )
         if cam in (-1, 2):
             pool.apply_async(
-                start_acq_one_camera, args=(base_dir, 2, nframes, ncubes, data_type)
+                start_acq_one_camera,
+                args=(base_dir, 2, nframes, ncubes, data_type, start),
             )
         pool.close()
         pool.join()
-    click.echo("\nLogger process started-\nlogging will start after running 'startlog'")
+    msg = "\nLogger process started"
+    if not start:
+        msg += "-\nlogging will start after running 'startlog'"
+    click.echo(msg)
 
 
 @click.command("datatype")

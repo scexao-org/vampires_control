@@ -6,6 +6,7 @@ import numpy as np
 import tqdm.auto as tqdm
 from rich.logging import RichHandler
 from rich.progress import Progress
+from scxconf.pyrokeys import VAMPIRES
 
 from swmain.network.pyroclient import connect
 from vampires_control.acquisition import logger
@@ -32,15 +33,15 @@ logger.addHandler(rich_handler)
 class SDIStateMachine:
     def __init__(self, mode: str) -> None:
         if mode == "Halpha":
-            self.indices = 4, 8
-        elif mode == "SII":
             self.indices = 3, 6
+        elif mode == "SII":
+            self.indices = 2, 4
         elif mode == "both":
-            self.indices = 3, 6, 4, 8
+            self.indices = 2, 4, 3, 6
         else:
             raise ValueError(f"SDI mode {mode} not recognized")
         self.mode = mode
-        self.diffwheel = connect("VAMPIRES_DIFFWHEEL")
+        self.diffwheel = connect(VAMPIRES.DIFF)
 
     def prepare(self, confirm=True):
         if confirm:
@@ -62,6 +63,8 @@ class SDIStateMachine:
         self.diffwheel.move_configuration_idx(self.indices[self.current_idx])
 
     def run(self, time_per_posn=30, max_loops=np.inf):
+        if max_loops < 0:
+            max_loops = np.inf
         i = 1
         N_per_loop = len(self.indices)
         self.prepare()
@@ -71,21 +74,26 @@ class SDIStateMachine:
             pause_acquisition()
             logger.info(f"Finished taking iteration {i} / {N_per_loop * max_loops}")
             self.next()
-            i == 1
+            i += 1
 
 
 @click.command("sdi_daemon")
-@click.argument(
-    "mode", type=click.Choice(["Halpha", "SII", "both"], case_sensitive=False)
+@click.option(
+    "-m",
+    "--mode",
+    type=click.Choice(["Halpha", "SII", "both"], case_sensitive=False),
+    prompt=True,
 )
 @click.option(
-    "-e", "--exptime", default=30, type=float, help="Time per SDI filter position"
+    "-e", "--exptime", default=30, type=float, prompt="Time per SDI filter position"
 )
 @click.option(
     "-n",
     "--max-loops",
+    default=-1,
     type=int,
-    help="If set will stop after this many SDI loops (half the number of cubes)",
+    prompt="If set will stop after this many SDI loops (half the number of cubes)",
+    required=False,
 )
 def main(
     mode,

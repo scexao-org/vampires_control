@@ -60,20 +60,25 @@ class FilterSweeper:
             conf_dir / "data" / "conf_vampires_qwp_filter_data.csv"
         )
 
+    def move_filter(self, filt, wait=False):
+        if self.debug:
+            logger.debug(f"MOVING FILTER TO {filt}")
+            return
+
+        self.filt.move_configuration(filt)
+        if wait:
+            self.wait_for_qwp_pos(filt)
+
     def run(self, time_per_cube=5, parity=False, wait=False):
         logger.info("Starting HWP + IMR loop")
         filts = self.FILTERS
         if parity:
-            filts = reversed(filts)
+            filts = list(reversed(filts))
 
         for filt in tqdm.tqdm(filts, total=len(self.FILTERS), desc="Filters"):
             self.pause_cameras()
-            if self.debug:
-                logger.debug(f"MOVING FILTER TO {filt}")
-            else:
-                self.filt.move_configuration(filt)
-            if wait:
-                self.wait_for_qwp_pos(filt)
+            self.move_filter(filt, wait=wait)
+            self.resume_cameras()
             time.sleep(time_per_cube)
         self.pause_cameras()
 

@@ -316,7 +316,7 @@ def autofocus(mode: str):
     click.echo("=" * len(welcome))
     if mode == "all":
         if click.confirm("Would you like to do dual-cam autofocus?", default=True):
-            af.autofocus_dualcam()
+            af.autofocus_dualcam("vpl")
         if click.confirm("Would you like to do SDI autofocus?", default=True):
             af.autofocus_sdi()
         if click.confirm("Would you like to do single-cam autofocus?", default=True):

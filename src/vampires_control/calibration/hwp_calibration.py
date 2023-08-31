@@ -34,12 +34,12 @@ class HWPOptimizer:
     EXT_HWP_POSNS = [90, 101.25, 112.5, 123.75, 135, 146.25, 157.5, 168.75]
     IMR_INDS_HWP_EXT = [2, 5]
     FILTERS = [
+        "Open",
         "625-50",
         "675-50",
         "725-50",
         "750-50",
         "775-50",
-        "Open",
     ]  # , "Halpha", "SII"]
 
     def __init__(self, debug=False):
@@ -70,32 +70,57 @@ class HWPOptimizer:
             self.wpu.spp.move_in()  # move polarizer in
             self.wpu.shw.move_in()  # move HWP in
 
+    def move_imr(self, angle):
+        if self.debug:
+            logger.debug(f"MOVING IMR TO {angle}")
+            return
+
+        # move image rotator to position
+        self.imr.move_absolute(angle)
+        while np.abs(self.imr.get_position() - angle) > 1:
+            time.sleep(0.5)
+
+    def move_hwp(self, angle):
+        if self.debug:
+            logger.debug(f"MOVING HWP TO {angle}")
+            return
+
+        # move HWP to position
+        self.wpu.hwp.move_absolute(angle)
+        while np.abs(self.wpu.hwp.get_position() - angle) > 1:
+            time.sleep(0.5)
+
+        # update camera SHM keywords
+        hwp_status = self.wpu.hwp.get_status()
+        qwp_status = self.wpu.qwp.get_status()
+        for cam in self.cameras.values():
+            cam.set_keyword("RET-ANG1", hwp_status["pol_angle"])
+            cam.set_keyword("RET-POS1", hwp_status["position"])
+            cam.set_keyword("RET-ANG2", qwp_status["pol_angle"])
+            cam.set_keyword("RET-POS2", qwp_status["position"])
+
     def iterate_one_filter(self, time_per_cube=5, parity=False, do_extended_range=True):
         logger.info("Starting HWP + IMR loop")
         imr_range = self.IMR_POSNS
         if parity:
-            imr_range = reversed(imr_range)
+            imr_range = list(reversed(imr_range))
 
-        for i, imrang in tqdm.tqdm(
-            enumerate(imr_range), total=len(self.IMR_POSNS), desc="IMR"
-        ):
+        pbar = tqdm.tqdm(imr_range, desc="IMR")
+        for i, imrang in enumerate(pbar):
             self.pause_cameras()
-            if self.debug:
-                logger.debug(f"MOVING IMR TO {imrang}")
-            else:
-                self.imr.move_absolute(imrang)
+            self.move_imr(imrang)
+
             hwp_range = self.HWP_POSNS
             if do_extended_range and i in self.IMR_INDS_HWP_EXT:
-                hwp_range += self.EXT_HWP_POSNS
-            N = len(hwp_range)
-            if i % 2 == 0:
-                hwp_range = reversed(hwp_range)
-            for hwpang in tqdm.tqdm(hwp_range, total=N, desc="HWP"):
+                hwp_range = self.HWP_POSNS + self.EXT_HWP_POSNS
+            # every other sequence flip the HWP order to minimize travel
+            if i % 2 == 1:
+                hwp_range = list(reversed(hwp_range))
+
+            pbar.write(f"HWP angles: [{', '.join(map(str, hwp_range))}]")
+            for hwpang in tqdm.tqdm(hwp_range, total=len(hwp_range), desc="HWP"):
                 self.pause_cameras()
-                if self.debug:
-                    logger.debug(f"MOVING HWP TO {hwpang}")
-                else:
-                    self.wpu.hwp.move_absolute(hwpang)
+                self.move_hwp(hwpang)
                 self.resume_cameras()
                 time.sleep(time_per_cube)
         self.pause_cameras()
@@ -117,6 +142,7 @@ class HWPOptimizer:
         logger.info("Beginning HWP calibration")
         self.prepare(flc=flc)
 
+        parity = False
         for config in tqdm.tqdm(self.FILTERS, desc="Filter"):
             # if config == "Halpha":
             #     self.filt.move_configuration("Open")
@@ -134,7 +160,9 @@ class HWPOptimizer:
                 default=True,
             ):
                 continue
-            self.iterate_one_filter(**kwargs)
+            self.iterate_one_filter(parity=parity, **kwargs)
+            # every other sequence flip the IMR angle order to minimize travel
+            parity = not parity
 
 
 @click.command("hwp_calib")

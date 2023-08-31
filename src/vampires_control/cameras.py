@@ -43,13 +43,17 @@ def target_tint(target: float, niter=5, sync=True):
     shms = connect_shms()
     tints = [cam.get_tint() for cam in cams]
     best_guess = tints
-    for _ in range(niter):
-        tints = [cam.set_tint(t) for t, cam in zip(best_guess, cams)]
-        peaks = [shm.get_data(check=True).max() for shm in shms]
-        flux = np.array(peaks) / np.array(tints)
+    i = 0
+    while i < niter:
+        tints = np.array([cam.set_tint(t) for t, cam in zip(best_guess, cams)])
+        peaks = np.array([shm.get_data(check=True).max() for shm in shms])
+        flux = peaks / tints
         best_guess = target / flux
+        if np.any(peaks >= 65535) and np.any(tints > 8e-6):
+            continue
         if sync:
             best_guess[:] = best_guess.mean()
+        i += 1
     click.echo(
         f"Cam 1: {best_guess[0]:6.03f} s / {int(best_guess[0] * 1e6):d} us | Cam 2: {best_guess[1]:6.03f} s / {int(best_guess[1] * 1e6):d} us"
     )
