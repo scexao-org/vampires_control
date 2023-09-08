@@ -131,7 +131,7 @@ def take_darks(nframes=100, ncubes=1, exptime=0.1, archive=True, cam=-1):
 )
 def main(exptime, nframes, ncubes, cam, archive):
     # step 1: take pinholes
-    delta_time = nframes * ncubes * 0.1  # s
+    delta_time = nframes * ncubes * exptime  # s
     if click.confirm("Would you like to take pinholes?", default=True):
         click.echo(f"Beginning to take pinholes, should take ~{delta_time:.0f}s")
         take_pinholes.callback(
