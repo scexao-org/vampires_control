@@ -162,7 +162,7 @@ def get_table():
     style = default_style
     if status_dict["X_GRDST"].upper() != "OFF":
         style = active_style
-    info = f"r={status_dict['X_GRDSEP']:4.01f} λ/D, a={status_dict['X_GRDAMP']*1e3:3.0f} nm, f={status_dict['X_GRDMOD']:4d} Hz"
+    info = f"r={status_dict['X_GRDSEP']:4.01f} λ/D, a={status_dict['X_GRDAMP']} nm, f={status_dict['X_GRDMOD']:4.0f} Hz"
     table.add_row("Astrogrid", status_dict["X_GRDST"], info, style=style)
 
     ## LP
@@ -252,11 +252,16 @@ def get_table():
     )
 
     ## FLC
+    # check if FLC temperature is wildly out of spec (45 degC)
     if np.abs(status_dict["U_FLCTMP"] - 45) > 5:
         style = danger_style
-    elif status_dict["U_FLCEN"]:
+    # is FLC stage in?
+    flc_stage = status_dict["U_FLCST"].upper() == "IN"
+    # is FLC trigger on?
+    flc_trig = status_dict["U_FLCEN"]
+    if flc_stage == flc_trig and flc_trig:
         style = active_style
-    elif status_dict["U_FLCST"].upper() == "IN":
+    elif flc_stage != flc_trig:
         style = danger_style
     else:
         style = default_style
@@ -264,9 +269,10 @@ def get_table():
         f"T(AFLC)={status_dict['U_FLCTMP']:4.01f} °C",
         style=style,
     )
-    status = "Enabled" if status_dict["U_FLCEN"] else "Disabled"
+    status = "Enabled" if flc_trig else "Disabled"
     table.add_row("AFLC", status, temp_text, style=style)
-    if status_dict["U_FLCST"].upper() == "IN":
+
+    if flc_stage:
         style = active_style
     elif status_dict["U_FLCST"].upper() == "OUT":
         style = default_style
