@@ -4,9 +4,9 @@ import time
 import click
 import numpy as np
 import tqdm.auto as tqdm
-from device_control.facility import WPU, ImageRotator
 from scxconf.pyrokeys import VAMPIRES
 
+from device_control.facility import WPU, ImageRotator
 from swmain.network.pyroclient import connect
 from vampires_control.acquisition.acquire import (pause_acquisition,
                                                   resume_acquisition)

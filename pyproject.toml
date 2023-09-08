@@ -64,6 +64,7 @@ healthcheck = "vampires_control.health:healthcheck"
 autofocus = "vampires_control.autofocus:autofocus"
 take_cals = "vampires_control.calibration.calibs:main"
 filter_sweep = "vampires_control.calibration.filter_sweep:main"
+iwa_scan = "vampires_control.calibration.iwa:main"
 sdi_daemon = "vampires_control.acquisition.sdi_daemon:main"
 hwp_calib = "vampires_control.calibration.hwp_calibration:main"
 
