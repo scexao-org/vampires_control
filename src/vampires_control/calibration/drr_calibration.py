@@ -1,6 +1,6 @@
 import logging
-import time
 import subprocess
+import time
 
 import click
 import numpy as np
@@ -160,11 +160,6 @@ class DRROptimizer:
             self.iterate_one_filter(parity=parity, **kwargs)
             # every other sequence flip the IMR angle order to minimize travel
             parity = not parity
-
-
-def move_qwp(num, angle):
-    qwp = connect(f"VAMPIRES_QWP{num}")
-    qwp.move_absolute(angle)
 
 
 @click.command("drr_calib")
