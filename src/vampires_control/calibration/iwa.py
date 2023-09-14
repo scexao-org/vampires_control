@@ -51,6 +51,7 @@ class IWAScanner:
         self.client = SSHClient()
         self.client.set_missing_host_key_policy(AutoAddPolicy())
         self.client.load_system_host_keys()
+        logger.info("Connecting SSH client")
         self.client.connect(
             "scexao2",
             username="scexao",
@@ -65,15 +66,9 @@ class IWAScanner:
         cmdx = f"src_fib x goto {x}"
         logger.debug(cmdx)
         self.client.exec_command(cmdx)
+        time.sleep(0.5)
 
     def run(self, time_per_cube=1, step=2e-3, r=0.166):
-        logger.info("Connecting SSH client")
-        self.client.connect(
-            "scexao2",
-            username="scexao",
-            disabled_algorithms={"pubkeys": ["rsa-sha2-256", "rsa-sha2-512"]},
-        )
-
         logger.info("Starting fiber positioning loop")
 
         posns_x = 7.7 + np.arange(-r, r + step / 2, step)
@@ -81,7 +76,6 @@ class IWAScanner:
             for xpos in tqdm.tqdm(posns_x):
                 self.pause_cameras()
                 self.move_src_fiber(xpos)
-                time.sleep(1)
                 self.resume_cameras()
                 time.sleep(time_per_cube)
         finally:
@@ -90,15 +84,14 @@ class IWAScanner:
     def pause_cameras(self):
         if self.debug:
             logger.debug("PLAY PRETEND MODE: turn VAMPIRES off")
-        else:
-            # self.vamp_trig.disable()
-            self.camera.pause_acquisition()
+            return
+        self.camera.pause_acquisition()
 
     def resume_cameras(self):
         if self.debug:
             logger.debug("PLAY PRETEND MODE: turn VAMPIRES on")
-        else:
-            self.camera.start_acquisition()
+            return
+        self.camera.start_acquisition()
 
 
 @click.command("iwa_scan")

@@ -1,9 +1,9 @@
-from pathlib import Path
+import logging
+
+from paramiko import AutoAddPolicy, SSHClient
 
 from swmain.redis import RDB
 from vampires_control.acquisition import logger
-from paramiko import SSHClient, AutoAddPolicy
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class CamManager:
         logger.debug(f"STDOUT: {stdout.read().decode()}")
         logger.debug(f"STDERR: {stderr.read().decode()}")
 
-    def start_acqusition(self, num_frames=None):
+    def start_acquisition(self, num_frames=None):
         cmd = self.base_command
         if num_frames is not None:
             cmd += f"-c {num_frames}"

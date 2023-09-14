@@ -76,7 +76,7 @@ class FilterSweeper:
             self.wait_for_qwp_pos(filt)
 
     def run(self, time_per_cube=5, parity=False, wait=False):
-        logger.info("Starting HWP + IMR loop")
+        logger.info("Starting filter sweep")
         filts = self.FILTERS
         if parity:
             filts = list(reversed(filts))
