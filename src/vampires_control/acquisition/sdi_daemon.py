@@ -6,17 +6,11 @@ import numpy as np
 import tqdm.auto as tqdm
 from rich.logging import RichHandler
 from rich.progress import Progress
-
 from scxconf.pyrokeys import VAMPIRES
+
 from swmain.network.pyroclient import connect
-from vampires_control.acquisition import logger
-from vampires_control.acquisition.acquire import (
-    pause_acquisition,
-    resume_acquisition,
-    stop_acquisition,
-)
-from vampires_control.cameras import connect_cameras
-from vampires_control.daemons import PDI_DAEMON_PORT
+
+from ..acquisition.manager import VCAMManager
 
 # set up logging
 formatter = logging.Formatter(
@@ -44,6 +38,10 @@ class SDIStateMachine:
             raise ValueError(f"SDI mode {mode} not recognized")
         self.mode = mode
         self.diffwheel = connect(VAMPIRES.DIFF)
+        self.managers = {
+            1: VCAMManager(1),
+            2: VCAMManager(2),
+        }
 
     def prepare(self, confirm=True):
         if confirm:
@@ -71,9 +69,11 @@ class SDIStateMachine:
         N_per_loop = len(self.indices)
         self.prepare()
         while i <= N_per_loop * max_loops:
-            resume_acquisition()
+            for mgr in self.managers.values():
+                mgr.start_acquisition()
             time.sleep(time_per_posn)
-            pause_acquisition()
+            for mgr in self.managers.values():
+                mgr.pause_acquisition()
             logger.info(f"Finished taking iteration {i} / {N_per_loop * max_loops}")
             self.next()
             i += 1

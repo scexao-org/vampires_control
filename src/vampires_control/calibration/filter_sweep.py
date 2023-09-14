@@ -7,11 +7,12 @@ import click
 import numpy as np
 import pandas as pd
 import tqdm.auto as tqdm
-
 from scxconf.pyrokeys import VAMPIRES
+
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values
-from vampires_control.acquisition.acquire import pause_acquisition, resume_acquisition
+
+from ..acquisition.manager import VCAMManager
 
 # set up logging
 formatter = logging.Formatter(
@@ -42,14 +43,20 @@ class FilterSweeper:
         "725-50",
         "750-50",
         "775-50",
-    ]  # , "Halpha", "SII"]
+    ]
+    NB_FILTERS = ["Halpha", "SII"]
 
     def __init__(self, debug=False):
         self.cameras = {
             1: connect("VCAM1"),
             2: connect("VCAM2"),
         }
+        self.managers = {
+            1: VCAMManager(1),
+            2: VCAMManager(2),
+        }
         self.filt = connect(VAMPIRES.FILT)
+        # self.diff_filt = connect(VAMPIRES.DIFF)
         self.debug = debug
         if self.debug:
             # filthy, disgusting
@@ -84,15 +91,16 @@ class FilterSweeper:
     def pause_cameras(self):
         if self.debug:
             logger.debug("PLAY PRETEND MODE: turn VAMPIRES off")
-        else:
-            # self.vamp_trig.disable()
-            pause_acquisition()
+            return
+        for mgr in self.managers.values():
+            mgr.pause_acquisition()
 
     def resume_cameras(self):
         if self.debug:
             logger.debug("PLAY PRETEND MODE: turn VAMPIRES on")
-        else:
-            resume_acquisition()
+            return
+        for mgr in self.managers.values():
+            mgr.start_acquisition()
 
     def wait_for_qwp_pos(self, filt):
         indices = self.conf_data["filter"] == filt

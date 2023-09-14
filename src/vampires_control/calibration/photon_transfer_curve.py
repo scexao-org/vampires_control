@@ -7,10 +7,10 @@ import click
 import numpy as np
 import tqdm.auto as tqdm
 from astropy.io import fits
+from scxconf.pyrokeys import VAMPIRES, VCAM1, VCAM2
 
 import vampires_control.acquisition.acquire as acq
 from pyMilk.interfacing.isio_shmlib import SHM
-from scxconf.pyrokeys import VAMPIRES, VCAM1, VCAM2
 from swmain.network.pyroclient import connect
 
 # set up logging
@@ -51,7 +51,7 @@ class PTCAcquirer:
 
     def take_bias(self, nframes=1000):
         logger.info("Nudging diffwheel to take bias frames")
-        self.diffwheel.move_absolute(30)
+        self.diffwheel.move_absolute(31)
 
         for cam in self.cameras.values():
             cam.set_tint(0)
