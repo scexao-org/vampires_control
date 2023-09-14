@@ -1,16 +1,13 @@
 import logging
-import multiprocessing as mp
 import os
+import subprocess
 from argparse import ArgumentParser
 from pathlib import Path
 from time import sleep
 
 import numpy as np
 import pandas as pd
-from device_control.pyro_keys import VAMPIRES
-from Pyro4.errors import CommunicationError
 
-from swmain.network.pyroclient import connect
 from swmain.redis import get_values, update_keys
 from vampires_control.helpers import get_dominant_filter
 
@@ -43,20 +40,12 @@ parser.add_argument(
 parser.add_argument(
     "-t",
     type=float,
-    default=5,
+    default=10,
     help="Polling time in seconds, by default %(default)f s",
 )
 
 
-def move_qwp(qwpnum, theta):
-    if qwpnum == 1:
-        qwp = connect(VAMPIRES.QWP1)
-    elif qwpnum == 2:
-        qwp = connect(VAMPIRES.QWP2)
-    return qwp.move_absolute(theta)
-
-
-def filter_tracking_mode(polling_time=5):
+def filter_tracking_mode(polling_time=10):
     conf_data = pd.read_csv(conf_dir / "data" / "conf_vampires_qwp_filter_data.csv")
 
     update_keys(U_QWPMOD="Filter")
@@ -85,12 +74,10 @@ def filter_tracking_mode(polling_time=5):
             continue
         logger.info(f"Moving QWP1 to {qwp1_pos:6.02f}°, QWP2 to {qwp2_pos:6.02f}°")
         # launch two processes to move each QWP simultaneously
-        with mp.Pool(2) as pool:
-            pool.apply_async(move_qwp, args=(1, qwp1_pos))
-            pool.apply_async(move_qwp, args=(2, qwp2_pos))
-            # wait for previous two results to complete
-            pool.close()
-            pool.join()
+        p1 = subprocess.Popen(("vampires_qwp", "1", "goto", str(qwp1_pos)))
+        p2 = subprocess.Popen(("vampires_qwp", "2", "goto", str(qwp2_pos)))
+        p1.wait()
+        p2.wait()
         last_qwp1, last_qwp2 = qwp1_pos, qwp2_pos
         sleep(polling_time)
 

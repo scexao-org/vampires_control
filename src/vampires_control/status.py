@@ -56,6 +56,8 @@ REDIS_KEYS = [
     "U_TRIGJT",
     "U_TRIGOF",
     "U_TRIGPW",
+    "u_VTRIG",
+    "u_WTRIG",
     "U_VLOG1",
     "U_VLOG2",
     "U_VLOGP",
@@ -382,10 +384,18 @@ def get_table():
     )
 
     ## Trigger
-    if status_dict["U_TRIGEN"]:
-        style = default_style
-    else:
+    cam1_trig = status_dict["u_VTRIG"]
+    cam2_trig = status_dict["u_WTRIG"]
+    need_trig = cam1_trig or cam2_trig
+    print(need_trig)
+    if status_dict["U_TRIGEN"] and need_trig:
+        style = active_style
+    elif status_dict["U_TRIGEN"] and not need_trig:
         style = danger_style
+    elif not status_dict["U_TRIGEN"] and need_trig:
+        style = danger_style
+    else:
+        style = default_style
     table.add_row(
         "Trigger",
         "Enabled" if status_dict["U_TRIGEN"] else "Disabled",

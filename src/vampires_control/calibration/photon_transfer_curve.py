@@ -3,14 +3,14 @@ import multiprocessing as mp
 from pathlib import Path
 from typing import Union
 
-from astropy.io import fits
 import click
 import numpy as np
 import tqdm.auto as tqdm
-from scxconf.pyrokeys import VAMPIRES, VCAM1, VCAM2
+from astropy.io import fits
 
 import vampires_control.acquisition.acquire as acq
 from pyMilk.interfacing.isio_shmlib import SHM
+from scxconf.pyrokeys import VAMPIRES, VCAM1, VCAM2
 from swmain.network.pyroclient import connect
 
 # set up logging
@@ -64,14 +64,16 @@ class PTCAcquirer:
         self.diffwheel.move_absolute(0)
 
         return cubes
-    
+
     def take_data(self, exptimes, nframes=30, **kwargs):
-        logger.info("Beginning PTC acquisition")        
-        
+        logger.info("Beginning PTC acquisition")
+
         total_time = np.sum(exptimes * nframes)
-        click.echo(f"{nframes} frames for {len(exptimes)} acquisitions will take {np.floor_divide(total_time, 60):02.0f}:{np.remainder(total_time, 60):02.0f}")
+        click.echo(
+            f"{nframes} frames for {len(exptimes)} acquisitions will take {np.floor_divide(total_time, 60):02.0f}:{np.remainder(total_time, 60):02.0f}"
+        )
         click.confirm("Confirm if ready to proceed", abort=True, default=True)
-        
+
         actual_exptimes = []
         cubes = []
         pbar = tqdm.tqdm(exptimes)
@@ -82,10 +84,9 @@ class PTCAcquirer:
             actual_exptimes.append(tint)
             cubes.append(np.array(self.acquire(nframes=nframes)))
 
-        
         logger.info("Finished taking PTC data")
         return np.array(actual_exptimes), np.array(cubes)
-    
+
     def run(self, name, exptimes, nframes=30, nbias=1000, **kwargs):
         ## take bias frames
         bias_cubes = np.array(self.take_bias(nframes=nbias))
@@ -103,6 +104,7 @@ class PTCAcquirer:
         fits.writeto(texp_path, exptimes, overwrite=True)
         logger.info(f"Saved exposure times to {texp_path}")
         return exptimes, cubes
+
 
 def get_cube(shm, nframes):
     return SHMS[shm].multi_recv_data(nframes, outputFormat=2, timeout=6)

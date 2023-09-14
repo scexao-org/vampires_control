@@ -6,8 +6,7 @@ from rich.progress import track
 from device_control.pyro_keys import VAMPIRES
 from swmain.network.pyroclient import connect
 from vampires_control.acquisition import logger
-from vampires_control.acquisition.acquire import (start_acquisition,
-                                                  stop_acquisition)
+from vampires_control.acquisition.acquire import start_acquisition, stop_acquisition
 
 
 def acquire_cubes(num_frames, num_cubes=None, archive=False, use_trigger=False):

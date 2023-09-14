@@ -7,12 +7,11 @@ import click
 import numpy as np
 import pandas as pd
 import tqdm.auto as tqdm
-from scxconf.pyrokeys import VAMPIRES
 
+from scxconf.pyrokeys import VAMPIRES
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values
-from vampires_control.acquisition.acquire import (pause_acquisition,
-                                                  resume_acquisition)
+from vampires_control.acquisition.acquire import pause_acquisition, resume_acquisition
 
 # set up logging
 formatter = logging.Formatter(

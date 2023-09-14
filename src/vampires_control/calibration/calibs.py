@@ -2,12 +2,11 @@ import subprocess
 import time
 
 import click
-from scxconf.pyrokeys import VAMPIRES, VCAM1, VCAM2
 
 from pyMilk.interfacing.isio_shmlib import SHM
+from scxconf.pyrokeys import VAMPIRES, VCAM1, VCAM2
 from swmain.network.pyroclient import connect
-from vampires_control.acquisition.acquire import (start_acquisition,
-                                                  stop_acquisition)
+from vampires_control.acquisition.acquire import start_acquisition, stop_acquisition
 
 
 @click.command("take_flats")

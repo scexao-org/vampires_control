@@ -1,5 +1,4 @@
 import subprocess
-import time
 
 import click
 import numpy as np
@@ -113,14 +112,23 @@ def get_mode():
 @click.argument(
     "mode",
     type=click.Choice(
-        ["STANDARD", "NPBS", "MBI", "MBI_REDUCED", "FULL", "PUPIL"],
+        [
+            "STANDARD",
+            "TWOARC",
+            "ONEARC",
+            "HALF",
+            "NPBS",
+            "MBI",
+            "MBI_REDUCED",
+            "FULL",
+            "PUPIL",
+        ],
         case_sensitive=False,
     ),
 )
 def set_mode(mode: str):
     for cam in connect_cameras():
         cam.set_camera_mode__oneway(mode)
-        time.sleep(DEFAULT_DELAY)
 
 
 @click.command("start_cameras")
@@ -130,8 +138,8 @@ def set_mode(mode: str):
 )
 def start_cameras(mode, cam=None):
     if cam is None:
-        subprocess.run(["ssh", "sc5", "cam-vcamstart"], shell=True)
+        subprocess.run(["ssh", "sc5", "cam-vcamstart"])
     elif cam == 1:
-        subprocess.run(["ssh", "sc5", "cam-vcam1start"], shell=True)
+        subprocess.run(["ssh", "sc5", "cam-vcam1start"])
     elif cam == 2:
-        subprocess.run(["ssh", "sc5", "cam-vcam2start"], shell=True)
+        subprocess.run(["ssh", "sc5", "cam-vcam2start"])

@@ -4,18 +4,15 @@ from pathlib import Path
 
 import click
 
-from camstack.core.tmux import find_or_create_remote
 from swmain.redis import update_keys
 from vampires_control.acquisition import logger
 from vampires_control.cameras import connect_cameras
 
+# DATA_DIR_BASE = Path("/mnt/fuuu/")
+# ARCHIVE_DATA_DIR_BASE = Path("/mnt/fuuu/ARCHIVED_DATA")
 DATA_DIR_BASE = Path("/mnt/tier0/")
 ARCHIVE_DATA_DIR_BASE = Path("/mnt/tier1/ARCHIVED_DATA")
 
-# LOG_TMUX = {
-#     1: find_or_create_remote("vcam1_log", "scexao@scexao6"),
-#     2: find_or_create_remote("vcam2_log", "scexao@scexao6"),
-# }
 
 DATA_TYPES = (
     "OBJECT",
@@ -29,6 +26,7 @@ DATA_TYPES = (
 )
 
 BASE_COMMAND = ("ssh", "scexao@scexao6", "milk-streamFITSlog", "-cset", "aol0log")
+# BASE_COMMAND = ("ssh", "scexao@scexao5", "milk-streamFITSlog", "-cset", "q_asl")
 
 CAMS = connect_cameras()
 
@@ -45,7 +43,6 @@ def start_acq_one_camera(
     click.echo(f"Saving data to directory {save_dir}")
     CAMS[cam_num - 1].set_keyword("DATA-TYP", data_type.upper())
     cmd = [*BASE_COMMAND, "-z", f"{num_per_cube}", "-d", save_dir.absolute()]
-    # cmd = [*BASE_COMMAND, "-z", f"{num_per_cube}", "-D", save_dir.absolute()]
     if num_cubes > 0:
         cmd.extend(("-c", f"{num_cubes}"))
     cmd.extend((f"vcam{cam_num}", "pstart"))

@@ -1,12 +1,13 @@
 import logging
 import time
+import subprocess
 
 import click
 import numpy as np
 import tqdm.auto as tqdm
+from scxconf.pyrokeys import VAMPIRES
 
 from device_control.facility import WPU, ImageRotator
-from scxconf.pyrokeys import VAMPIRES
 from swmain.network.pyroclient import connect
 
 from ..acquisition.manager import VCAMManager
@@ -24,15 +25,13 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 
-class HWPOptimizer:
+class DRROptimizer:
     """
-    HWPOptimizer
+    DRROptimizer
     """
 
-    IMR_POSNS = [45, 57.5, 70, 82.5, 95, 107.5, 120, 132.5]
-    HWP_POSNS = [0, 11.25, 22.5, 33.75, 45, 56.25, 67.5, 78.75]
-    EXT_HWP_POSNS = [90, 101.25, 112.5, 123.75, 135, 146.25, 157.5, 168.75]
-    IMR_INDS_HWP_EXT = [2, 5]
+    HWP_POSNS = np.linspace(0, 180, 24)
+    QWP_POSNS = 5 * HWP_POSNS
     FILTERS = [
         "Open",
         "625-50",
@@ -40,7 +39,7 @@ class HWPOptimizer:
         "725-50",
         "750-50",
         "775-50",
-    ]  # , "Halpha", "SII"]
+    ]
 
     def __init__(self, debug=False):
         self.cameras = {
@@ -53,7 +52,7 @@ class HWPOptimizer:
         }
         self.flc = connect(VAMPIRES.FLC)
         self.filt = connect(VAMPIRES.FILT)
-        self.diff_filt = connect(VAMPIRES.DIFF)
+        self.qwps = {1: connect(VAMPIRES.QWP1), 2: connect(VAMPIRES.QWP2)}
         self.imr = ImageRotator.connect()
         self.wpu = WPU()
         self.debug = debug
@@ -62,7 +61,7 @@ class HWPOptimizer:
             logger.setLevel(logging.DEBUG)
             logger.handlers[0].setLevel(logging.DEBUG)
 
-    def prepare(self, flc: bool = False):
+    def prepare(self, flc: bool = False, imr=90):
         if self.debug:
             logger.debug("PREPARING VAMPIRES")
             logger.debug("PREPARING WPU:POLARIZER")
@@ -73,16 +72,19 @@ class HWPOptimizer:
             # prepare wpu
             self.wpu.spp.move_in()  # move polarizer in
             self.wpu.shw.move_in()  # move HWP in
+            self.imr.move_absolute(imr)  # IMR to 90
 
-    def move_imr(self, angle):
+    def move_qwps(self, angle):
         if self.debug:
-            logger.debug(f"MOVING IMR TO {angle}")
+            logger.debug(f"MOVING QWPs TO {angle}")
             return
 
-        # move image rotator to position
-        self.imr.move_absolute(angle)
-        while np.abs(self.imr.get_position() - angle) > 1:
-            time.sleep(0.5)
+        p1 = subprocess.Popen(("vampires_qwp", "1", "goto", str(angle)))
+        p2 = subprocess.Popen(("vampires_qwp", "2", "goto", str(angle)))
+        p1.wait()
+        p2.wait()
+
+        time.sleep(0.5)
 
     def move_hwp(self, angle):
         if self.debug:
@@ -103,28 +105,25 @@ class HWPOptimizer:
             cam.set_keyword("RET-ANG2", qwp_status["pol_angle"])
             cam.set_keyword("RET-POS2", qwp_status["position"])
 
-    def iterate_one_filter(self, time_per_cube=5, parity=False, do_extended_range=True):
-        logger.info("Starting HWP + IMR loop")
-        imr_range = self.IMR_POSNS
+    def iterate_one_filter(self, time_per_cube=1, parity=False):
+        logger.info("Starting HWP + QWP loop")
+        hwp_range = self.HWP_POSNS
         if parity:
-            imr_range = list(reversed(imr_range))
+            hwp_range = list(reversed(hwp_range))
 
-        pbar = tqdm.tqdm(imr_range, desc="IMR")
-        for i, imrang in enumerate(pbar):
+        pbar = tqdm.tqdm(hwp_range, desc="HWP")
+        for i, hwpang in enumerate(pbar):
             self.pause_cameras()
-            self.move_imr(imrang)
+            self.move_hwp(hwpang)
 
-            hwp_range = self.HWP_POSNS
-            if do_extended_range and i in self.IMR_INDS_HWP_EXT:
-                hwp_range = self.HWP_POSNS + self.EXT_HWP_POSNS
+            qwp_range = self.QWP_POSNS
             # every other sequence flip the HWP order to minimize travel
             if i % 2 == 1:
-                hwp_range = list(reversed(hwp_range))
+                qwp_range = list(reversed(qwp_range))
 
-            pbar.write(f"HWP angles: [{', '.join(map(str, hwp_range))}]")
-            for hwpang in tqdm.tqdm(hwp_range, total=len(hwp_range), desc="HWP"):
+            for qwpang in tqdm.tqdm(qwp_range, total=len(qwp_range), desc="QWPs"):
                 self.pause_cameras()
-                self.move_hwp(hwpang)
+                self.move_qwps(qwpang)
                 self.resume_cameras()
                 time.sleep(time_per_cube)
         self.pause_cameras()
@@ -143,19 +142,12 @@ class HWPOptimizer:
         for mgr in self.managers.values():
             mgr.start_acqusition()
 
-    def run(self, flc: bool = False, confirm=False, **kwargs):
-        logger.info("Beginning HWP calibration")
+    def run(self, flc: bool = False, confirm=True, **kwargs):
+        logger.info("Beginning DRR calibration")
         self.prepare(flc=flc)
 
         parity = False
         for config in tqdm.tqdm(self.FILTERS, desc="Filter"):
-            # if config == "Halpha":
-            #     self.filt.move_configuration("Open")
-            #     self.diff_filt.move_configuration
-            # elif config == "SII":
-            #     self.filt.move_configuration("Open")
-            #     continue
-            # else:
             logger.info(f"Moving filter to {config}")
             if not self.debug:
                 self.filt.move_configuration(config)
@@ -170,12 +162,17 @@ class HWPOptimizer:
             parity = not parity
 
 
-@click.command("hwp_calib")
+def move_qwp(num, angle):
+    qwp = connect(f"VAMPIRES_QWP{num}")
+    qwp.move_absolute(angle)
+
+
+@click.command("drr_calib")
 @click.option("-t", "--time", type=float, default=5, prompt="Time (s) per position")
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt="Use FLC")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
 def main(time, flc: bool = False, debug=False):
-    manager = HWPOptimizer(debug=debug)
+    manager = DRROptimizer(debug=debug)
     manager.run(flc=flc, time_per_cube=time)
 
 

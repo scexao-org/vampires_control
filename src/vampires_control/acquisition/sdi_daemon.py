@@ -6,13 +6,15 @@ import numpy as np
 import tqdm.auto as tqdm
 from rich.logging import RichHandler
 from rich.progress import Progress
-from scxconf.pyrokeys import VAMPIRES
 
+from scxconf.pyrokeys import VAMPIRES
 from swmain.network.pyroclient import connect
 from vampires_control.acquisition import logger
-from vampires_control.acquisition.acquire import (pause_acquisition,
-                                                  resume_acquisition,
-                                                  stop_acquisition)
+from vampires_control.acquisition.acquire import (
+    pause_acquisition,
+    resume_acquisition,
+    stop_acquisition,
+)
 from vampires_control.cameras import connect_cameras
 from vampires_control.daemons import PDI_DAEMON_PORT
 
