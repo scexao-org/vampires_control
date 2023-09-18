@@ -38,8 +38,8 @@ class CamManager:
     def start_acquisition(self, num_frames=None):
         cmd = self.base_command
         if num_frames is not None:
-            cmd += f"-c {num_frames}"
-        cmd += f"{self.shm_name} on"
+            cmd += f" -c {num_frames}"
+        cmd += f" {self.shm_name} on"
         self.send_command(cmd)
         self.update_keys(logging=True)
 

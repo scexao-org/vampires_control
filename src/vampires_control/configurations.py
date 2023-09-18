@@ -1,8 +1,8 @@
 import multiprocessing as mp
 
 import click
-from device_control.pyro_keys import VAMPIRES
 
+from device_control.pyro_keys import VAMPIRES
 from swmain.network.pyroclient import connect
 
 
@@ -113,10 +113,10 @@ def move_fcs(pos):
 
 
 def move_puplens(pos):
-    pup = connect(VAMPIRES.PUPIL)
+    pupil_lens = connect(VAMPIRES.PUPIL)
     word = "Inserting" if pos.upper() == "IN" else "Removing"
     click.echo(f"{word} pupil lens")
-    pup.move_configuration_name(pup)
+    pupil_lens.move_configuration_name(pos)
 
 
 def move_camfcs(pos):
