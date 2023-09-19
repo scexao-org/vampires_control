@@ -1,17 +1,25 @@
 import logging
-import subprocess
+import os
 import time
+from pathlib import Path
 
 import click
 import numpy as np
+import pandas as pd
 import tqdm.auto as tqdm
+from paramiko import AutoAddPolicy, SSHClient
 from scxconf.pyrokeys import VAMPIRES
 
 from device_control.facility import WPU, ImageRotator
 from swmain.network.pyroclient import connect
+from swmain.redis import get_values
 
 from ..acquisition.manager import VCAMManager
 from ..configurations import prep_pdi
+
+conf_dir = Path(
+    os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/")
+)
 
 # set up logging
 formatter = logging.Formatter(
@@ -25,23 +33,45 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 
-class DRROptimizer:
+class DRRCalManager:
     """
-    DRROptimizer
+    DRRCalManager
     """
 
-    HWP_POSNS = np.linspace(0, 180, 24)
-    QWP_POSNS = 5 * HWP_POSNS
-    FILTERS = [
+    GEN_POSNS = np.linspace(0, 180, 24)
+    ANA_POSNS = (5 * GEN_POSNS) % 360
+    STANDARD_FILTERS = (
         "Open",
         "625-50",
         "675-50",
         "725-50",
         "750-50",
         "775-50",
-    ]
+    )
+    NB_FILTERS = ("Halpha", "SII")
 
-    def __init__(self, debug=False):
+    def __init__(
+        self,
+        mode: str = "standard",
+        use_qwp: bool = False,
+        use_flc: bool = False,
+        debug=False,
+    ):
+        # store properties
+        self.mode = mode
+        self.filters = self.ask_for_filters()
+        self.use_qwp = use_qwp
+        self.use_flc = use_flc
+        self.debug = debug
+        if self.debug:
+            # filthy, disgusting
+            logger.setLevel(logging.DEBUG)
+            logger.handlers[0].setLevel(logging.DEBUG)
+        self.conf_data = pd.read_csv(
+            conf_dir / "data" / "conf_vampires_qwp_filter_data.csv"
+        )
+
+        # camera setup
         self.cameras = {
             1: connect("VCAM1"),
             2: connect("VCAM2"),
@@ -50,83 +80,126 @@ class DRROptimizer:
             1: VCAMManager(1),
             2: VCAMManager(2),
         }
-        self.flc = connect(VAMPIRES.FLC)
+
+        # connect
         self.filt = connect(VAMPIRES.FILT)
-        self.qwps = {1: connect(VAMPIRES.QWP1), 2: connect(VAMPIRES.QWP2)}
+        self.diff_filt = connect(VAMPIRES.DIFF)
         self.imr = ImageRotator.connect()
         self.wpu = WPU()
-        self.debug = debug
-        if self.debug:
-            # filthy, disgusting
-            logger.setLevel(logging.DEBUG)
-            logger.handlers[0].setLevel(logging.DEBUG)
 
-    def prepare(self, flc: bool = False, imr=90):
+        if self.use_flc:
+            self.flc = connect(VAMPIRES.FLC)
+        if self.use_qwp:
+            self.qwps = {1: connect(VAMPIRES.QWP1), 2: connect(VAMPIRES.QWP2)}
+            # Use 23 points so fewer fall on bad angles for QWP mounts
+            self.GEN_POSNS = np.linspace(0, 180, 23)
+            self.ANA_POSNS = (5 * self.GEN_POSNS) % 360
+
+        # setup sc2 paramiko client
+        self.client = SSHClient()
+        self.client.set_missing_host_key_policy(AutoAddPolicy())
+        self.client.load_system_host_keys()
+        self.client.connect(
+            "scexao2",
+            username="scexao",
+            disabled_algorithms={"pubkeys": ("rsa-sha2-256", "rsa-sha2-512")},
+        )
+
+    def ask_for_filters(self):
+        if self.mode == "standard":
+            choices = self.STANDARD_FILTERS
+        elif self.mode == "NB":
+            choices = self.NB_FILTERS
+        elif self.mode == "MBI":
+            return ("Open",)
+
+        filts = click.prompt(
+            "Which filter(s) would you like to test",
+            type=click.Choice(["all", *choices], case_sensitive=False),
+            default="all",
+        )
+        if filts == "all":
+            return choices
+        else:
+            return (filts,)
+
+    def prepare(self, imr=90):
         if self.debug:
             logger.debug("PREPARING VAMPIRES")
             logger.debug("PREPARING WPU:POLARIZER")
             logger.debug("PREPARING WPU:HWP")
-        else:
-            # prepare vampires
-            prep_pdi(flc=flc)
-            # prepare wpu
-            self.wpu.spp.move_in()  # move polarizer in
-            self.wpu.shw.move_in()  # move HWP in
-            self.imr.move_absolute(imr)  # IMR to 90
+            if self.mode in ("MBI", "NB"):
+                logger.debug("PREPARING VAMPIRES:FILTER")
+            return
+
+        # prepare vampires
+        mbi = "Dichroics" if self.mode == "MBI" else "Mirror"
+        prep_pdi.callback(flc=self.flc, mbi=mbi)
+        if self.mode in ("MBI", "NB"):
+            self.filt.move_configuration("Open")
+        # prepare wpu
+        self.wpu.spp.move_in()  # move polarizer in
+        self.wpu.shw.move_in()  # move HWP in
+        self.imr.move_absolute(imr)  # IMR to 90
 
     def move_qwps(self, angle):
         if self.debug:
             logger.debug(f"MOVING QWPs TO {angle}")
-            return
+            return False
+
+        for offsets in (45, 85):
+            actual_angle = (angle + offsets) % 360
+            if actual_angle > 340:
+                return True  # trip
 
         p1 = subprocess.Popen(("vampires_qwp", "1", "goto", str(angle)))
         p2 = subprocess.Popen(("vampires_qwp", "2", "goto", str(angle)))
         p1.wait()
         p2.wait()
-
         time.sleep(0.5)
+        return False
+
+    def move_lp(self, angle):
+        if self.debug:
+            logger.debug(f"MOVING LP TO {angle}")
+            return False
+        assumed_offset = 90  # deg
+        actual_angle = (angle + assumed_offset) % 360
+        if actual_angle > 340:
+            return True  # trip
+        self.client.exec_command(f"polarizer_theta goto {angle + assumed_offset}")
+        time.sleep(0.5)
+        return False
+
+    def move_imr(self, angle):
+        if self.debug:
+            logger.debug(f"MOVING IMR TO {angle}")
+            return
+
+        # move image rotator to position
+        self.imr.move_absolute(angle)
+        while np.abs(self.imr.get_position() - angle) > 0.01:
+            time.sleep(0.5)
+        # let it settle so FITS keywords are sensible
+        time.sleep(0.5)
+        self.imr.get_position()
 
     def move_hwp(self, angle):
         if self.debug:
-            logger.debug(f"MOVING HWP TO {angle}")
+            logger.debug(f"MOVING HWP TO {angle:.02f}")
             return
 
         # move HWP to position
         self.wpu.hwp.move_absolute(angle)
-        while np.abs(self.wpu.hwp.get_position() - angle) > 1:
+        while np.abs(self.wpu.hwp.get_position() - angle) > 0.01:
             time.sleep(0.5)
-
+        # let it settle so FITS keywords are sensible
+        time.sleep(0.5)
         # update camera SHM keywords
         hwp_status = self.wpu.hwp.get_status()
-        qwp_status = self.wpu.qwp.get_status()
         for cam in self.cameras.values():
-            cam.set_keyword("RET-ANG1", hwp_status["pol_angle"])
-            cam.set_keyword("RET-POS1", hwp_status["position"])
-            cam.set_keyword("RET-ANG2", qwp_status["pol_angle"])
-            cam.set_keyword("RET-POS2", qwp_status["position"])
-
-    def iterate_one_filter(self, time_per_cube=1, parity=False):
-        logger.info("Starting HWP + QWP loop")
-        hwp_range = self.HWP_POSNS
-        if parity:
-            hwp_range = list(reversed(hwp_range))
-
-        pbar = tqdm.tqdm(hwp_range, desc="HWP")
-        for i, hwpang in enumerate(pbar):
-            self.pause_cameras()
-            self.move_hwp(hwpang)
-
-            qwp_range = self.QWP_POSNS
-            # every other sequence flip the HWP order to minimize travel
-            if i % 2 == 1:
-                qwp_range = list(reversed(qwp_range))
-
-            for qwpang in tqdm.tqdm(qwp_range, total=len(qwp_range), desc="QWPs"):
-                self.pause_cameras()
-                self.move_qwps(qwpang)
-                self.resume_cameras()
-                time.sleep(time_per_cube)
-        self.pause_cameras()
+            cam.set_keyword("RET-ANG1", round(hwp_status["pol_angle"], 2))
+            cam.set_keyword("RET-POS1", round(hwp_status["position"], 2))
 
     def pause_cameras(self):
         if self.debug:
@@ -140,17 +213,50 @@ class DRROptimizer:
             logger.debug("PLAY PRETEND MODE: turn VAMPIRES on")
             return
         for mgr in self.managers.values():
-            mgr.start_acqusition()
+            mgr.start_acquisition()
 
-    def run(self, flc: bool = False, confirm=True, **kwargs):
+    def iterate_one_filter(self, time_per_cube=1, parity=False):
+        logger.info("Starting HWP + LP loop")
+        N = len(self.GEN_POSNS)
+        angle_pairs = zip(self.GEN_POSNS, self.ANA_POSNS)
+        if parity:
+            angle_pairs = reversed(list(angle_pairs))
+        pbar = tqdm.tqdm(angle_pairs, total=N, desc="Generator")
+        for gen_ang, ana_ang in pbar:
+            pbar.write(f"Generator: {gen_ang:.02f}°, Analyzer: {ana_ang:.02f}°")
+            self.pause_cameras()
+            self.move_hwp(gen_ang)
+            if self.use_qwp:
+                retcode = self.move_qwps(ana_ang)
+            else:
+                retcode = self.move_lp(ana_ang)
+            # check if we could not move conexes and skip this acquisition
+            if retcode:
+                continue
+            self.resume_cameras()
+            time.sleep(time_per_cube)
+        self.pause_cameras()
+
+    def move_filters(self, filt):
+        logger.info(f"Moving filter to {filt}")
+        if self.debug:
+            return
+        if filt in self.STANDARD_FILTERS:
+            self.filt.move_configuration(filt)
+        elif filt in self.NB_FILTERS:
+            if filt == "Halpha":
+                self.diff_filt.move_configuration_idx(3)
+            elif filt == "SII":
+                self.diff_filt.move_configuration_idx(3)
+
+    def run(self, confirm=False, **kwargs):
         logger.info("Beginning DRR calibration")
-        self.prepare(flc=flc)
+        self.prepare()
 
         parity = False
-        for config in tqdm.tqdm(self.FILTERS, desc="Filter"):
-            logger.info(f"Moving filter to {config}")
-            if not self.debug:
-                self.filt.move_configuration(config)
+        for filt in tqdm.tqdm(self.filters, desc="Filter"):
+            self.move_filters(filt)
+            self.wait_for_qwp_pos(filt)
             # prepare cameras
             if confirm and not click.confirm(
                 "Adjust camera settings and confirm when ready, no to skip to next filter",
@@ -161,14 +267,44 @@ class DRROptimizer:
             # every other sequence flip the IMR angle order to minimize travel
             parity = not parity
 
+    def wait_for_qwp_pos(self, filt):
+        if self.debug or self.use_qwp:
+            return
+        indices = self.conf_data["filter"] == filt
+        conf_row = self.conf_data.loc[indices]
+
+        qwp1_pos = float(conf_row["qwp1"].iloc[0])
+        qwp2_pos = float(conf_row["qwp2"].iloc[0])
+        while True:
+            last_qwp1, last_qwp2 = get_values(("U_QWP1", "U_QWP2")).values()
+            if (
+                np.abs(last_qwp1 - qwp1_pos) < 0.1
+                and np.abs(last_qwp2 - qwp2_pos) < 0.1
+            ):
+                break
+            time.sleep(0.5)
+
 
 @click.command("drr_calib")
+@click.option(
+    "-m",
+    "--mode",
+    default="standard",
+    type=click.Choice(["standard", "MBI", "NB"], case_sensitive=False),
+    prompt="Select calibraiton mode",
+)
 @click.option("-t", "--time", type=float, default=5, prompt="Time (s) per position")
+@click.option(
+    "-q/-nq",
+    "--qwp/--no-qwp",
+    default=False,
+    prompt="Use QWPs instead of LP for analyzer",
+)
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt="Use FLC")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
-def main(time, flc: bool = False, debug=False):
-    manager = DRROptimizer(debug=debug)
-    manager.run(flc=flc, time_per_cube=time)
+def main(time, mode: str, qwp, flc: bool = False, debug=False):
+    manager = DRRCalManager(mode=mode, use_qwp=qwp, use_flc=flc, debug=debug)
+    manager.run(time_per_cube=time)
 
 
 if __name__ == "__main__":

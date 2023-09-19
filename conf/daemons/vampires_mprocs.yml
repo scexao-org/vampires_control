@@ -7,8 +7,11 @@ procs:
   healthcheck:
     shell: "healthcheck"
     autostart: false
+  prepare config:
+    shell: "vampires_prep"
+    autostart: false
   set datatype:
-    shell: "datatype"
+    shell: "set_datatype"
     autostart: false
   preplog:
     shell: "startlog"
@@ -25,29 +28,20 @@ procs:
   killlog:
     shell: "stoplog --kill"
     autostart: false
-  autofocus: 
-    shell: "autofocus all"
-    autostart: false
   take cals:
     shell: "take_cals"
     autostart: false
   sdi daemon:
     shell: "sdi_daemon"
     autostart: false
+  autofocus: 
+    shell: "autofocus all"
+    autostart: false
   filter sweep:
     shell: "filter_sweep"
     autostart: false
-  hwp calib:
-    shell: "hwp_calib"
-    autostart: false
-  prepare nominal:
-    shell: "prep_nominal"
-    autostart: false
-  prepare pdi: 
-    shell: "prep_pdi"
-    autostart: false
-  prepare sdi: 
-    shell: "prep_sdi"
+  polarization calib:
+    shell: "pol_calib"
     autostart: false
   badseeing:
     shell: "while true; do sl; done"

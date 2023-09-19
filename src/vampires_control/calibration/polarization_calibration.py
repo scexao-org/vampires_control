@@ -1,16 +1,24 @@
 import logging
+import os
 import time
+from pathlib import Path
 
 import click
 import numpy as np
+import pandas as pd
 import tqdm.auto as tqdm
+from scxconf.pyrokeys import VAMPIRES
 
 from device_control.facility import WPU, ImageRotator
-from scxconf.pyrokeys import VAMPIRES
 from swmain.network.pyroclient import connect
+from swmain.redis import get_values
 
 from ..acquisition.manager import VCAMManager
 from ..configurations import prep_pdi
+
+conf_dir = Path(
+    os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/")
+)
 
 # set up logging
 formatter = logging.Formatter(
@@ -24,25 +32,26 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 
-class HWPOptimizer:
+class PolCalManager:
     """
-    HWPOptimizer
+    PolCalManager
     """
 
-    IMR_POSNS = [45, 57.5, 70, 82.5, 95, 107.5, 120, 132.5]
-    HWP_POSNS = [0, 11.25, 22.5, 33.75, 45, 56.25, 67.5, 78.75]
-    EXT_HWP_POSNS = [90, 101.25, 112.5, 123.75, 135, 146.25, 157.5, 168.75]
-    IMR_INDS_HWP_EXT = [2, 5]
-    FILTERS = [
+    IMR_POSNS = (45, 57.5, 70, 82.5, 95, 107.5, 120, 132.5)
+    HWP_POSNS = (0, 11.25, 22.5, 33.75, 45, 56.25, 67.5, 78.75)
+    EXT_HWP_POSNS = (90, 101.25, 112.5, 123.75, 135, 146.25, 157.5, 168.75)
+    IMR_INDS_HWP_EXT = (2, 5)
+    STANDARD_FILTERS = (
         "Open",
         "625-50",
         "675-50",
         "725-50",
         "750-50",
         "775-50",
-    ]  # , "Halpha", "SII"]
+    )
+    NB_FILTERS = ("Halpha", "SII")
 
-    def __init__(self, debug=False):
+    def __init__(self, mode: str = "standard", use_flc: bool = False, debug=False):
         self.cameras = {
             1: connect("VCAM1"),
             2: connect("VCAM2"),
@@ -51,28 +60,59 @@ class HWPOptimizer:
             1: VCAMManager(1),
             2: VCAMManager(2),
         }
-        self.flc = connect(VAMPIRES.FLC)
+        self.use_flc = use_flc
+        if self.use_flc:
+            self.flc = connect(VAMPIRES.FLC)
         self.filt = connect(VAMPIRES.FILT)
         self.diff_filt = connect(VAMPIRES.DIFF)
         self.imr = ImageRotator.connect()
         self.wpu = WPU()
+        self.mode = mode
+        self.filters = self.ask_for_filters()
         self.debug = debug
         if self.debug:
             # filthy, disgusting
             logger.setLevel(logging.DEBUG)
             logger.handlers[0].setLevel(logging.DEBUG)
+        self.conf_data = pd.read_csv(
+            conf_dir / "data" / "conf_vampires_qwp_filter_data.csv"
+        )
 
-    def prepare(self, flc: bool = False):
+    def ask_for_filters(self):
+        if self.mode == "standard":
+            choices = self.STANDARD_FILTERS
+        elif self.mode == "NB":
+            choices = self.NB_FILTERS
+        elif self.mode == "MBI":
+            return ("Open",)
+
+        filts = click.prompt(
+            "Which filter(s) would you like to test",
+            type=click.Choice(["all", *choices], case_sensitive=False),
+            default="all",
+        )
+        if filts == "all":
+            return choices
+        else:
+            return (filts,)
+
+    def prepare(self):
         if self.debug:
             logger.debug("PREPARING VAMPIRES")
             logger.debug("PREPARING WPU:POLARIZER")
             logger.debug("PREPARING WPU:HWP")
-        else:
-            # prepare vampires
-            prep_pdi(flc=flc)
-            # prepare wpu
-            self.wpu.spp.move_in()  # move polarizer in
-            self.wpu.shw.move_in()  # move HWP in
+            if self.mode in ("MBI", "NB"):
+                logger.debug("PREPARING VAMPIRES:FILTER")
+            return
+
+        # prepare vampires
+        mbi = "Dichroics" if self.mode == "MBI" else "Mirror"
+        prep_pdi.callback(flc=self.flc, mbi=mbi)
+        if self.mode in ("MBI", "NB"):
+            self.filt.move_configuration("Open")
+        # prepare wpu
+        self.wpu.spp.move_in()  # move polarizer in
+        self.wpu.shw.move_in()  # move HWP in
 
     def move_imr(self, angle):
         if self.debug:
@@ -81,8 +121,11 @@ class HWPOptimizer:
 
         # move image rotator to position
         self.imr.move_absolute(angle)
-        while np.abs(self.imr.get_position() - angle) > 1:
+        while np.abs(self.imr.get_position() - angle) > 0.01:
             time.sleep(0.5)
+        # let it settle so FITS keywords are sensible
+        time.sleep(0.5)
+        self.imr.get_position()
 
     def move_hwp(self, angle):
         if self.debug:
@@ -91,17 +134,15 @@ class HWPOptimizer:
 
         # move HWP to position
         self.wpu.hwp.move_absolute(angle)
-        while np.abs(self.wpu.hwp.get_position() - angle) > 1:
+        while np.abs(self.wpu.hwp.get_position() - angle) > 0.01:
             time.sleep(0.5)
-
+        # let it settle so FITS keywords are sensible
+        time.sleep(0.5)
         # update camera SHM keywords
         hwp_status = self.wpu.hwp.get_status()
-        qwp_status = self.wpu.qwp.get_status()
         for cam in self.cameras.values():
-            cam.set_keyword("RET-ANG1", hwp_status["pol_angle"])
-            cam.set_keyword("RET-POS1", hwp_status["position"])
-            cam.set_keyword("RET-ANG2", qwp_status["pol_angle"])
-            cam.set_keyword("RET-POS2", qwp_status["position"])
+            cam.set_keyword("RET-ANG1", round(hwp_status["pol_angle"], 2))
+            cam.set_keyword("RET-POS1", round(hwp_status["position"], 2))
 
     def iterate_one_filter(self, time_per_cube=5, parity=False, do_extended_range=True):
         logger.info("Starting HWP + IMR loop")
@@ -141,24 +182,28 @@ class HWPOptimizer:
             logger.debug("PLAY PRETEND MODE: turn VAMPIRES on")
             return
         for mgr in self.managers.values():
-            mgr.start_acqusition()
+            mgr.start_acquisition()
 
-    def run(self, flc: bool = False, confirm=False, **kwargs):
+    def move_filters(self, filt):
+        logger.info(f"Moving filter to {filt}")
+        if self.debug:
+            return
+        if filt in self.STANDARD_FILTERS:
+            self.filt.move_configuration(filt)
+        elif filt in self.NB_FILTERS:
+            if filt == "Halpha":
+                self.diff_filt.move_configuration_idx(3)
+            elif filt == "SII":
+                self.diff_filt.move_configuration_idx(3)
+
+    def run(self, confirm=False, **kwargs):
         logger.info("Beginning HWP calibration")
-        self.prepare(flc=flc)
+        self.prepare()
 
         parity = False
-        for config in tqdm.tqdm(self.FILTERS, desc="Filter"):
-            # if config == "Halpha":
-            #     self.filt.move_configuration("Open")
-            #     self.diff_filt.move_configuration
-            # elif config == "SII":
-            #     self.filt.move_configuration("Open")
-            #     continue
-            # else:
-            logger.info(f"Moving filter to {config}")
-            if not self.debug:
-                self.filt.move_configuration(config)
+        for filt in tqdm.tqdm(self.filters, desc="Filter"):
+            self.move_filters(filt)
+            self.wait_for_qwp_pos(filt)
             # prepare cameras
             if confirm and not click.confirm(
                 "Adjust camera settings and confirm when ready, no to skip to next filter",
@@ -169,14 +214,38 @@ class HWPOptimizer:
             # every other sequence flip the IMR angle order to minimize travel
             parity = not parity
 
+    def wait_for_qwp_pos(self, filt):
+        if self.debug:
+            return
+        indices = self.conf_data["filter"] == filt
+        conf_row = self.conf_data.loc[indices]
 
-@click.command("hwp_calib")
+        qwp1_pos = float(conf_row["qwp1"].iloc[0])
+        qwp2_pos = float(conf_row["qwp2"].iloc[0])
+        while True:
+            last_qwp1, last_qwp2 = get_values(("U_QWP1", "U_QWP2")).values()
+            if (
+                np.abs(last_qwp1 - qwp1_pos) < 0.1
+                and np.abs(last_qwp2 - qwp2_pos) < 0.1
+            ):
+                break
+            time.sleep(0.5)
+
+
+@click.command("pol_calib")
+@click.option(
+    "-m",
+    "--mode",
+    default="standard",
+    type=click.Choice(["standard", "MBI", "NB"], case_sensitive=False),
+    prompt="Select calibraiton mode",
+)
 @click.option("-t", "--time", type=float, default=5, prompt="Time (s) per position")
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt="Use FLC")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
-def main(time, flc: bool = False, debug=False):
-    manager = HWPOptimizer(debug=debug)
-    manager.run(flc=flc, time_per_cube=time)
+def main(time, mode: str, flc: bool = False, debug=False):
+    manager = PolCalManager(mode=mode, use_flc=flc, debug=debug)
+    manager.run(time_per_cube=time)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ import click
 
 from device_control.pyro_keys import VAMPIRES
 from swmain.network.pyroclient import connect
-from vampires_control.helpers import Palette
+from vampires_control.helpers import Palette, color_to_rgb
 
 
 def check_device(devname):
@@ -48,7 +48,7 @@ DEVICES = [
 
 
 @click.command("healthcheck")
-def healthcheck():
+def main():
     click.echo("Checking VAMPIRES devices are connected")
     with mp.Pool() as pool:
         statuses = list(
@@ -77,12 +77,5 @@ def healthcheck():
     return result
 
 
-def color_to_rgb(color):
-    r = int(color[1:3], 16)
-    g = int(color[3:5], 16)
-    b = int(color[5:7], 16)
-    return r, g, b
-
-
 if __name__ == "__main__":
-    healthcheck()
+    main()

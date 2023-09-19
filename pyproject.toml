@@ -34,7 +34,7 @@ docs = ["sphinx", "sphinx-rtd-theme", "myst-parser", "sphinx-autobuild"]
 launch_daemons = "vampires_control.launch:main"
 qwp_daemon = "vampires_control.daemons.qwp_daemon:main"
 vampires_temp_daemon = "vampires_control.daemons.temp_poll_daemon:main"
-vampires_status = "vampires_control.status:main"
+vampires_status = "vampires_control.status.status:main"
 # camera control
 get_tint = "vampires_control.cameras:get_tint"
 set_tint = "vampires_control.cameras:set_tint"
@@ -48,26 +48,22 @@ set_readout_mode = "vampires_control.cameras:set_readout_mode"
 get_mode = "vampires_control.cameras:get_mode"
 set_mode = "vampires_control.cameras:set_mode"
 # logging
-datatype = "vampires_control.acquisition.acquire:set_datatype_main"
+set_datatype = "vampires_control.acquisition.acquire:set_datatype_main"
 startlog = "vampires_control.acquisition.acquire:start_acquisition_main"
 stoplog = "vampires_control.acquisition.acquire:stop_acquisition_main"
 resumelog = "vampires_control.acquisition.acquire:resume_acquisition_main"
 pauselog = "vampires_control.acquisition.acquire:pause_acquisition_main"
-# plotting
-cam_hists = "vampires_control.plotting:histogram"
 # configurations
-prep_nominal = "vampires_control.configurations:nominal_main"
-prep_sdi = "vampires_control.configurations:prep_sdi_main"
-prep_pdi = "vampires_control.configurations:prep_pdi_main"
+vampires_prep = "vampires_control.configurations:main"
 # health
-healthcheck = "vampires_control.health:healthcheck"
+healthcheck = "vampires_control.status.healthcheck:main"
 # calibrations
 autofocus = "vampires_control.autofocus:autofocus"
 take_cals = "vampires_control.calibration.calibs:main"
 filter_sweep = "vampires_control.calibration.filter_sweep:main"
 iwa_scan = "vampires_control.calibration.iwa:main"
 sdi_daemon = "vampires_control.acquisition.sdi_daemon:main"
-hwp_calib = "vampires_control.calibration.hwp_calibration:main"
+pol_calib = "vampires_control.calibration.polarization_calibration:main"
 drr_calib = "vampires_control.calibration.drr_calibration:main"
 
 [tool.setuptools.dynamic]

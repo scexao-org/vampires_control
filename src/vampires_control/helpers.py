@@ -16,3 +16,10 @@ class Palette:
     green = "#0B6E4F"
     white = "#E0E0E2"
     gray = "#A3A3A3"
+
+
+def color_to_rgb(color):
+    r = int(color[1:3], 16)
+    g = int(color[3:5], 16)
+    b = int(color[5:7], 16)
+    return r, g, b
