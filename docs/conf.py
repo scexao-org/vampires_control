@@ -45,3 +45,4 @@ autodoc_typehints_format = "short"
 # html_static_path = ["_static"]
 html_title = "VAMPIRES Control"
 html_theme = "sphinx_rtd_theme"
+html_theme_options = {"collapse_navigation": False, "navigation_depth": 3}

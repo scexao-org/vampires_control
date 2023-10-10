@@ -3,7 +3,7 @@ procs:
   device server:
     shell: "python -i /home/lestat/src/device_control/src/device_control/daemons/vampires_devices.py"
   qwp daemon: "sleep 5; qwp_daemon"
-  temp status: "sleep 5; vampires_temp_daemon"
+  flc temp daemon: "sleep 5; vampires_temp_daemon"
   healthcheck:
     shell: "healthcheck"
     autostart: false

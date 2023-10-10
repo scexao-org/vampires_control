@@ -49,7 +49,7 @@ class PolCalManager:
         "750-50",
         "775-50",
     )
-    NB_FILTERS = ("Halpha", "SII")
+    NB_FILTERS = ("Halpha", "Ha-cont", "SII", "SII-cont")
 
     def __init__(self, mode: str = "standard", use_flc: bool = False, debug=False):
         self.cameras = {
@@ -107,7 +107,11 @@ class PolCalManager:
 
         # prepare vampires
         mbi = "Dichroics" if self.mode == "MBI" else "Mirror"
-        prep_pdi.callback(flc=self.flc, mbi=mbi)
+        if self.mode == "NB":
+            # prep_sdi.callback(flc=self.flc, mbi=mbi)
+            pass
+        else:
+            prep_pdi.callback(flc=self.flc, mbi=mbi)
         if self.mode in ("MBI", "NB"):
             self.filt.move_configuration("Open")
         # prepare wpu
@@ -193,8 +197,12 @@ class PolCalManager:
         elif filt in self.NB_FILTERS:
             if filt == "Halpha":
                 self.diff_filt.move_configuration_idx(3)
+            elif filt == "Ha-cont":
+                self.diff_filt.move_configuration_idx(6)
             elif filt == "SII":
-                self.diff_filt.move_configuration_idx(3)
+                self.diff_filt.move_configuration_idx(2)
+            elif filt == "SII-cont":
+                self.diff_filt.move_configuration_idx(5)
 
     def run(self, confirm=False, **kwargs):
         logger.info("Beginning HWP calibration")
@@ -217,6 +225,10 @@ class PolCalManager:
     def wait_for_qwp_pos(self, filt):
         if self.debug:
             return
+        if filt == "Ha-cont":
+            filt = "Halpha"
+        elif filt == "SII-cont":
+            filt = "SII"
         indices = self.conf_data["filter"] == filt
         conf_row = self.conf_data.loc[indices]
 

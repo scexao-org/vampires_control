@@ -1,38 +1,77 @@
 # Cameras
 
-VAMPIRES uses two [Hamamatsu ORCA-Quest](https://www.hamamatsu.com/us/en/product/cameras/qcmos-cameras/C15550-20UP.html) [[manual](https://www.hamamatsu.com/content/dam/hamamatsu-photonics/sites/static/sys/en/manual/C15550-20UP_IM_En.pdf)] CMOS detectors for its science cameras. There is also a UNKNOWN FLEA camera used for the pupil return beam (LOWFS beam).
+VAMPIRES uses two [Hamamatsu ORCA-Quest](https://www.hamamatsu.com/us/en/product/cameras/qcmos-cameras/C15550-20UP.html) [[manual](https://www.hamamatsu.com/content/dam/hamamatsu-photonics/sites/static/sys/en/manual/C15550-20UP_IM_En.pdf)] CMOS detectors for its science cameras. There is also a UNKNOWN FLEA camera used for the pupil return beam (pupil cam).
 
 ## Initialization and Viewers
 
-Each camera has its own framegrabber and viewer class which inherits a common interface from `camstack`. To start the camera framegrabber (which should not be done unless necessary)
-```
-cam-vcamstart # start both cameras
-cam-vcam1start # start vcam1
-cam-vcam2start # start vcam2
-cam-vpupcamstart # start vpupcam
+Each camera has its own framegrabber and viewer class which inherits a common interface from `camstack`.
+
+### VCAM1 and VCAM2
+```{admonition} SSH for VNC
+:class: tip
+
+Make sure to forward your display over SSH if running from the VAMPIRES VNC
+
+    $ ssh -Y sc5
 ```
 
-**Main science viewers**
+To start the camera framegrabber (which should not be done unless necessary)
 ```
-vcam1.py
-```
-```
-vcam2.py
-```
-**Pupil return viewer**
-```
-vpupcam.py
+scexao5 $ cam-vcamstart # start both cameras
+scexao5 $ cam-vcam1start # start vcam1
+scexao5 $ cam-vcam2start # start vcam2
 ```
 
-## Readout Modes
+and to start the pygame viewers
+```
+scexao5 $ vcam1.py & # cam 1 viewer
+scexao5 $ vcam2.py & # cam 2 viewer
+```
 
-VAMPIRES has two readout modes: "Slow" and "Fast". The main differences are the maximum framerate and read noise. The slow mode uses the extra readout time to reduce the jitter in the ADC conversion, which enables sensitivity low enough for photon number resolving.
+```{admonition} Raw SHM Viewer
+:class: info
 
-| mode | framerate (Hz) | bias (adu) | read noise (e-) | gain (e- / adu) |
-|:----:|---------------:|-----------:|----------------:|----------------:|
-| Fast | 500            | 200        | 0.45            | 0.11            |
-| Slow | 60             | 200        | 0.21            | 0.11            |
+If you want to see the raw data (useful to see MBI frames without cropping), use one of the generic viewers with the appropriate SHM name (`vcam1`/`vcam2`)
 
+    scexao5 $ anycam.py vcam1 # pygame viewer
+    scexao5 $ shmImshow.py vcam1 # qt viewer
+```
+
+### VPUPCAM
+
+```
+sonne $ cam-vpupcamstart # start vpupcam
+```
+
+```
+sonne $ vpupcam.py &
+```
+
+## Camera Crops and Modes
+
+VAMPIRES has two readout modes: "Slow" and "Fast". The main differences are the maximum framerate and read noise. The slow mode uses the extra readout time to reduce the jitter in the ADC conversion, which enables sensitivity low enough for photon number resolving. The noise characteristics of the cameras are only related to the readout mode. The timing characteristics, however, are dependent on the camera crop and trigger modes with a somewhat complicated relationship that also depends on the readout mode.
+
+
+| Mode | Cam | Gain (e-/adu) | RN (e-) | DC (e-/px/s) | FPN* (%) |
+| - | - | - |- | - | - |
+| Fast | 1 | 0.103 | 0.403 | 3.6e-3 | |
+| Fast | 2 | 0.103 | 0.399 | 3.5e-3 | |
+| Slow | 1 | 0.105 | 0.245 | 3.6e-3 | |
+| Slow | 2 | 0.105 | 0.220 | 3.5e-3 | |
+
+### Photon Transfer Curves
+
+These photon transfer curves were fit with the use of frame-differencing to remove the fixed pattern noise. The bias is not estimated from any light frames, but from a bias frame directly after fitting the gain.
+
+```{image} ptc_fast.png
+:width: 800 px
+```
+
+```{image} ptc_slow.png
+:width: 800 px
+```
+
+**Note:** The minimum detector integration time determines the saturation limit for VAMPIRES. In fast readout mode, the minimum is the minimum for four rows to read out. At this speed, that means there is an extreme rolling shutter effect, so each group of four rows will be simultaneous but no group of 4 will overlap in time.
 
 ```{admonition} Framegrabber reset
 :class: warning
@@ -93,11 +132,12 @@ vampires_trigger --no-flc enable
 
 ```{graphviz}
 digraph {
+    node [shape=box]
     "trigger cameras" -> {
         "wait for camera 1 ready";
         "wait for camera 2 ready";
-    } -> 
-    "AND" ->
+    } ->
+    "logical AND" ->
     "trigger cameras";
 }
 ```
@@ -116,14 +156,22 @@ vampires_trigger --flc enable
 
 ```{graphviz}
 digraph {
-    "trigger AFLC" -> 
-    "delay 20 us" ->
-    "trigger cameras" -> {
-        "wait for camera 1 ready";
-        "wait for camera 2 ready";
-    } -> 
-    "AND" ->
-    "trigger AFLC";
+    node [shape=box]
+    "trigger cameras A" -> {
+        "wait for camera 1 ready A";
+        "wait for camera 2 ready A";
+    } ->
+    "logical AND A" ->
+    "delay half_width A" ->
+    "trigger AFLC high" ->
+    "delay half_width B" ->
+    "trigger cameras B" -> {
+        "wait for camera 1 ready B";
+        "wait for camera 2 ready B";
+    } ->
+    "logical AND B" ->
+    "trigger AFLC low" ->
+    "trigger cameras A";
 }
 ```
 

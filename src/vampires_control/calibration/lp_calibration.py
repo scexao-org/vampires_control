@@ -1,7 +1,5 @@
 import logging
 import os
-import re
-import subprocess
 import time
 from pathlib import Path
 
@@ -34,13 +32,12 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 
-class DRRCalManager:
+class LPCalManager:
     """
-    DRRCalManager
+    LPCalManager
     """
 
-    GEN_POSNS = np.linspace(0, 180, 24)
-    ANA_POSNS = (5 * GEN_POSNS) % 360
+    LP_POSNS = np.linspace(0, 180, 16)
     STANDARD_FILTERS = (
         "Open",
         "625-50",
@@ -50,19 +47,16 @@ class DRRCalManager:
         "775-50",
     )
     NB_FILTERS = ("Halpha", "SII")
-    LP_RE = re.compile("Position = (.+),")
 
     def __init__(
         self,
         mode: str = "standard",
-        use_qwp: bool = False,
         use_flc: bool = False,
         debug=False,
     ):
         # store properties
         self.mode = mode
         self.filters = self.ask_for_filters()
-        self.use_qwp = use_qwp
         self.use_flc = use_flc
         self.debug = debug
         if self.debug:
@@ -86,18 +80,11 @@ class DRRCalManager:
         # connect
         self.filt = connect(VAMPIRES.FILT)
         self.diff_filt = connect(VAMPIRES.DIFF)
-        self.imr = ImageRotator.connect()
-        self.wpu = WPU()
 
         if self.use_flc:
             self.flc = connect(VAMPIRES.FLC)
-        if self.use_qwp:
-            self.qwps = {1: connect(VAMPIRES.QWP1), 2: connect(VAMPIRES.QWP2)}
-            # Use 23 points so fewer fall on bad angles for QWP mounts
-            self.GEN_POSNS = np.linspace(0, 180, 23)
-            self.ANA_POSNS = (5 * self.GEN_POSNS) % 360
-        else:
-            self.polarizer = connect(SCEXAO.POL)
+
+        self.polarizer = connect(SCEXAO.POL)
 
     def ask_for_filters(self):
         if self.mode == "standard":
@@ -117,11 +104,9 @@ class DRRCalManager:
         else:
             return (filts,)
 
-    def prepare(self, imr=90):
+    def prepare(self):
         if self.debug:
             logger.debug("PREPARING VAMPIRES")
-            logger.debug("PREPARING WPU:POLARIZER")
-            logger.debug("PREPARING WPU:HWP")
             if self.mode in ("MBI", "NB"):
                 logger.debug("PREPARING VAMPIRES:FILTER")
             return
@@ -131,71 +116,17 @@ class DRRCalManager:
         # prep_pdi.callback(flc=self.flc, mbi=mbi)
         if self.mode in ("MBI", "NB"):
             self.filt.move_configuration("Open")
-        # prepare wpu
-        self.wpu.spp.move_in()  # move polarizer in
-        self.wpu.shw.move_in()  # move HWP in
-        self.imr.move_absolute(imr)  # IMR to 90
-
-    def move_qwps(self, angle):
-        if self.debug:
-            logger.debug(f"MOVING QWPs TO {angle}")
-            return False
-
-        for offsets in (45, 85):
-            actual_angle = (angle + offsets) % 360
-            if actual_angle > 340:
-                return True  # trip
-
-        p1 = subprocess.Popen(("vampires_qwp", "1", "goto", str(angle)))
-        p2 = subprocess.Popen(("vampires_qwp", "2", "goto", str(angle)))
-        p1.wait()
-        p2.wait()
-        time.sleep(0.5)
-        return False
 
     def move_lp(self, angle):
         if self.debug:
             logger.debug(f"MOVING LP TO {angle}")
-            return False
+            return
         assumed_offset = 90  # deg
         actual_angle = (angle + assumed_offset) % 360
-        if actual_angle > 340:
-            return True  # trip
-        self.polarizer.move_absolute(angle + assumed_offset)
+        self.polarizer.move_absolute(actual_angle)
         time.sleep(0.5)
         for cam in self.cameras.values():
-            cam.set_keyword("X_POLARP", angle)
-        return False
-
-    def move_imr(self, angle):
-        if self.debug:
-            logger.debug(f"MOVING IMR TO {angle}")
-            return
-
-        # move image rotator to position
-        self.imr.move_absolute(angle)
-        while np.abs(self.imr.get_position() - angle) > 0.01:
-            time.sleep(0.5)
-        # let it settle so FITS keywords are sensible
-        time.sleep(0.5)
-        self.imr.get_position()
-
-    def move_hwp(self, angle):
-        if self.debug:
-            logger.debug(f"MOVING HWP TO {angle:.02f}")
-            return
-
-        # move HWP to position
-        self.wpu.hwp.move_absolute(angle)
-        while np.abs(self.wpu.hwp.get_position() - angle) > 0.01:
-            time.sleep(0.5)
-        # let it settle so FITS keywords are sensible
-        time.sleep(0.5)
-        # update camera SHM keywords
-        hwp_status = self.wpu.hwp.get_status()
-        for cam in self.cameras.values():
-            cam.set_keyword("RET-ANG1", round(hwp_status["pol_angle"], 2))
-            cam.set_keyword("RET-POS1", round(hwp_status["position"], 2))
+            cam.set_keyword("X_POLARP", actual_angle)
 
     def pause_cameras(self):
         if self.debug:
@@ -212,23 +143,16 @@ class DRRCalManager:
             mgr.start_acquisition()
 
     def iterate_one_filter(self, time_per_cube=1, parity=False):
-        logger.info("Starting HWP + LP loop")
-        N = len(self.GEN_POSNS)
-        angle_pairs = zip(self.GEN_POSNS, self.ANA_POSNS)
+        logger.info("Starting LP loop")
+        N = len(self.LP_POSNS)
+        angles = self.LP_POSNS
         if parity:
-            angle_pairs = reversed(list(angle_pairs))
-        pbar = tqdm.tqdm(angle_pairs, total=N, desc="Generator")
-        for gen_ang, ana_ang in pbar:
-            pbar.write(f"Generator: {gen_ang:.02f}°, Analyzer: {ana_ang:.02f}°")
+            angles = reversed(self.LP_POSNS)
+        pbar = tqdm.tqdm(angles, total=N, desc="Generator")
+        for lp_ang in pbar:
+            pbar.write(f"Pol: {lp_ang:.02f}°")
             self.pause_cameras()
-            self.move_hwp(gen_ang)
-            if self.use_qwp:
-                retcode = self.move_qwps(ana_ang)
-            else:
-                retcode = self.move_lp(ana_ang)
-            # check if we could not move conexes and skip this acquisition
-            if retcode:
-                continue
+            self.move_lp(lp_ang)
             self.resume_cameras()
             time.sleep(time_per_cube)
         self.pause_cameras()
@@ -281,7 +205,7 @@ class DRRCalManager:
             time.sleep(0.5)
 
 
-@click.command("drr_calib")
+@click.command("lp_calib")
 @click.option(
     "-m",
     "--mode",
@@ -290,16 +214,10 @@ class DRRCalManager:
     prompt="Select calibraiton mode",
 )
 @click.option("-t", "--time", type=float, default=5, prompt="Time (s) per position")
-@click.option(
-    "-q/-nq",
-    "--qwp/--no-qwp",
-    default=False,
-    prompt="Use QWPs instead of LP for analyzer",
-)
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt="Use FLC")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
-def main(time, mode: str, qwp, flc: bool = False, debug=False):
-    manager = DRRCalManager(mode=mode, use_qwp=qwp, use_flc=flc, debug=debug)
+def main(time, mode: str, flc: bool = False, debug=False):
+    manager = LPCalManager(mode=mode, use_flc=flc, debug=debug)
     manager.run(time_per_cube=time)
 
 

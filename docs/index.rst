@@ -28,11 +28,33 @@ Contents
 --------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Getting Started
 
    installation
-   operating/index
+   gettingstarted
    api/index
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Operating VAMPIRES
+
+   operating/layout
+   operating/cameras
+   operating/coronagraphy
+   operating/devices
+   operating/data
+   operating/calibrations
+   operating/troubleshooting
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Observing with VAMPIRES
+
+   observing/calibrations
+   observing/singlecam
+   observing/polarimetry
+   observing/sdi
 
 
 License

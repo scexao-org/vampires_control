@@ -6,8 +6,6 @@ import numpy as np
 from pyMilk.interfacing.isio_shmlib import SHM
 from swmain.network.pyroclient import connect
 
-DEFAULT_DELAY = 15  # s
-
 
 def connect_cameras():
     vcam1 = connect("VCAM1")

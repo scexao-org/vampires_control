@@ -1,4 +1,5 @@
 import logging
+import time
 
 from paramiko import AutoAddPolicy, SSHClient
 
@@ -57,11 +58,16 @@ class CamManager:
 
 class VCAMManager(CamManager):
     def __init__(
-        self, cam_number, shm_name=None, computer="scexao6", cset="aol0log", **kwargs
+        self, cam_number, shm_name=None, computer="scexao5", cset="q_asl", **kwargs
     ):
         self.cam_number = cam_number
         shm_name = f"vcam{cam_number}"
         super().__init__(shm_name, computer, cset, **kwargs)
 
     def update_keys(self, logging: bool):
-        RDB.hset(f"U_VLOG{self.cam_number}", "value", logging)
+        for _ in range(10):
+            try:
+                RDB.hset(f"U_VLOG{self.cam_number}", "value", logging)
+                break
+            except:
+                time.sleep(0.5)

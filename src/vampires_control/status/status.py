@@ -81,6 +81,12 @@ REDIS_KEYS = [
     "X_SRCSEL",
     "X_VPLPKO",
     "X_VPLPKT",
+    "u_VOBMOD",
+    "u_WOBMOD",
+    "u_VDETMD",
+    "u_WDETMD",
+    "u_VTEMP",
+    "u_WTEMP",
 ]
 
 
@@ -414,10 +420,16 @@ def get_table():
         style = danger_style
     elif logging_cam1:
         style = active_style
+    cam_str = "Power: {}, {} {}, T={:.0f}°C"
     table.add_row(
         "CAM 1",
         "Logging" if logging_cam1 else "",
-        f"Power: {status_dict['X_NPS14']}",
+        cam_str.format(
+            status_dict["X_NPS14"],
+            status_dict["u_VOBMOD"],
+            status_dict["u_VDETMD"],
+            status_dict["u_VTEMP"] - 273.15,
+        ),
         style=style,
     )
     # cam 2
@@ -429,7 +441,12 @@ def get_table():
     table.add_row(
         "CAM 2",
         "Logging" if logging_cam1 else "",
-        f"Power: {status_dict['X_NPS216']}",
+        cam_str.format(
+            status_dict["X_NPS216"],
+            status_dict["u_WOBMOD"],
+            status_dict["u_WDETMD"],
+            status_dict["u_WTEMP"] - 273.15,
+        ),
         style=style,
     )
     # pup_cam

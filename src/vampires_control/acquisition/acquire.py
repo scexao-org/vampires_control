@@ -1,17 +1,28 @@
 import multiprocessing as mp
 import subprocess
+import time
 from pathlib import Path
 
 import click
 
-from swmain.redis import update_keys
+# from swmain.redis import update_keys
+import swmain.redis as swr
 from vampires_control.acquisition import logger
 from vampires_control.cameras import connect_cameras
 
-# DATA_DIR_BASE = Path("/mnt/fuuu/")
-# ARCHIVE_DATA_DIR_BASE = Path("/mnt/fuuu/ARCHIVED_DATA")
-DATA_DIR_BASE = Path("/mnt/tier0/")
-ARCHIVE_DATA_DIR_BASE = Path("/mnt/tier1/ARCHIVED_DATA")
+DATA_DIR_BASE = Path("/mnt/fuuu/")
+ARCHIVE_DATA_DIR_BASE = Path("/mnt/fuuu/ARCHIVED_DATA")
+# DATA_DIR_BASE = Path("/mnt/tier0/")
+# ARCHIVE_DATA_DIR_BASE = Path("/mnt/tier1/ARCHIVED_DATA")
+
+
+def update_keys(**kwargs):
+    for _ in range(10):
+        try:
+            swr.update_keys(**kwargs)
+            break
+        except:
+            time.sleep(0.5)
 
 
 DATA_TYPES = (
@@ -25,8 +36,8 @@ DATA_TYPES = (
     "TEST",
 )
 
-BASE_COMMAND = ("ssh", "scexao@scexao6", "milk-streamFITSlog", "-cset", "aol0log")
-# BASE_COMMAND = ("ssh", "scexao@scexao5", "milk-streamFITSlog", "-cset", "q_asl")
+# BASE_COMMAND = ("ssh", "scexao@scexao6", "milk-streamFITSlog", "-cset", "aol0log")
+BASE_COMMAND = ("ssh", "scexao@scexao5", "milk-streamFITSlog", "-cset", "q_asl")
 
 CAMS = connect_cameras()
 

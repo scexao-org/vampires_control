@@ -22,13 +22,14 @@ dependencies = [
     "pyzmq",
     "paramiko",
     "trogon",
-    "pyyaml"
+    "pyyaml",
+    "pydantic"
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov"]
-docs = ["sphinx", "sphinx-rtd-theme", "myst-parser", "sphinx-autobuild"]
+docs = ["sphinx", "sphinx-rtd-theme", "myst-parser", "sphinx-autobuild", "sphinxcontrib-plantuml"]
 
 [project.scripts]
 launch_daemons = "vampires_control.launch:main"
@@ -54,7 +55,7 @@ stoplog = "vampires_control.acquisition.acquire:stop_acquisition_main"
 resumelog = "vampires_control.acquisition.acquire:resume_acquisition_main"
 pauselog = "vampires_control.acquisition.acquire:pause_acquisition_main"
 # configurations
-vampires_prep = "vampires_control.configurations:main"
+vampires_prep = "vampires_control.configurations.main:main"
 # health
 healthcheck = "vampires_control.status.healthcheck:main"
 # calibrations
