@@ -9,12 +9,10 @@ import pandas as pd
 import tqdm.auto as tqdm
 from scxconf.pyrokeys import SCEXAO, VAMPIRES
 
-from device_control.facility import WPU, ImageRotator
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values
 
 from ..acquisition.manager import VCAMManager
-from ..configurations import prep_pdi
 
 conf_dir = Path(
     os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/")
@@ -117,58 +115,6 @@ class LPCalManager:
         if self.mode in ("MBI", "NB"):
             self.filt.move_configuration("Open")
 
-    def move_lp(self, angle):
-        if self.debug:
-            logger.debug(f"MOVING LP TO {angle}")
-            return
-        assumed_offset = 90  # deg
-        actual_angle = (angle + assumed_offset) % 360
-        self.polarizer.move_absolute(actual_angle)
-        time.sleep(0.5)
-        for cam in self.cameras.values():
-            cam.set_keyword("X_POLARP", actual_angle)
-
-    def pause_cameras(self):
-        if self.debug:
-            logger.debug("PLAY PRETEND MODE: turn VAMPIRES off")
-            return
-        for mgr in self.managers.values():
-            mgr.pause_acquisition()
-
-    def resume_cameras(self):
-        if self.debug:
-            logger.debug("PLAY PRETEND MODE: turn VAMPIRES on")
-            return
-        for mgr in self.managers.values():
-            mgr.start_acquisition()
-
-    def iterate_one_filter(self, time_per_cube=1, parity=False):
-        logger.info("Starting LP loop")
-        N = len(self.LP_POSNS)
-        angles = self.LP_POSNS
-        if parity:
-            angles = reversed(self.LP_POSNS)
-        pbar = tqdm.tqdm(angles, total=N, desc="Generator")
-        for lp_ang in pbar:
-            pbar.write(f"Pol: {lp_ang:.02f}°")
-            self.pause_cameras()
-            self.move_lp(lp_ang)
-            self.resume_cameras()
-            time.sleep(time_per_cube)
-        self.pause_cameras()
-
-    def move_filters(self, filt):
-        logger.info(f"Moving filter to {filt}")
-        if self.debug:
-            return
-        if filt in self.STANDARD_FILTERS:
-            self.filt.move_configuration(filt)
-        elif filt in self.NB_FILTERS:
-            if filt == "Halpha":
-                self.diff_filt.move_configuration_idx(3)
-            elif filt == "SII":
-                self.diff_filt.move_configuration_idx(3)
-
     def run(self, confirm=False, **kwargs):
         logger.info("Beginning DRR calibration")
         self.prepare()
@@ -187,6 +133,44 @@ class LPCalManager:
             # every other sequence flip the IMR angle order to minimize travel
             parity = not parity
 
+    def iterate_one_filter(self, time_per_cube=1, parity=False):
+        logger.info("Starting LP loop")
+        N = len(self.LP_POSNS)
+        angles = self.LP_POSNS
+        if parity:
+            angles = reversed(self.LP_POSNS)
+        pbar = tqdm.tqdm(angles, total=N, desc="Generator")
+        for lp_ang in pbar:
+            pbar.write(f"Pol: {lp_ang:.02f}°")
+            self.pause_cameras()
+            self.move_lp(lp_ang)
+            self.resume_cameras()
+            time.sleep(time_per_cube)
+        self.pause_cameras()
+
+    def move_lp(self, angle):
+        if self.debug:
+            logger.debug(f"MOVING LP TO {angle}")
+            return
+        assumed_offset = 90  # deg
+        actual_angle = (angle + assumed_offset) % 360
+        self.polarizer.move_absolute(actual_angle)
+        time.sleep(0.5)
+        for cam in self.cameras.values():
+            cam.set_keyword("X_POLARP", actual_angle)
+
+    def move_filters(self, filt):
+        logger.info(f"Moving filter to {filt}")
+        if self.debug:
+            return
+        if filt in self.STANDARD_FILTERS:
+            self.filt.move_configuration(filt)
+        elif filt in self.NB_FILTERS:
+            if filt == "Halpha":
+                self.diff_filt.move_configuration_idx(3)
+            elif filt == "SII":
+                self.diff_filt.move_configuration_idx(3)
+
     def wait_for_qwp_pos(self, filt):
         if self.debug or self.use_qwp:
             return
@@ -204,6 +188,20 @@ class LPCalManager:
                 break
             time.sleep(0.5)
 
+    def pause_cameras(self):
+        if self.debug:
+            logger.debug("PLAY PRETEND MODE: turn VAMPIRES off")
+            return
+        for mgr in self.managers.values():
+            mgr.pause_acquisition()
+
+    def resume_cameras(self):
+        if self.debug:
+            logger.debug("PLAY PRETEND MODE: turn VAMPIRES on")
+            return
+        for mgr in self.managers.values():
+            mgr.start_acquisition()
+
 
 @click.command("lp_calib")
 @click.option(
@@ -211,7 +209,7 @@ class LPCalManager:
     "--mode",
     default="standard",
     type=click.Choice(["standard", "MBI", "NB"], case_sensitive=False),
-    prompt="Select calibraiton mode",
+    prompt="Select calibration mode",
 )
 @click.option("-t", "--time", type=float, default=5, prompt="Time (s) per position")
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt="Use FLC")
