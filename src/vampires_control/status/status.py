@@ -369,9 +369,10 @@ def get_table():
         or status_dict["U_DIFFL2"].upper() == "UNKNOWN"
     ):
         style = unknown_style
-    elif "HA" in status_dict["U_DIFFL1"] or "HA" in status_dict["U_DIFFL2"]:
-        style = active_style
-    elif "SII" in status_dict["U_DIFFL1"] or "SII" in status_dict["U_DIFFL2"]:
+    elif any(
+        status_dict[key].upper() in ("HA", "SII", "BLOCK")
+        for key in ("U_DIFFL1", "U_DIFFL2")
+    ):
         style = active_style
     table.add_row(
         "Diff wheel",
@@ -393,7 +394,6 @@ def get_table():
     cam1_trig = status_dict["u_VTRIG"]
     cam2_trig = status_dict["u_WTRIG"]
     need_trig = cam1_trig or cam2_trig
-    print(need_trig)
     if status_dict["U_TRIGEN"] and need_trig:
         style = active_style
     elif status_dict["U_TRIGEN"] and not need_trig:
