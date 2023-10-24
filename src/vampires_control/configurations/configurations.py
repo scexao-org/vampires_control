@@ -117,6 +117,8 @@ async def move_diffwheel_async(filtname):
         conf = 2
     elif filtname.lower() == "halpha":
         conf = 3
+    elif filtname.lower() == "block":
+        conf = 7
     else:
         conf = filtname
     diffwheel = connect(VAMPIRES.DIFF)

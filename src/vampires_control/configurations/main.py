@@ -9,6 +9,16 @@ from vampires_control.helpers import Palette, color_to_rgb
 from .configurations import Configuration
 
 CONFIGS = {
+    "parked": Configuration(
+        name="parked",
+        diff=7,
+        bs="PBS",
+        mbi="Mirror",
+        puplens="OUT",
+        camfcs="dual",
+        fcs="standard",
+        mask=8,
+    ),
     "nominal": Configuration(
         name="nominal",
         diff=1,
@@ -98,6 +108,12 @@ def prep_nominal():
     asyncio.run(conf.move_async())
 
 
+@click.command("parked", help="Parked bench status")
+def prep_parked():
+    conf = CONFIGS["parked"]
+    asyncio.run(conf.move_async())
+
+
 @click.command("lapd", help="Defocus cam 1 for phase diversity")
 @click.option(
     "-bs",
@@ -147,6 +163,7 @@ def prep_vpl(beamsplitter, mbi):
 
 
 SUBCOMMANDS = {
+    "parked": prep_parked,
     "nominal": prep_nominal,
     "PDI": prep_pdi,
     "SDI": prep_sdi,
