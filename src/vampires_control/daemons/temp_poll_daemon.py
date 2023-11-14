@@ -4,6 +4,7 @@ from time import sleep
 
 from device_control.pyro_keys import VAMPIRES
 from swmain.autoretry import autoretry
+from swmain.infra.badsystemd.aux import auto_register_to_watchers
 from swmain.network.pyroclient import connect
 
 # set up logging
@@ -39,6 +40,7 @@ def get_temperature_status(tc):
 
 def main():
     args = parser.parse_args()
+    auto_register_to_watchers("VCAMP_TEMP", "VCAM temperature redis updater")
     tc = connect(VAMPIRES.TC)
     while True:
         status = get_temperature_status(tc)

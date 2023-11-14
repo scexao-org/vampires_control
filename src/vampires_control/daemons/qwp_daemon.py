@@ -24,7 +24,7 @@ stream_handler.setLevel(logging.INFO)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-__all__ = ["TRACKING_LAWS", "VAMPIRESFilterTrackingLaw", "QWPTrackingDaemon"]
+__all__ = ("TRACKING_LAWS", "VAMPIRESFilterTrackingLaw", "QWPTrackingDaemon")
 
 
 class VAMPIRESFilterTrackingLaw:

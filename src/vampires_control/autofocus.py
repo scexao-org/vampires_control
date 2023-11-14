@@ -85,11 +85,19 @@ class Autofocuser:
             if cfg["name"].lower() == conf.lower():
                 config = cfg
         if config is None:
-            raise ValueError(f"Could not find configuration '{conf}'")
+            config = self.focus_stage.get_position()
+        if config is None:
+            msg = f"Config {conf} not found"
+            raise ValueError(msg)
+        start_point = click.prompt(
+            "Enter focus lens starting point",
+            default=self.focus_stage.get_position(),
+            type=float,
+        )
         logger.info("Focusing camera 2 with the focusing lens")
         self.autofocus_lens(
             shm=self.shms[2],
-            start_point=config["value"],
+            start_point=start_point,
             num_frames=num_frames,
             config=config,
         )
@@ -316,7 +324,7 @@ def autofocus(mode: str):
     click.echo("=" * len(welcome))
     if mode == "all":
         if click.confirm("Would you like to do dual-cam autofocus?", default=True):
-            af.autofocus_dualcam("vpl")
+            af.autofocus_dualcam("standard")
         if click.confirm("Would you like to do SDI autofocus?", default=True):
             af.autofocus_sdi()
         if click.confirm("Would you like to do single-cam autofocus?", default=True):

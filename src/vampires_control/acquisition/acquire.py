@@ -30,6 +30,7 @@ DATA_TYPES = (
     "DARK",
     "FLAT",
     "BIAS",
+    "FLUX",
     "SKYFLAT",
     "DOMEFLAT",
     "COMPARISON",

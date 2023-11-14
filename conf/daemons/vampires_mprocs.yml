@@ -40,9 +40,6 @@ procs:
   filter sweep:
     shell: "filter_sweep"
     autostart: false
-  polarization calib:
-    shell: "pol_calib"
-    autostart: false
   badseeing:
     shell: "while true; do sl; done"
     autostart: false
