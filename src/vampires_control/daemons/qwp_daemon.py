@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from scxconf.pyrokeys import VAMPIRES
 
+from swmain.infra.badsystemd.aux import auto_register_to_watchers
 from swmain.redis import get_values, update_keys
 from vampires_control.helpers import get_dominant_filter
 
@@ -168,6 +169,7 @@ class QWPTrackingDaemon:
 )
 @click.option("-p", "--poll", default=5, type=float, help="(s) Poll time for daemon")
 def main(law: str, poll: float):
+    auto_register_to_watchers("VAMP_QWP", "VAMPIRES QWP Tracking law daemon")
     daemon = QWPTrackingDaemon()
     daemon.run(law, poll=poll)
 
