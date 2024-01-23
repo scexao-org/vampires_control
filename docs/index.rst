@@ -49,6 +49,12 @@ Contents
 
 .. toctree::
    :maxdepth: 1
+   :caption: Procedures
+
+   procedures/autofocus
+
+.. toctree::
+   :maxdepth: 1
    :caption: Observing with VAMPIRES
 
    observing/calibrations

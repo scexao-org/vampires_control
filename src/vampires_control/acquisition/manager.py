@@ -36,10 +36,10 @@ class CamManager:
         logger.debug(f"STDOUT: {stdout.read().decode()}")
         logger.debug(f"STDERR: {stderr.read().decode()}")
 
-    def start_acquisition(self, num_frames=None):
+    def start_acquisition(self, num_cubes=None):
         cmd = self.base_command
-        if num_frames is not None:
-            cmd += f" -c {num_frames}"
+        if num_cubes is not None:
+            cmd += f" -c {num_cubes}"
         cmd += f" {self.shm_name} on"
         self.send_command(cmd)
         self.update_keys(logging=True)

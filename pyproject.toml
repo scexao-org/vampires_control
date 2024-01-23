@@ -59,7 +59,8 @@ vampires_prep = "vampires_control.configurations.main:main"
 # health
 healthcheck = "vampires_control.status.healthcheck:main"
 # calibrations
-autofocus = "vampires_control.autofocus:autofocus"
+autofocus = "vampires_control.autofocus:main"
+autofocus_fieldstop = "vampires_control.autofocus_fieldstop:main"
 take_cals = "vampires_control.calibration.calibs:main"
 filter_sweep = "vampires_control.calibration.filter_sweep:main"
 iwa_scan = "vampires_control.calibration.iwa:main"

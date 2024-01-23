@@ -11,7 +11,7 @@ def get_dominant_filter(main_filter, diff_filter):
 class Palette:
     red = "#721817"
     gold = "#FA9F42"
-    orange = "#e85d04"
+    orange = "#E85D04"
     blue = "#2B4162"
     green = "#0B6E4F"
     white = "#E0E0E2"

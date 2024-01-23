@@ -38,6 +38,7 @@ REDIS_KEYS = [
     "U_FLCSTP",
     "U_FLCTMP",
     "U_FLDSTP",
+    "U_FLDSTF",
     "U_FLDSTX",
     "U_FLDSTY",
     "U_MASK",
@@ -172,7 +173,7 @@ def get_table():
     style = default_style
     if status_dict["X_GRDST"].upper() != "OFF":
         style = active_style
-    info = f"r={status_dict['X_GRDSEP']:4.01f} λ/D, a={status_dict['X_GRDAMP']} nm, f={status_dict['X_GRDMOD']:4.0f} Hz"
+    info = f"r={status_dict['X_GRDSEP']} λ/D, a={status_dict['X_GRDAMP']} nm, f={status_dict['X_GRDMOD']} Hz"
     table.add_row("Astrogrid", status_dict["X_GRDST"], info, style=style)
 
     ## LP
@@ -229,7 +230,7 @@ def get_table():
     table.add_row(
         "Fieldstop",
         str(status_dict["U_FLDSTP"]),
-        f"x={status_dict['U_FLDSTX']:6.03f} mm, y={status_dict['U_FLDSTY']:6.03f} mm",
+        f"x={status_dict['U_FLDSTX']:6.03f} mm, y={status_dict['U_FLDSTY']:6.03f} mm, f={status_dict['U_FLDSTF']:6.03f} mm",
         style=style,
     )
 
@@ -497,8 +498,8 @@ def is_pywfs_pickoff_interfering(pywfs_pickoff, vamp_filter, vamp_diff_filter):
 
 
 @click.command("vampires_status")
-@click.option("-p", "--poll", default=0.2, type=float, help="Polling time, in seconds")
-@click.option("-r", "--refresh", default=5, type=float, help="Refresh rate, in Hz")
+@click.option("-p", "--poll", default=0.25, type=float, help="Polling time, in seconds")
+@click.option("-r", "--refresh", default=4, type=float, help="Refresh rate, in Hz")
 def main(poll: float, refresh: float):
     min_poll = 1 / refresh
     if poll < min_poll:
@@ -506,7 +507,9 @@ def main(poll: float, refresh: float):
         click.echo(
             f"Increasing poll time ({poll:.01f} s -> {min_poll:.01f} s) to match refresh rate ({refresh} Hz)"
         )
-    with Live(get_table(), refresh_per_second=refresh) as live:
+    with Live(
+        get_table(), refresh_per_second=refresh, screen=True, transient=True
+    ) as live:
         while True:
             sleep(poll)
             live.update(get_table())

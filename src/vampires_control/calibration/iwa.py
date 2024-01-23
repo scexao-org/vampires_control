@@ -28,6 +28,9 @@ base_cmd = ["ssh", "scexao2", "src_fib"]
 
 
 class IWAScanner:
+    FIBX_ZP = 7.7
+    FIBY_ZP = 23.15
+
     """
     IWAScanner
 
@@ -58,28 +61,51 @@ class IWAScanner:
             disabled_algorithms={"pubkeys": ("rsa-sha2-256", "rsa-sha2-512")},
         )
 
-    def move_src_fiber(self, x):
+    def move_src_fiberx(self, x):
         if self.debug:
-            logger.debug(f"MOVING FIBER TO {x}")
+            logger.debug(f"MOVING FIBER TO x={x}")
             return
 
         cmdx = f"src_fib x goto {x}"
         logger.debug(cmdx)
         self.client.exec_command(cmdx)
-        time.sleep(0.5)
+        time.sleep(1)
 
-    def run(self, time_per_cube=1, step=2e-3, r=0.166):
+    def move_src_fibery(self, y):
+        if self.debug:
+            logger.debug(f"MOVING FIBER TO y={y}")
+            return
+
+        cmdy = f"src_fib y goto {y}"
+        logger.debug(cmdy)
+        self.client.exec_command(cmdy)
+        time.sleep(1)
+
+    def run(self, time_per_cube=0.5, step=2e-3, r=0.15):
         logger.info("Starting fiber positioning loop")
 
-        posns_x = 7.7 + np.arange(-r, r + step / 2, step)
+        posns_x = self.FIBX_ZP + np.arange(-r, r + step / 2, step)
+        # posns_y = self.FIBY_ZP + np.array((0,))
+        posns_y = self.FIBY_ZP + np.array((-step, 0, step))
+        posns = []
+        parity_flip = False
         try:
-            for xpos in tqdm.tqdm(posns_x):
+            for xpos in tqdm.tqdm(posns_x, desc="x"):
                 self.pause_cameras()
-                self.move_src_fiber(xpos)
-                self.resume_cameras()
-                time.sleep(time_per_cube)
+                self.move_src_fiberx(xpos)
+
+                ys = posns_y[::-1] if parity_flip else posns_y
+                for ypos in tqdm.tqdm(ys, desc="y", leave=False):
+                    self.pause_cameras()
+                    self.move_src_fibery(ypos)
+                    posns.append((xpos, ypos))
+                    self.resume_cameras()
+                    time.sleep(time_per_cube)
+                parity_flip = not parity_flip
         finally:
             self.pause_cameras()
+
+        return np.array(posns)
 
     def pause_cameras(self):
         if self.debug:
@@ -98,7 +124,7 @@ class IWAScanner:
 @click.option("-t", "--time", type=float, default=1, prompt="Time (s) per position")
 @click.option("-s", "--step", type=float, default=2e-3, prompt="Step size in mm")
 @click.option(
-    "-r", "--radius", type=float, default=0.166, prompt="Radius of fiber circle in mm"
+    "-r", "--radius", type=float, default=0.2, prompt="Radius of fiber circle in mm"
 )
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
 def main(time, step, radius, debug=False):
