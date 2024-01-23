@@ -9,23 +9,17 @@ import click
 import numpy as np
 import pandas as pd
 import tqdm.auto as tqdm
-from scxconf.pyrokeys import SCEXAO, VAMPIRES
-
 from device_control.facility import WPU, ImageRotator
+from scxconf.pyrokeys import SCEXAO, VAMPIRES
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values
 
-from ..acquisition.manager import VCAMManager
-from ..configurations import prep_pdi
+from vampires_control.acquisition.manager import VCAMManager
 
-conf_dir = Path(
-    os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/")
-)
+conf_dir = Path(os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/"))
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
@@ -41,23 +35,12 @@ class DRRCalManager:
 
     GEN_POSNS = np.linspace(0, 180, 24)
     ANA_POSNS = (5 * GEN_POSNS) % 360
-    STANDARD_FILTERS = (
-        "Open",
-        "625-50",
-        "675-50",
-        "725-50",
-        "750-50",
-        "775-50",
-    )
+    STANDARD_FILTERS = ("Open", "625-50", "675-50", "725-50", "750-50", "775-50")
     NB_FILTERS = ("Halpha", "SII")
     LP_RE = re.compile("Position = (.+),")
 
     def __init__(
-        self,
-        mode: str = "standard",
-        use_qwp: bool = False,
-        use_flc: bool = False,
-        debug=False,
+        self, mode: str = "standard", use_qwp: bool = False, use_flc: bool = False, debug=False
     ):
         # store properties
         self.mode = mode
@@ -69,19 +52,11 @@ class DRRCalManager:
             # filthy, disgusting
             logger.setLevel(logging.DEBUG)
             logger.handlers[0].setLevel(logging.DEBUG)
-        self.conf_data = pd.read_csv(
-            conf_dir / "data" / "conf_vampires_qwp_filter_data.csv"
-        )
+        self.conf_data = pd.read_csv(conf_dir / "data" / "conf_vampires_qwp_filter_data.csv")
 
         # camera setup
-        self.cameras = {
-            1: connect("VCAM1"),
-            2: connect("VCAM2"),
-        }
-        self.managers = {
-            1: VCAMManager(1),
-            2: VCAMManager(2),
-        }
+        self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
+        self.managers = {1: VCAMManager(1), 2: VCAMManager(2)}
 
         # connect
         self.filt = connect(VAMPIRES.FILT)
@@ -127,7 +102,6 @@ class DRRCalManager:
             return
 
         # prepare vampires
-        mbi = "Dichroics" if self.mode == "MBI" else "Mirror"
         # prep_pdi.callback(flc=self.flc, mbi=mbi)
         if self.mode in ("MBI", "NB"):
             self.filt.move_configuration("Open")
@@ -222,10 +196,7 @@ class DRRCalManager:
             pbar.write(f"Generator: {gen_ang:.02f}°, Analyzer: {ana_ang:.02f}°")
             self.pause_cameras()
             self.move_hwp(gen_ang)
-            if self.use_qwp:
-                retcode = self.move_qwps(ana_ang)
-            else:
-                retcode = self.move_lp(ana_ang)
+            retcode = self.move_qwps(ana_ang) if self.use_qwp else self.move_lp(ana_ang)
             # check if we could not move conexes and skip this acquisition
             if retcode:
                 continue
@@ -243,7 +214,7 @@ class DRRCalManager:
             if filt == "Halpha":
                 self.diff_filt.move_configuration_idx(3)
             elif filt == "SII":
-                self.diff_filt.move_configuration_idx(3)
+                self.diff_filt.move_configuration_idx(2)
 
     def run(self, confirm=False, **kwargs):
         logger.info("Beginning DRR calibration")
@@ -273,10 +244,7 @@ class DRRCalManager:
         qwp2_pos = float(conf_row["qwp2"].iloc[0])
         while True:
             last_qwp1, last_qwp2 = get_values(("U_QWP1", "U_QWP2")).values()
-            if (
-                np.abs(last_qwp1 - qwp1_pos) < 0.1
-                and np.abs(last_qwp2 - qwp2_pos) < 0.1
-            ):
+            if np.abs(last_qwp1 - qwp1_pos) < 0.1 and np.abs(last_qwp2 - qwp2_pos) < 0.1:
                 break
             time.sleep(0.5)
 
@@ -291,10 +259,7 @@ class DRRCalManager:
 )
 @click.option("-t", "--time", type=float, default=5, prompt="Time (s) per position")
 @click.option(
-    "-q/-nq",
-    "--qwp/--no-qwp",
-    default=False,
-    prompt="Use QWPs instead of LP for analyzer",
+    "-q/-nq", "--qwp/--no-qwp", default=False, prompt="Use QWPs instead of LP for analyzer"
 )
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt="Use FLC")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")

@@ -4,14 +4,11 @@ import click
 import numpy as np
 import tqdm.auto as tqdm
 from numpy.polynomial import Polynomial
-
 from pyMilk.interfacing.isio_shmlib import SHM
 from swmain.network.pyroclient import connect
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger("autofocus")
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
@@ -26,13 +23,12 @@ class AutofocuserFieldstop:
 
     """
         AutofocuserFieldstop
+
+    The fieldstop can be auto-focused by using a flat field image of the corongraph masks and maximizing sharpness.
     """
 
     def __init__(self):
-        self.cameras = {
-            1: connect("VCAM1"),
-            2: connect("VCAM2"),
-        }
+        self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
         self.shms = {1: SHM("vcam1"), 2: SHM("vcam2")}
         self.fieldstop_stage = connect("VAMPIRES_FIELDSTOP")
 
@@ -56,9 +52,7 @@ def _focus_range(start_point: float):
     search_width = 1.5  # mm
     step_size = 0.05  # mm
     focus_range = np.arange(
-        max(0, start_point - search_width / 2),
-        min(13, start_point + search_width / 2),
-        step_size,
+        max(0, start_point - search_width / 2), min(13, start_point + search_width / 2), step_size
     )
     return focus_range
 
@@ -125,9 +119,7 @@ def main(camera: int, num_frames: int):
         type=float,
     )
     af.fieldstop_stage.move_absolute("f", focus_posn)
-    click.confirm(
-        "Adjust camera settings and proceed when ready", abort=True, default=True
-    )
+    click.confirm("Adjust camera settings and proceed when ready", abort=True, default=True)
     result = af.autofocus(shm, start_point=focus_posn, num_frames=num_frames)
     click.echo("Autofocus finished")
     return result

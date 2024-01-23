@@ -7,16 +7,12 @@ import click
 import numpy as np
 import tqdm.auto as tqdm
 from astropy.io import fits
-from scxconf.pyrokeys import VAMPIRES, VCAM1, VCAM2
-
-import vampires_control.acquisition.acquire as acq
 from pyMilk.interfacing.isio_shmlib import SHM
+from scxconf.pyrokeys import VAMPIRES, VCAM1, VCAM2
 from swmain.network.pyroclient import connect
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger("PTC")
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
@@ -32,13 +28,10 @@ class PTCAcquirer:
     PTCAcquirer
     """
 
-    def __init__(self, base_dir: Union[str, Path] = Path.cwd()):
-        self.cameras = {
-            1: connect(VCAM1),
-            2: connect(VCAM2),
-        }
+    def __init__(self, base_dir: Union[str, Path, None] = None):
+        self.cameras = {1: connect(VCAM1), 2: connect(VCAM2)}
         self.diffwheel = connect(VAMPIRES.DIFF)
-        self.base_dir = Path(base_dir)
+        self.base_dir = Path.cwd() if base_dir is None else Path(base_dir)
 
     def acquire(self, nframes):
         with mp.Pool(2) as pool:

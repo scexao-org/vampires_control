@@ -3,20 +3,15 @@ import time
 
 import click
 import numpy as np
-import pandas as pd
 import tqdm.auto as tqdm
 from paramiko import AutoAddPolicy, SSHClient
 from scxconf.pyrokeys import VAMPIRES
-
 from swmain.network.pyroclient import connect
-from swmain.redis import get_values
 
-from ..acquisition.manager import VCAMManager
+from vampires_control.acquisition.manager import VCAMManager
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger("iwa_sweep")
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
@@ -123,9 +118,7 @@ class IWAScanner:
 @click.command("iwa_scan")
 @click.option("-t", "--time", type=float, default=1, prompt="Time (s) per position")
 @click.option("-s", "--step", type=float, default=2e-3, prompt="Step size in mm")
-@click.option(
-    "-r", "--radius", type=float, default=0.2, prompt="Radius of fiber circle in mm"
-)
+@click.option("-r", "--radius", type=float, default=0.2, prompt="Radius of fiber circle in mm")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
 def main(time, step, radius, debug=False):
     manager = IWAScanner(debug=debug)

@@ -2,30 +2,19 @@ import subprocess
 import time
 
 import click
-
-from pyMilk.interfacing.isio_shmlib import SHM
 from scxconf.pyrokeys import VAMPIRES, VCAM1, VCAM2
 from swmain.network.pyroclient import connect
-from vampires_control.acquisition.acquire import start_acquisition, stop_acquisition
+
+from vampires_control.acquisition.acquire import start_acquisition
 
 
 @click.command("take_flats")
+@click.option("-n", "--nframes", default=100, type=int, prompt="Specify number of frames per cube")
 @click.option(
-    "-n", "--nframes", default=100, type=int, prompt="Specify number of frames per cube"
+    "-z", "--ncubes", type=int, default=1, prompt="Specify number of cubes (-1 for infinite)"
 )
-@click.option(
-    "-z",
-    "--ncubes",
-    type=int,
-    default=1,
-    prompt="Specify number of cubes (-1 for infinite)",
-)
-@click.option(
-    "-c", "--cam", default=-1, type=int, prompt="Specify camera, if -1 uses both"
-)
-@click.option(
-    "-a/-na", "--archive/--no-archive", default=True, prompt="Archive data to Gen2"
-)
+@click.option("-c", "--cam", default=-1, type=int, prompt="Specify camera, if -1 uses both")
+@click.option("-a/-na", "--archive/--no-archive", default=True, prompt="Archive data to Gen2")
 def take_flats(nframes=100, ncubes=1, exptime=0.1, archive=True, cam=-1):
     cam1 = connect(VCAM1)
     cam2 = connect(VCAM2)
@@ -33,32 +22,17 @@ def take_flats(nframes=100, ncubes=1, exptime=0.1, archive=True, cam=-1):
     cam2.set_tint(exptime)
 
     start_acquisition(
-        nframes=nframes,
-        ncubes=ncubes,
-        data_type="FLAT",
-        cam=cam,
-        archive=archive,
-        start=True,
+        nframes=nframes, ncubes=ncubes, data_type="FLAT", cam=cam, archive=archive, start=True
     )
 
 
 @click.command("take_pinholes")
+@click.option("-n", "--nframes", default=100, type=int, prompt="Specify number of frames per cube")
 @click.option(
-    "-n", "--nframes", default=100, type=int, prompt="Specify number of frames per cube"
+    "-z", "--ncubes", type=int, default=1, prompt="Specify number of cubes (-1 for infinite)"
 )
-@click.option(
-    "-z",
-    "--ncubes",
-    type=int,
-    default=1,
-    prompt="Specify number of cubes (-1 for infinite)",
-)
-@click.option(
-    "-c", "--cam", default=-1, type=int, prompt="Specify camera, if -1 uses both"
-)
-@click.option(
-    "-a/-na", "--archive/--no-archive", default=True, prompt="Archive data to Gen2"
-)
+@click.option("-c", "--cam", default=-1, type=int, prompt="Specify camera, if -1 uses both")
+@click.option("-a/-na", "--archive/--no-archive", default=True, prompt="Archive data to Gen2")
 def take_pinholes(nframes=100, ncubes=1, exptime=0.1, archive=True, cam=-1):
     cam1 = connect(VCAM1)
     cam2 = connect(VCAM2)
@@ -66,32 +40,17 @@ def take_pinholes(nframes=100, ncubes=1, exptime=0.1, archive=True, cam=-1):
     cam2.set_tint(exptime)
 
     start_acquisition(
-        nframes=nframes,
-        ncubes=ncubes,
-        data_type="COMPARISON",
-        cam=cam,
-        archive=archive,
-        start=True,
+        nframes=nframes, ncubes=ncubes, data_type="COMPARISON", cam=cam, archive=archive, start=True
     )
 
 
 @click.command("take_darks")
+@click.option("-n", "--nframes", default=100, type=int, prompt="Specify number of frames per cube")
 @click.option(
-    "-n", "--nframes", default=100, type=int, prompt="Specify number of frames per cube"
+    "-z", "--ncubes", type=int, default=1, prompt="Specify number of cubes (-1 for infinite)"
 )
-@click.option(
-    "-z",
-    "--ncubes",
-    type=int,
-    default=1,
-    prompt="Specify number of cubes (-1 for infinite)",
-)
-@click.option(
-    "-c", "--cam", default=-1, type=int, prompt="Specify camera, if -1 uses both"
-)
-@click.option(
-    "-a/-na", "--archive/--no-archive", default=True, prompt="Archive data to Gen2"
-)
+@click.option("-c", "--cam", default=-1, type=int, prompt="Specify camera, if -1 uses both")
+@click.option("-a/-na", "--archive/--no-archive", default=True, prompt="Archive data to Gen2")
 def take_darks(nframes=100, ncubes=1, exptime=0.1, archive=True, cam=-1):
     cam1 = connect(VCAM1)
     cam2 = connect(VCAM2)
@@ -99,35 +58,18 @@ def take_darks(nframes=100, ncubes=1, exptime=0.1, archive=True, cam=-1):
     cam2.set_tint(exptime)
 
     start_acquisition(
-        nframes=nframes,
-        ncubes=ncubes,
-        data_type="DARK",
-        cam=cam,
-        archive=archive,
-        start=True,
+        nframes=nframes, ncubes=ncubes, data_type="DARK", cam=cam, archive=archive, start=True
     )
 
 
 @click.command("take_cals")
+@click.option("-e", "--exptime", default=0.1, type=float, prompt="Specify exposure time")
+@click.option("-n", "--nframes", default=100, type=int, prompt="Specify number of frames per cube")
 @click.option(
-    "-e", "--exptime", default=0.1, type=float, prompt="Specify exposure time"
+    "-z", "--ncubes", type=int, default=1, prompt="Specify number of cubes (-1 for infinite)"
 )
-@click.option(
-    "-n", "--nframes", default=100, type=int, prompt="Specify number of frames per cube"
-)
-@click.option(
-    "-z",
-    "--ncubes",
-    type=int,
-    default=1,
-    prompt="Specify number of cubes (-1 for infinite)",
-)
-@click.option(
-    "-c", "--cam", default=-1, type=int, prompt="Specify camera, if -1 uses both"
-)
-@click.option(
-    "-a/-na", "--archive/--no-archive", default=True, prompt="Archive data to Gen2"
-)
+@click.option("-c", "--cam", default=-1, type=int, prompt="Specify camera, if -1 uses both")
+@click.option("-a/-na", "--archive/--no-archive", default=True, prompt="Archive data to Gen2")
 def main(exptime, nframes, ncubes, cam, archive):
     # step 1: take pinholes
     delta_time = nframes * ncubes * exptime  # s
@@ -149,9 +91,7 @@ def main(exptime, nframes, ncubes, cam, archive):
         time.sleep(delta_time)
 
     if click.confirm("Would you like to take darks?", default=True):
-        move_diff = click.confirm(
-            "Would you like to block using diff wheel?", default=True
-        )
+        move_diff = click.confirm("Would you like to block using diff wheel?", default=True)
         if move_diff:
             diff = connect(VAMPIRES.DIFF)
             prior_diff_position = diff.get_position()

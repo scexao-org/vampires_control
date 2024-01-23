@@ -7,16 +7,14 @@ import click
 import numpy as np
 import pandas as pd
 import tqdm.auto as tqdm
-
 from scxconf.pyrokeys import VAMPIRES
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values
+
 from vampires_control.acquisition.acquire import pause_acquisition, resume_acquisition
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger("filter_sweep")
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
@@ -25,9 +23,7 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 
-conf_dir = Path(
-    os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/")
-)
+conf_dir = Path(os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/"))
 
 
 class NBFilterSweeper:
@@ -36,19 +32,14 @@ class NBFilterSweeper:
     """
 
     def __init__(self, debug=False):
-        self.cameras = {
-            1: connect("VCAM1"),
-            2: connect("VCAM2"),
-        }
+        self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
         self.filt = connect(VAMPIRES.FILT)
         self.debug = debug
         if self.debug:
             # filthy, disgusting
             logger.setLevel(logging.DEBUG)
             logger.handlers[0].setLevel(logging.DEBUG)
-        self.conf_data = pd.read_csv(
-            conf_dir / "data" / "conf_vampires_qwp_filter_data.csv"
-        )
+        self.conf_data = pd.read_csv(conf_dir / "data" / "conf_vampires_qwp_filter_data.csv")
 
     def run(self, time_per_cube=30, parity=False, wait=False):
         logger.info("Starting HWP + IMR loop")
@@ -95,12 +86,10 @@ class NBFilterSweeper:
 
 @click.command("filter_sweep")
 @click.option("-t", "--time", type=float, default=5, prompt="Time (s) per position")
-@click.option(
-    "-w/-nw", "--wait/--no-wait", default=True, prompt="Wait for QWPs to settle"
-)
+@click.option("-w/-nw", "--wait/--no-wait", default=True, prompt="Wait for QWPs to settle")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
 def main(time, wait=False, debug=False):
-    manager = FilterSweeper(debug=debug)
+    manager = NBFilterSweeper(debug=debug)
     manager.run(time_per_cube=time, wait=wait)
 
 

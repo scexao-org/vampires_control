@@ -6,8 +6,8 @@ from rich.live import Live
 from rich.rule import Rule
 from rich.table import Table
 from rich.text import Text
-
 from swmain.redis import get_values
+
 from vampires_control.helpers import Palette, get_dominant_filter
 
 default_style = f"{Palette.white} on default"
@@ -181,12 +181,7 @@ def get_table():
         style = default_style
     elif status_dict["X_POLAR"].upper() == "IN":
         style = active_style
-    table.add_row(
-        "LP",
-        status_dict["X_POLAR"],
-        f"θ={status_dict['X_POLARP']:6.02f}°",
-        style=style,
-    )
+    table.add_row("LP", status_dict["X_POLAR"], f"θ={status_dict['X_POLARP']:6.02f}°", style=style)
     ## QWPs
     style = active_style if status_dict["U_QWPMOD"] != "None" else default_style
     table.add_row("QWP mode", status_dict["U_QWPMOD"], "", style=style)
@@ -214,10 +209,7 @@ def get_table():
         style = danger_style
 
     table.add_row(
-        "PyWFS Pickoff",
-        status_dict["X_PYWPKO"],
-        f"θ={status_dict['X_PYWPKP']:6.02f}°",
-        style=style,
+        "PyWFS Pickoff", status_dict["X_PYWPKO"], f"θ={status_dict['X_PYWPKP']:6.02f}°", style=style
     )
 
     ## Fieldstop
@@ -256,10 +248,7 @@ def get_table():
     else:
         style = active_style
     table.add_row(
-        "VPL pickoff",
-        status_dict["X_VPLPKO"],
-        f"θ={status_dict['X_VPLPKT']:6.02f}°",
-        style=style,
+        "VPL pickoff", status_dict["X_VPLPKO"], f"θ={status_dict['X_VPLPKT']:6.02f}°", style=style
     )
 
     ## FLC
@@ -276,10 +265,7 @@ def get_table():
         style = danger_style
     else:
         style = default_style
-    temp_text = Text(
-        f"T(AFLC)={status_dict['U_FLCTMP']:4.01f} °C",
-        style=style,
-    )
+    temp_text = Text(f"T(AFLC)={status_dict['U_FLCTMP']:4.01f} °C", style=style)
     status = "Enabled" if flc_trig else "Disabled"
     table.add_row("AFLC", status, temp_text, style=style)
 
@@ -325,10 +311,7 @@ def get_table():
     else:
         style = unknown_style
     table.add_row(
-        "MBI",
-        str(status_dict["U_MBI"]),
-        f"θ={status_dict['U_MBITH']:6.02f}°",
-        style=style,
+        "MBI", str(status_dict["U_MBI"]), f"θ={status_dict['U_MBITH']:6.02f}°", style=style
     )
 
     ## Pupil lens
@@ -345,10 +328,7 @@ def get_table():
     if status_dict["U_FCS"].upper() == "UNKNOWN":
         style = unknown_style
     table.add_row(
-        "Focus",
-        str(status_dict["U_FCS"]),
-        f"f={status_dict['U_FCSF']:5.02f} mm",
-        style=style,
+        "Focus", str(status_dict["U_FCS"]), f"f={status_dict['U_FCSF']:5.02f} mm", style=style
     )
 
     ## Beamsplitter
@@ -359,22 +339,15 @@ def get_table():
     else:
         style = default_style
     table.add_row(
-        "Beamsplitter",
-        str(status_dict["U_BS"]),
-        f"θ={status_dict['U_BSTH']:6.02f}°",
-        style=style,
+        "Beamsplitter", str(status_dict["U_BS"]), f"θ={status_dict['U_BSTH']:6.02f}°", style=style
     )
 
     ## Differential filter wheel
     style = default_style
-    if (
-        status_dict["U_DIFFL1"].upper() == "UNKNOWN"
-        or status_dict["U_DIFFL2"].upper() == "UNKNOWN"
-    ):
+    if status_dict["U_DIFFL1"].upper() == "UNKNOWN" or status_dict["U_DIFFL2"].upper() == "UNKNOWN":
         style = unknown_style
     elif any(
-        status_dict[key].upper() in ("HA", "SII", "BLOCK")
-        for key in ("U_DIFFL1", "U_DIFFL2")
+        status_dict[key].upper() in ("HA", "SII", "BLOCK") for key in ("U_DIFFL1", "U_DIFFL2")
     ):
         style = active_style
     table.add_row(
@@ -399,9 +372,7 @@ def get_table():
     need_trig = cam1_trig or cam2_trig
     if status_dict["U_TRIGEN"] and need_trig:
         style = active_style
-    elif status_dict["U_TRIGEN"] and not need_trig:
-        style = danger_style
-    elif not status_dict["U_TRIGEN"] and need_trig:
+    elif status_dict["U_TRIGEN"] ^ need_trig:  # xor
         style = danger_style
     else:
         style = default_style
@@ -456,14 +427,17 @@ def get_table():
     style = default_style
     if logging_pupil:
         style = active_style
-    table.add_row(
-        "Pupil Cam",
-        "Logging" if logging_pupil else "",
-        "",
-        style=style,
-    )
+    table.add_row("Pupil Cam", "Logging" if logging_pupil else "", "", style=style)
 
     return table
+
+
+PYWFS_PICKOFF_SETS = {
+    "700 nm SP": ("SII", "675-50", "725-50", "750-50", "775-50", "Open"),
+    "750 nm SP": ("725-50", "750-50", "775-50", "Open"),
+    "800 nm SP (dflt)": ("775-50"),
+    "750 nm LP": ("Halpha", "SII", "625-50", "675-50", "725-50", "750-50", "Open"),
+}
 
 
 def is_pywfs_pickoff_interfering(pywfs_pickoff, vamp_filter, vamp_diff_filter):
@@ -475,26 +449,11 @@ def is_pywfs_pickoff_interfering(pywfs_pickoff, vamp_filter, vamp_diff_filter):
         return True
     # otherwise, determine based on the filters used in VAMPIRES
     curr_filter = get_dominant_filter(vamp_filter, vamp_diff_filter)
-    if pywfs_pickoff == "700 nm SP":
-        return curr_filter in ("SII", "675-50", "725-50", "750-50", "775-50", "Open")
-    elif pywfs_pickoff == "750 nm SP":
-        return curr_filter in ("725-50", "750-50", "775-50", "Open")
-    elif pywfs_pickoff == "800 nm SP (dflt)":
-        return curr_filter in ("775-50", "Open")
-    elif pywfs_pickoff == "750 nm LP":
-        return curr_filter in (
-            "Halpha",
-            "SII",
-            "625-50",
-            "675-50",
-            "725-50",
-            "750-50",
-            "Open",
-        )
-
-    # be conservative by default and raise alarms
-    # if something went wrong in our logic
-    return True
+    if pywfs_pickoff in PYWFS_PICKOFF_SETS:
+        allowed_filters = PYWFS_PICKOFF_SETS[pywfs_pickoff]
+        return curr_filter in allowed_filters
+    else:
+        return True  # somethings wrong if we've gotten here
 
 
 @click.command("vampires_status")
@@ -507,9 +466,7 @@ def main(poll: float, refresh: float):
         click.echo(
             f"Increasing poll time ({poll:.01f} s -> {min_poll:.01f} s) to match refresh rate ({refresh} Hz)"
         )
-    with Live(
-        get_table(), refresh_per_second=refresh, screen=True, transient=True
-    ) as live:
+    with Live(get_table(), refresh_per_second=refresh, screen=True, transient=True) as live:
         while True:
             sleep(poll)
             live.update(get_table())

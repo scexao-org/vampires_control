@@ -4,12 +4,11 @@ from typing import Optional, Union
 import click
 import tomli
 import tomli_w
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from scxconf.pyrokeys import VAMPIRES
-
 from swmain.network.pyroclient import connect
 
-from ..helpers import Palette, color_to_rgb
+from vampires_control.helpers import Palette, color_to_rgb
 
 
 class Configuration(BaseModel):
@@ -80,11 +79,7 @@ class Configuration(BaseModel):
             await move_flc_async(self.flc)
         if self.fieldstop:
             await move_fieldstop_async(self.fieldstop)
-        click.secho(
-            " Finished! ",
-            bg=color_to_rgb(Palette.green),
-            fg=color_to_rgb(Palette.white),
-        )
+        click.secho(" Finished! ", bg=color_to_rgb(Palette.green), fg=color_to_rgb(Palette.white))
 
 
 async def move_fcs_async(conf):

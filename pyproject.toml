@@ -21,7 +21,7 @@ dependencies = [
     "rich",
     "pyzmq",
     "paramiko",
-    "trogon",
+    "ruff",
     "pyyaml",
     "pydantic"
 ]
@@ -78,3 +78,26 @@ log_cli_format = "[%(levelname)s] (%(name)-15s) %(message)s"
 
 [tool.coverage.run]
 source = ["vampires_control"]
+
+
+[tool.ruff.lint]
+# pycodestyle, pydocstyle, isort, pyupgrade, pylint, tidyimports, use-pathlib, numpy, errmsg
+select = ["E", "F", "B", "SIM", "I", "UP", "TID", "PTH", "NPY", "EM"]
+ignore = [
+    "E501", # line too long
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"

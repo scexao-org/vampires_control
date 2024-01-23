@@ -3,14 +3,11 @@ import logging
 import click
 import numpy as np
 import tqdm.auto as tqdm
-
 from pyMilk.interfacing.isio_shmlib import SHM
 from swmain.network.pyroclient import connect
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger("qwp_sweep")
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
@@ -25,10 +22,7 @@ class QWPOptimizer:
     """
 
     def __init__(self):
-        self.cameras = {
-            1: connect("VCAM1"),
-            2: connect("VCAM2"),
-        }
+        self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
         self.shms = {1: SHM("vcam1"), 2: SHM("vcam2")}
         self.beamsplitter = connect("VAMPIRES_BS")
         self.filter = connect("VAMPIRES_FILT")
@@ -40,14 +34,12 @@ class QWPOptimizer:
         # check if beamsplitter is inserted
         _, bs_config = self.beamsplitter.get_configuration()
         logger.debug(f"beamsplitter: {bs_config}")
-        if not bs_config.upper() == "PBS":
+        if bs_config.upper() != "PBS":
             # if beamsplitter is not inserted, prompt
             logger.warn("Polarizing beamsplitter is not inserted")
-            click.confirm(
-                "Would you like to insert the beamsplitter?", abort=True, default=True
-            )
+            click.confirm("Would you like to insert the beamsplitter?", abort=True, default=True)
             # insert beamsplitter
-            logger.info(f"Inserting PBS beamsplitter")
+            logger.info("Inserting PBS beamsplitter")
             self.beamsplitter.move_configuration_name("PBS")
 
         result_dict = {}
@@ -58,11 +50,7 @@ class QWPOptimizer:
             self.filter.move_configuration_idx(config["idx"])
             logger.info(f"Moving filter to {config['name']}")
             # prepare cameras
-            click.confirm(
-                "Adjust camera settings and confirm when ready",
-                default=True,
-                abort=True,
-            )
+            click.confirm("Adjust camera settings and confirm when ready", default=True, abort=True)
             qwp_angles, metrics = self.get_values_for_filter(num_frames=num_frames)
             result_dict[config["name"]] = metrics
 
@@ -71,18 +59,14 @@ class QWPOptimizer:
     def get_values_for_filter(self, num_frames=5):
         qwp_angles = np.arange(0, 181, 5)
         metrics = np.empty((len(qwp_angles), len(qwp_angles)))
-        for i, ang1 in enumerate(
-            tqdm.tqdm(qwp_angles, desc="Scanning QWP1", leave=False)
-        ):
+        for i, ang1 in enumerate(tqdm.tqdm(qwp_angles, desc="Scanning QWP1", leave=False)):
             logger.info(f"Moving QWP1 to {ang1:3.01f} deg")
             self.qwp1.move_absolute(ang1)
             # reverse every other qwp2 angle
             qwp2_angles = qwp_angles
             if i % 2:
                 qwp2_angles = reversed(qwp_angles)
-            for j, ang2 in enumerate(
-                tqdm.tqdm(qwp2_angles, desc="Scanning QWP2", leave=False)
-            ):
+            for j, ang2 in enumerate(tqdm.tqdm(qwp2_angles, desc="Scanning QWP2", leave=False)):
                 logger.info(f"Moving QWP2 to {ang2:3.01f} deg")
                 self.qwp2.move_absolute(ang2)
                 cube = self.shms[1].multi_recv_data(num_frames, outputFormat=2)

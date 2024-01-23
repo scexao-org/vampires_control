@@ -8,16 +8,13 @@ import numpy as np
 import pandas as pd
 import tqdm.auto as tqdm
 from scxconf.pyrokeys import VAMPIRES
-
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values
 
-from ..acquisition.manager import VCAMManager
+from vampires_control.acquisition.manager import VCAMManager
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger("filter_sweep")
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
@@ -26,9 +23,7 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 
-conf_dir = Path(
-    os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/")
-)
+conf_dir = Path(os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/"))
 
 
 class FilterSweeper:
@@ -36,25 +31,12 @@ class FilterSweeper:
     FilterSweeper
     """
 
-    FILTERS = [
-        "Open",
-        "625-50",
-        "675-50",
-        "725-50",
-        "750-50",
-        "775-50",
-    ]
+    FILTERS = ["Open", "625-50", "675-50", "725-50", "750-50", "775-50"]
     NB_FILTERS = ["Halpha", "SII"]
 
     def __init__(self, debug=False):
-        self.cameras = {
-            1: connect("VCAM1"),
-            2: connect("VCAM2"),
-        }
-        self.managers = {
-            1: VCAMManager(1),
-            2: VCAMManager(2),
-        }
+        self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
+        self.managers = {1: VCAMManager(1), 2: VCAMManager(2)}
         self.filt = connect(VAMPIRES.FILT)
         # self.diff_filt = connect(VAMPIRES.DIFF)
         self.debug = debug
@@ -62,9 +44,7 @@ class FilterSweeper:
             # filthy, disgusting
             logger.setLevel(logging.DEBUG)
             logger.handlers[0].setLevel(logging.DEBUG)
-        self.conf_data = pd.read_csv(
-            conf_dir / "data" / "conf_vampires_qwp_filter_data.csv"
-        )
+        self.conf_data = pd.read_csv(conf_dir / "data" / "conf_vampires_qwp_filter_data.csv")
 
     def move_filter(self, filt, wait=False):
         if self.debug:
@@ -117,9 +97,7 @@ class FilterSweeper:
 
 @click.command("filter_sweep")
 @click.option("-t", "--time", type=float, default=5, prompt="Time (s) per position")
-@click.option(
-    "-w/-nw", "--wait/--no-wait", default=True, prompt="Wait for QWPs to settle"
-)
+@click.option("-w/-nw", "--wait/--no-wait", default=True, prompt="Wait for QWPs to settle")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
 def main(time, wait=False, debug=False):
     manager = FilterSweeper(debug=debug)

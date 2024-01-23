@@ -7,23 +7,18 @@ import click
 import numpy as np
 import pandas as pd
 import tqdm.auto as tqdm
-from scxconf.pyrokeys import VAMPIRES
-
 from device_control.facility import WPU, ImageRotator
+from scxconf.pyrokeys import VAMPIRES
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values
 
-from ..acquisition.manager import VCAMManager
-from ..configurations import prep_pdi
+from vampires_control.acquisition.manager import VCAMManager
+from vampires_control.configurations import prep_pdi
 
-conf_dir = Path(
-    os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/")
-)
+conf_dir = Path(os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/"))
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
@@ -41,25 +36,12 @@ class PolCalManager:
     HWP_POSNS = (0, 11.25, 22.5, 33.75, 45, 56.25, 67.5, 78.75)
     EXT_HWP_POSNS = (90, 101.25, 112.5, 123.75, 135, 146.25, 157.5, 168.75)
     IMR_INDS_HWP_EXT = (2, 5)
-    STANDARD_FILTERS = (
-        "Open",
-        "625-50",
-        "675-50",
-        "725-50",
-        "750-50",
-        "775-50",
-    )
+    STANDARD_FILTERS = ("Open", "625-50", "675-50", "725-50", "750-50", "775-50")
     NB_FILTERS = ("Halpha", "Ha-cont", "SII", "SII-cont")
 
     def __init__(self, mode: str = "standard", use_flc: bool = False, debug=False):
-        self.cameras = {
-            1: connect("VCAM1"),
-            2: connect("VCAM2"),
-        }
-        self.managers = {
-            1: VCAMManager(1),
-            2: VCAMManager(2),
-        }
+        self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
+        self.managers = {1: VCAMManager(1), 2: VCAMManager(2)}
         self.use_flc = use_flc
         if self.use_flc:
             self.flc = connect(VAMPIRES.FLC)
@@ -74,9 +56,7 @@ class PolCalManager:
             # filthy, disgusting
             logger.setLevel(logging.DEBUG)
             logger.handlers[0].setLevel(logging.DEBUG)
-        self.conf_data = pd.read_csv(
-            conf_dir / "data" / "conf_vampires_qwp_filter_data.csv"
-        )
+        self.conf_data = pd.read_csv(conf_dir / "data" / "conf_vampires_qwp_filter_data.csv")
 
     def ask_for_filters(self):
         if self.mode == "standard":
@@ -236,10 +216,7 @@ class PolCalManager:
         qwp2_pos = float(conf_row["qwp2"].iloc[0])
         while True:
             last_qwp1, last_qwp2 = get_values(("U_QWP1", "U_QWP2")).values()
-            if (
-                np.abs(last_qwp1 - qwp1_pos) < 0.1
-                and np.abs(last_qwp2 - qwp2_pos) < 0.1
-            ):
+            if np.abs(last_qwp1 - qwp1_pos) < 0.1 and np.abs(last_qwp2 - qwp2_pos) < 0.1:
                 break
             time.sleep(0.5)
 

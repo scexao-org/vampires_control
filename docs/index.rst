@@ -52,6 +52,7 @@ Contents
    :caption: Procedures
 
    procedures/autofocus
+   procedures/coronagraphs
 
 .. toctree::
    :maxdepth: 1

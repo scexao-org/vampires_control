@@ -8,16 +8,13 @@ from typing import Tuple
 import click
 import numpy as np
 import pandas as pd
-from scxconf.pyrokeys import VAMPIRES
-
 from swmain.infra.badsystemd.aux import auto_register_to_watchers
 from swmain.redis import get_values, update_keys
+
 from vampires_control.helpers import get_dominant_filter
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger("qwp_daemon")
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
@@ -29,14 +26,10 @@ __all__ = ("TRACKING_LAWS", "VAMPIRESFilterTrackingLaw", "QWPTrackingDaemon")
 
 
 class VAMPIRESFilterTrackingLaw:
-    conf_dir: Path = Path(
-        os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/")
-    )
+    conf_dir: Path = Path(os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/"))
 
     def __init__(self) -> None:
-        self.conf_data = pd.read_csv(
-            self.conf_dir / "data" / "conf_vampires_qwp_filter_data.csv"
-        )
+        self.conf_data = pd.read_csv(self.conf_dir / "data" / "conf_vampires_qwp_filter_data.csv")
 
     def __call__(self) -> Tuple[float, float]:
         filt = self.get_filter()
@@ -46,9 +39,7 @@ class VAMPIRESFilterTrackingLaw:
 
     def get_filter(self):
         filter_dict = get_values(("U_DIFFL1", "U_FILTER"))
-        curr_filter = get_dominant_filter(
-            filter_dict["U_FILTER"], filter_dict["U_DIFFL1"]
-        )
+        curr_filter = get_dominant_filter(filter_dict["U_FILTER"], filter_dict["U_DIFFL1"])
         return curr_filter
 
     def get_angles_from_conf(self, filt: str) -> Tuple[float, float]:
@@ -63,9 +54,7 @@ class VAMPIRESFilterTrackingLaw:
         return qwp1_angle, qwp2_angle
 
 
-TRACKING_LAWS = {
-    "Filter": VAMPIRESFilterTrackingLaw,
-}
+TRACKING_LAWS = {"Filter": VAMPIRESFilterTrackingLaw}
 
 
 class QWPTrackingDaemon:
@@ -80,7 +69,8 @@ class QWPTrackingDaemon:
     def run(self, law="filter", poll=5):
         law_key = law.title()
         if law_key not in TRACKING_LAWS:
-            raise ValueError(f"Unrecognized tracking law: {law_key}")
+            msg = f"Unrecognized tracking law: {law_key}"
+            raise ValueError(msg)
         tracking_law = TRACKING_LAWS[law_key]()  # instantiate tracking law object
 
         logger.info(f"Starting QWP tracking loop with {law_key} law")
@@ -90,9 +80,7 @@ class QWPTrackingDaemon:
             while True:
                 qwp1_angle, qwp2_angle = tracking_law()
                 # check if we have to move the QWPs
-                if not np.isclose(qwp1_angle, last_qwp1) or not np.isclose(
-                    qwp2_angle, last_qwp2
-                ):
+                if not np.isclose(qwp1_angle, last_qwp1) or not np.isclose(qwp2_angle, last_qwp2):
                     self.move_qwps(qwp1_angle, qwp2_angle)
                     last_qwp1, last_qwp2 = qwp1_angle, qwp2_angle
                 time.sleep(poll)
@@ -162,10 +150,7 @@ class QWPTrackingDaemon:
 
 @click.command("qwp_daemon")
 @click.option(
-    "-l",
-    "--law",
-    type=click.Choice(TRACKING_LAWS.keys(), case_sensitive=False),
-    default="filter",
+    "-l", "--law", type=click.Choice(TRACKING_LAWS.keys(), case_sensitive=False), default="filter"
 )
 @click.option("-p", "--poll", default=5, type=float, help="(s) Poll time for daemon")
 def main(law: str, poll: float):

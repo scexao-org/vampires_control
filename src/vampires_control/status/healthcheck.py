@@ -1,9 +1,9 @@
 import multiprocessing as mp
 
 import click
-
 from device_control.pyro_keys import VAMPIRES
 from swmain.network.pyroclient import connect
+
 from vampires_control.helpers import Palette, color_to_rgb
 
 
@@ -51,12 +51,7 @@ DEVICES = [
 def main():
     click.echo("Checking VAMPIRES devices are connected")
     with mp.Pool() as pool:
-        statuses = list(
-            pool.map(
-                check_device,
-                DEVICES,
-            )
-        )
+        statuses = list(pool.map(check_device, DEVICES))
 
         result = all(statuses)
 

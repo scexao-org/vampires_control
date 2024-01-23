@@ -1,8 +1,5 @@
-import subprocess
-
 import click
 import numpy as np
-
 from pyMilk.interfacing.isio_shmlib import SHM
 from swmain.network.pyroclient import connect
 
@@ -76,12 +73,8 @@ def get_trigger():
     click.echo(f"Cam 1: {enab[0]} | Cam 2: {enab[1]}")
 
 
-@click.command(
-    "set_trigger", help="Control the external trigger mode for both cameras."
-)
-@click.argument(
-    "enable", type=click.Choice(["enable", "disable"], case_sensitive=False)
-)
+@click.command("set_trigger", help="Control the external trigger mode for both cameras.")
+@click.argument("enable", type=click.Choice(["enable", "disable"], case_sensitive=False))
 def set_trigger(enable: bool):
     for cam in connect_cameras():
         cam.set_external_trigger__oneway(enable)
@@ -110,34 +103,10 @@ def get_mode():
 @click.argument(
     "mode",
     type=click.Choice(
-        [
-            "STANDARD",
-            "TWOARC",
-            "ONEARC",
-            "HALF",
-            "NPBS",
-            "MBI",
-            "MBI_REDUCED",
-            "FULL",
-            "PUPIL",
-        ],
+        ["STANDARD", "TWOARC", "ONEARC", "HALFARC", "NPBS", "MBI", "MBI_REDUCED", "FULL", "PUPIL"],
         case_sensitive=False,
     ),
 )
 def set_mode(mode: str):
     for cam in connect_cameras():
         cam.set_camera_mode__oneway(mode)
-
-
-@click.command("start_cameras")
-@click.argument("mode", default="STANDARD")
-@click.option(
-    "-c", "--cam", type=int, required=False, help="Start a single camera by number"
-)
-def start_cameras(mode, cam=None):
-    if cam is None:
-        subprocess.run(["ssh", "sc5", "cam-vcamstart"])
-    elif cam == 1:
-        subprocess.run(["ssh", "sc5", "cam-vcam1start"])
-    elif cam == 2:
-        subprocess.run(["ssh", "sc5", "cam-vcam2start"])

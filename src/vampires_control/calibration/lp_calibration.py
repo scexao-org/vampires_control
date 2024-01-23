@@ -8,20 +8,15 @@ import numpy as np
 import pandas as pd
 import tqdm.auto as tqdm
 from scxconf.pyrokeys import SCEXAO, VAMPIRES
-
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values
 
-from ..acquisition.manager import VCAMManager
+from vampires_control.acquisition.manager import VCAMManager
 
-conf_dir = Path(
-    os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/")
-)
+conf_dir = Path(os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/"))
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
@@ -36,22 +31,10 @@ class LPCalManager:
     """
 
     LP_POSNS = np.linspace(0, 180, 16)
-    STANDARD_FILTERS = (
-        "Open",
-        "625-50",
-        "675-50",
-        "725-50",
-        "750-50",
-        "775-50",
-    )
+    STANDARD_FILTERS = ("Open", "625-50", "675-50", "725-50", "750-50", "775-50")
     NB_FILTERS = ("Halpha", "SII")
 
-    def __init__(
-        self,
-        mode: str = "standard",
-        use_flc: bool = False,
-        debug=False,
-    ):
+    def __init__(self, mode: str = "standard", use_flc: bool = False, debug=False):
         # store properties
         self.mode = mode
         self.filters = self.ask_for_filters()
@@ -61,19 +44,11 @@ class LPCalManager:
             # filthy, disgusting
             logger.setLevel(logging.DEBUG)
             logger.handlers[0].setLevel(logging.DEBUG)
-        self.conf_data = pd.read_csv(
-            conf_dir / "data" / "conf_vampires_qwp_filter_data.csv"
-        )
+        self.conf_data = pd.read_csv(conf_dir / "data" / "conf_vampires_qwp_filter_data.csv")
 
         # camera setup
-        self.cameras = {
-            1: connect("VCAM1"),
-            2: connect("VCAM2"),
-        }
-        self.managers = {
-            1: VCAMManager(1),
-            2: VCAMManager(2),
-        }
+        self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
+        self.managers = {1: VCAMManager(1), 2: VCAMManager(2)}
 
         # connect
         self.filt = connect(VAMPIRES.FILT)
@@ -110,7 +85,6 @@ class LPCalManager:
             return
 
         # prepare vampires
-        mbi = "Dichroics" if self.mode == "MBI" else "Mirror"
         # prep_pdi.callback(flc=self.flc, mbi=mbi)
         if self.mode in ("MBI", "NB"):
             self.filt.move_configuration("Open")
@@ -169,7 +143,7 @@ class LPCalManager:
             if filt == "Halpha":
                 self.diff_filt.move_configuration_idx(3)
             elif filt == "SII":
-                self.diff_filt.move_configuration_idx(3)
+                self.diff_filt.move_configuration_idx(2)
 
     def wait_for_qwp_pos(self, filt):
         if self.debug or self.use_qwp:
@@ -181,10 +155,7 @@ class LPCalManager:
         qwp2_pos = float(conf_row["qwp2"].iloc[0])
         while True:
             last_qwp1, last_qwp2 = get_values(("U_QWP1", "U_QWP2")).values()
-            if (
-                np.abs(last_qwp1 - qwp1_pos) < 0.1
-                and np.abs(last_qwp2 - qwp2_pos) < 0.1
-            ):
+            if np.abs(last_qwp1 - qwp1_pos) < 0.1 and np.abs(last_qwp2 - qwp2_pos) < 0.1:
                 break
             time.sleep(0.5)
 

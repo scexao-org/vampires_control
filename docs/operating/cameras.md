@@ -17,15 +17,14 @@ Make sure to forward your display over SSH if running from the VAMPIRES VNC
 
 To start the camera framegrabber (which should not be done unless necessary)
 ```
-scexao5 $ cam-vcamstart # start both cameras
-scexao5 $ cam-vcam1start # start vcam1
-scexao5 $ cam-vcam2start # start vcam2
+scexao5 $ camstart vcam1 # start vcam1
+scexao5 $ camstart vcam2 # start vcam2
 ```
 
 and to start the pygame viewers
 ```
-scexao5 $ vcam1.py & # cam 1 viewer
-scexao5 $ vcam2.py & # cam 2 viewer
+scexao5 $ vcam1 & # cam 1 viewer
+scexao5 $ vcam2 & # cam 2 viewer
 ```
 
 ```{admonition} Raw SHM Viewer
@@ -33,18 +32,18 @@ scexao5 $ vcam2.py & # cam 2 viewer
 
 If you want to see the raw data (useful to see MBI frames without cropping), use one of the generic viewers with the appropriate SHM name (`vcam1`/`vcam2`)
 
-    scexao5 $ anycam.py vcam1 # pygame viewer
+    scexao5 $ anycam vcam1 # pygame viewer
     scexao5 $ shmImshow.py vcam1 # qt viewer
 ```
 
 ### VPUPCAM
 
 ```
-sonne $ cam-vpupcamstart # start vpupcam
+sonne $ camstart vpupcam # start vpupcam
 ```
 
 ```
-sonne $ vpupcam.py &
+sonne $ vpupcam &
 ```
 
 ## Camera Crops and Modes
@@ -52,12 +51,12 @@ sonne $ vpupcam.py &
 VAMPIRES has two readout modes: "Slow" and "Fast". The main differences are the maximum framerate and read noise. The slow mode uses the extra readout time to reduce the jitter in the ADC conversion, which enables sensitivity low enough for photon number resolving. The noise characteristics of the cameras are only related to the readout mode. The timing characteristics, however, are dependent on the camera crop and trigger modes with a somewhat complicated relationship that also depends on the readout mode.
 
 
-| Mode | Cam | Gain (e-/adu) | RN (e-) | DC (e-/px/s) | FPN* (%) |
-| - | - | - |- | - | - |
-| Fast | 1 | 0.103 | 0.403 | 3.6e-3 | |
-| Fast | 2 | 0.103 | 0.399 | 3.5e-3 | |
-| Slow | 1 | 0.105 | 0.245 | 3.6e-3 | |
-| Slow | 2 | 0.105 | 0.220 | 3.5e-3 | |
+| Mode | Cam | Gain (e-/adu) | RN (e-) | DC (e-/px/s) |
+| - | - | - |- | - |
+| Fast | 1 | 0.103 | 0.403 | 3.6e-3 |
+| Fast | 2 | 0.103 | 0.399 | 3.5e-3 |
+| Slow | 1 | 0.105 | 0.245 | 3.6e-3 |
+| Slow | 2 | 0.105 | 0.220 | 3.5e-3 |
 
 ### Photon Transfer Curves
 
@@ -92,7 +91,14 @@ VAMPIRES has three camera modes to accommadate the different crops required for 
 This is the standard 3"x3" FOV crop
 
 ```
-set_mode standard
+sonne $ set_mode standard
+```
+
+There are also some reduced crop sizes
+```
+sonne $ set_mode twoarc # 2" x 2" FOV
+sonne $ set_mode onearc # 1" x 1" FOV
+sonne $ set_mode halfarc # 0.5" x 0.5" FOV
 ```
 
 ### MBI
@@ -100,7 +106,7 @@ This is a 12"x6" crop that accommadates the four 3"x3" fields produced in the mu
 
 
 ```
-set_mode mbi
+sonne $ set_mode mbi
 ```
 
 ### MBI Reduced
@@ -108,7 +114,15 @@ set_mode mbi
 This field crops out the 625nm field so that the maximum readout speed of the detector can still reach ~500 fps while still imaging three 3"x3" FOVs.
 
 ```
-set_mode mbi-reduced
+sonne $ set_mode mbi-reduced
+```
+
+### Pupil
+
+This crop is like the standard crop but larger to accommadate the size of the full pupil when imaged with the pupil-imaging lens. Note that currently it is only possible to get a focused pupil image on VCAM1.
+
+```
+sonne $ set_mode pupil
 ```
 
 ## Exposure time

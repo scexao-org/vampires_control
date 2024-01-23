@@ -1,12 +1,10 @@
 from time import sleep
 
 import click
-import numpy as np
 from rich.live import Live
 from rich.rule import Rule
 from rich.table import Table
 from rich.text import Text
-
 from swmain.redis import get_values
 
 
@@ -26,25 +24,13 @@ active_style = f"{Palette.white} on {Palette.green}"
 danger_style = f"{Palette.white} on {Palette.red}"
 inactive_style = f"{Palette.gray} on #111111"
 
-REDIS_KEYS = [
-    "DATA",
-    "EXPO",
-    "FRATE",
-    "LGSTP",
-    "TEMP",
-    "TRIG",
-]
+REDIS_KEYS = ["DATA", "EXPO", "FRATE", "LGSTP", "TEMP", "TRIG"]
 
-REDIS_CAM_KEYS = {
-    "VCAM1": "u_V",
-    "VCAM2": "u_W",
-}
+REDIS_CAM_KEYS = {"VCAM1": "u_V", "VCAM2": "u_W"}
 
 
 def get_table():
-    title = Rule(
-        Text("SCExAO Cam Status", style="italic"), style=f"bold {Palette.gold}"
-    )
+    title = Rule(Text("SCExAO Cam Status", style="italic"), style=f"bold {Palette.gold}")
     table = Table(title=title, style=f"bold {Palette.gold}")
 
     table.add_column("Name")
@@ -71,10 +57,7 @@ def get_table():
         )
         table.add_row(
             cam,
-            Text(
-                "logging" if logging else "",
-                style=active_style if logging else default_style,
-            ),
+            Text("logging" if logging else "", style=active_style if logging else default_style),
             details,
         )
 

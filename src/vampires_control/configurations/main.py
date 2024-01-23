@@ -2,10 +2,6 @@ import asyncio
 
 import click
 
-from device_control.pyro_keys import VAMPIRES
-from swmain.network.pyroclient import connect
-from vampires_control.helpers import Palette, color_to_rgb
-
 from .configurations import Configuration
 
 CONFIGS = {
@@ -29,26 +25,11 @@ CONFIGS = {
         fcs="standard",
         mask=8,
     ),
-    "PDI": Configuration(
-        name="PDI",
-        bs="PBS",
-        camfcs="dual",
-        fcs="standard",
-    ),
+    "PDI": Configuration(name="PDI", bs="PBS", camfcs="dual", fcs="standard"),
     "SDI": Configuration(
-        name="SDI",
-        bs="PBS",
-        mbi="Mirror",
-        puplens="OUT",
-        camfcs="dual",
-        fcs="standard",
+        name="SDI", bs="PBS", mbi="Mirror", puplens="OUT", camfcs="dual", fcs="standard"
     ),
-    "VPL": Configuration(
-        name="VPL",
-        bs="PBS",
-        camfcs="VPL",
-        fcs="VPL",
-    ),
+    "VPL": Configuration(name="VPL", bs="PBS", camfcs="VPL", fcs="VPL"),
     "LAPD": Configuration(
         name="LAPD",
         diff=1,
@@ -129,9 +110,7 @@ def prep_parked():
     type=click.Choice(["Mirror", "Dichroics"], case_sensitive=False),
     prompt=True,
 )
-@click.option(
-    "-d", "--defocus", type=float, default=3.0, prompt="Camera defocus, in mm"
-)
+@click.option("-d", "--defocus", type=float, default=3.0, prompt="Camera defocus, in mm")
 def prep_lapd(defocus, beamsplitter, mbi):
     conf = CONFIGS["LAPD"]
     conf.cam_defocus = defocus
@@ -178,8 +157,7 @@ def main(ctx):
     # no configuration passed, choose from list
     if ctx.invoked_subcommand is None:
         sub = click.prompt(
-            "Choose configuration",
-            type=click.Choice(SUBCOMMANDS.keys(), case_sensitive=False),
+            "Choose configuration", type=click.Choice(SUBCOMMANDS.keys(), case_sensitive=False)
         )
         ctx.invoke(SUBCOMMANDS[sub])
 

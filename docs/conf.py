@@ -29,9 +29,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "myst_parser",
 ]
-myst_enable_extensions = [
-    "dollarmath",
-]
+myst_enable_extensions = ["dollarmath"]
 myst_heading_anchors = 2
 
 templates_path = ["_templates"]

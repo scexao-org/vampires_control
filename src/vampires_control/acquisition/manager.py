@@ -2,9 +2,7 @@ import logging
 import time
 
 from paramiko import AutoAddPolicy, SSHClient
-
 from swmain.redis import RDB
-from vampires_control.acquisition import logger
 
 logger = logging.getLogger(__name__)
 
@@ -57,9 +55,7 @@ class CamManager:
 
 
 class VCAMManager(CamManager):
-    def __init__(
-        self, cam_number, shm_name=None, computer="scexao5", cset="q_asl", **kwargs
-    ):
+    def __init__(self, cam_number, shm_name=None, computer="scexao5", cset="q_asl", **kwargs):
         self.cam_number = cam_number
         shm_name = f"vcam{cam_number}"
         super().__init__(shm_name, computer, cset, **kwargs)
@@ -69,5 +65,5 @@ class VCAMManager(CamManager):
             try:
                 RDB.hset(f"U_VLOG{self.cam_number}", "value", logging)
                 break
-            except:
+            except Exception:
                 time.sleep(0.5)
