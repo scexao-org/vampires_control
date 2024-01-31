@@ -8,9 +8,7 @@ from swmain.infra.badsystemd.aux import auto_register_to_watchers
 from swmain.network.pyroclient import connect
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger("flc_temps")
 logger.setLevel(logging.INFO)
 stream_handler = logging.StreamHandler()
@@ -23,10 +21,7 @@ parser = ArgumentParser(
     usage="Will consistently ping the FLC temperature sensor to push status updates",
 )
 parser.add_argument(
-    "-t",
-    type=float,
-    default=10,
-    help="Polling time in seconds, by default %(default)f s",
+    "-t", type=float, default=10, help="Polling time in seconds, by default %(default)f s"
 )
 
 

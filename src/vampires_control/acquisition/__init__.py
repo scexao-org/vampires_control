@@ -1,9 +1,7 @@
 import logging
 
 # set up logging
-_formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-)
+_formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger("acquisition")
 logger.setLevel(logging.INFO)
 _stream_handler = logging.StreamHandler()

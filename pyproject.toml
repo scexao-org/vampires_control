@@ -23,7 +23,8 @@ dependencies = [
     "paramiko",
     "ruff",
     "pyyaml",
-    "pydantic"
+    "pydantic",
+    "synphot"
 ]
 dynamic = ["version"]
 

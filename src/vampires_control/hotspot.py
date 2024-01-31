@@ -1,22 +1,11 @@
 import click
 import numpy as np
+from pyMilk.interfacing.isio_shmlib import SHM
 from skimage.measure import centroid
 
-from pyMilk.interfacing.isio_shmlib import SHM
-
 MBI_ROUGH_HOTSPOTS = {
-    "vcam1": {
-        "770": (1900, 815),
-        "720": (876, 832),
-        "670": (310, 837),
-        "620": (300, 280),
-    },
-    "vcam2": {
-        "770": (1966, 334),
-        "720": (845, 290),
-        "670": (281, 273),
-        "620": (259, 835),
-    },
+    "vcam1": {"770": (1900, 815), "720": (876, 832), "670": (310, 837), "620": (300, 280)},
+    "vcam2": {"770": (1966, 334), "720": (845, 290), "670": (281, 273), "620": (259, 835)},
 }
 
 
@@ -41,9 +30,7 @@ def cutout_slice(frame, window, center):
     half_width = np.asarray(window) / 2
     Ny, Nx = frame.shape[-2:]
     lower = np.maximum(0, np.round(center - half_width), dtype=int, casting="unsafe")
-    upper = np.minimum(
-        (Ny - 1, Nx - 1), np.round(center + half_width), dtype=int, casting="unsafe"
-    )
+    upper = np.minimum((Ny - 1, Nx - 1), np.round(center + half_width), dtype=int, casting="unsafe")
     return np.s_[lower[0] : upper[0] + 1, lower[1] : upper[1] + 1]
 
 
