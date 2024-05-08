@@ -26,8 +26,19 @@ def update_keys(**kwargs):
             time.sleep(0.5)
 
 
-DATA_TYPES = ("OBJECT", "DARK", "FLAT", "BIAS", "FLUX", "SKYFLAT", "DOMEFLAT", "COMPARISON", "TEST")
-
+DATA_TYPES = (
+    "ACQUISITION",
+    "BIAS",
+    "COMPARISON",
+    "DARK",
+    "DOMEFLAT",
+    "FLAT",
+    "FOCUSING",
+    "OBJECT",
+    "SKYFLAT",
+    "STANDARD",
+    "TEST",
+)
 # BASE_COMMAND = ("ssh", "scexao@scexao6", "milk-streamFITSlog", "-cset", "aol0log")
 BASE_COMMAND = ("ssh", "scexao@scexao5", "milk-streamFITSlog", "-cset", "q_asl")
 
@@ -109,28 +120,17 @@ def resume_acq_one_camera(cam_num, num_cubes=-1):
     help="Subaru-style data type",
     prompt="Data type",
 )
-@click.option(
-    "-s",
-    "--start/--no-start",
-    default=False,
-    prompt="Immediately start logging after creating process",
-    show_default=True,
-)
-def start_acquisition_main(
-    nframes, ncubes=-1, data_type="OBJECT", cam=-1, archive=False, start=False
-):
+def start_acquisition_main(nframes, ncubes=-1, data_type="OBJECT", cam=-1, archive=False):
     if archive:
         base_dir = ARCHIVE_DATA_DIR_BASE
     else:
         base_dir = click.prompt("Please enter save directory", type=Path, default=DATA_DIR_BASE)
     return start_acquisition(
-        nframes, ncubes=ncubes, data_type=data_type, cam=cam, base_dir=base_dir, start=start
+        nframes, ncubes=ncubes, data_type=data_type, cam=cam, base_dir=base_dir
     )
 
 
-def start_acquisition(
-    nframes, ncubes=-1, data_type="OBJECT", cam=-1, archive=False, base_dir=None, start=False
-):
+def start_acquisition(nframes, ncubes=-1, data_type="OBJECT", cam=-1, archive=False, base_dir=None):
     if base_dir is None:
         base_dir = ARCHIVE_DATA_DIR_BASE if archive else DATA_DIR_BASE
     else:
@@ -139,17 +139,16 @@ def start_acquisition(
     with mp.Pool(2) as pool:
         if cam in (-1, 1):
             pool.apply_async(
-                start_acq_one_camera, args=(base_dir, 1, nframes, ncubes, data_type, start)
+                start_acq_one_camera, args=(base_dir, 1, nframes, ncubes, data_type, False)
             )
         if cam in (-1, 2):
             pool.apply_async(
-                start_acq_one_camera, args=(base_dir, 2, nframes, ncubes, data_type, start)
+                start_acq_one_camera, args=(base_dir, 2, nframes, ncubes, data_type, False)
             )
         pool.close()
         pool.join()
     msg = "\nLogger process started"
-    if not start:
-        msg += "-\nlogging will start after running 'startlog'"
+    msg += "-\nlogging will start after running 'startlog'"
     click.echo(msg)
 
 

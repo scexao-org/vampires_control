@@ -93,20 +93,31 @@ def set_readout_mode(mode: str):
         cam.set_readout_mode__oneway(mode)
 
 
-@click.command("get_mode", help="Set both cameras' crop modes.")
-def get_mode():
+@click.command("get_crop", help="Set both cameras' crop modes.")
+def get_crop():
     mode = [cam.get_camera_mode() for cam in connect_cameras()]
     click.echo(f"Cam 1: {mode[0]} | Cam 2: {mode[1]}")
 
 
-@click.command("set_mode", help="Set both cameras' crop modes.")
+@click.command("set_crop", help="Set both cameras' crop modes.")
 @click.argument(
-    "mode",
+    "crop",
     type=click.Choice(
-        ["STANDARD", "TWOARC", "ONEARC", "HALFARC", "NPBS", "MBI", "MBI_REDUCED", "FULL", "PUPIL"],
+        [
+            "STANDARD",
+            "TWOARC",
+            "ONEARC",
+            "HALFARC",
+            "NPBS",
+            "MBI",
+            "MBI_REDUCED",
+            "MBI_ONEHALF",
+            "FULL",
+            "PUPIL",
+        ],
         case_sensitive=False,
     ),
 )
-def set_mode(mode: str):
+def set_crop(crop: str):
     for cam in connect_cameras():
-        cam.set_camera_mode__oneway(mode)
+        cam.set_camera_mode__oneway(crop)

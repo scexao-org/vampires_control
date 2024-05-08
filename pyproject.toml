@@ -47,8 +47,8 @@ get_trigger = "vampires_control.cameras:get_trigger"
 set_trigger = "vampires_control.cameras:set_trigger"
 get_readout_mode = "vampires_control.cameras:get_readout_mode"
 set_readout_mode = "vampires_control.cameras:set_readout_mode"
-get_mode = "vampires_control.cameras:get_mode"
-set_mode = "vampires_control.cameras:set_mode"
+get_crop = "vampires_control.cameras:get_crop"
+set_crop = "vampires_control.cameras:set_crop"
 # logging
 set_datatype = "vampires_control.acquisition.acquire:set_datatype_main"
 startlog = "vampires_control.acquisition.acquire:start_acquisition_main"
@@ -66,8 +66,10 @@ take_cals = "vampires_control.calibration.calibs:main"
 filter_sweep = "vampires_control.calibration.filter_sweep:main"
 iwa_scan = "vampires_control.calibration.iwa:main"
 sdi_daemon = "vampires_control.acquisition.sdi_daemon:main"
+bs_calib = "vampires_control.calibration.bs_throughput:main"
 pol_calib = "vampires_control.calibration.polarization_calibration:main"
 drr_calib = "vampires_control.calibration.drr_calibration:main"
+hotspot = "vampires_control.hotspot:hotspot"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_control.__version__"}

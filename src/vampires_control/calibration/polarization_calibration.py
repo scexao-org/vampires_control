@@ -13,7 +13,6 @@ from swmain.network.pyroclient import connect
 from swmain.redis import get_values
 
 from vampires_control.acquisition.manager import VCAMManager
-from vampires_control.configurations import prep_pdi
 
 conf_dir = Path(os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/"))
 
@@ -86,12 +85,11 @@ class PolCalManager:
             return
 
         # prepare vampires
-        mbi = "Dichroics" if self.mode == "MBI" else "Mirror"
-        if self.mode == "NB":
-            # prep_sdi.callback(flc=self.flc, mbi=mbi)
-            pass
-        else:
-            prep_pdi.callback(flc=self.flc, mbi=mbi)
+        # if self.mode == "NB":
+        #     # prep_sdi.callback(flc=self.flc, mbi=mbi)
+        #     pass
+        # else:
+        #     # prep_pdi.callback(flc=self.flc, mbi=mbi)
         if self.mode in ("MBI", "NB"):
             self.filt.move_configuration("Open")
         # prepare wpu

@@ -1,35 +1,10 @@
 import numpy as np
-import scipy
+import sep
+from astropy.nddata import Cutout2D
 from pyMilk.interfacing.isio_shmlib import SHM
+from skimage.registration import phase_cross_correlation
 
 from .synthpsf import create_synth_psf
-
-
-def rebin(array, factor, func=None):
-    from numpy.lib.stride_tricks import as_strided
-
-    dim = array.ndim
-    if np.isscalar(factor):
-        factor = dim * (factor,)
-    elif len(factor) != dim:
-        msg = f"Length of factor must be {len(factor)!r} must be {dim!r}"
-        raise ValueError(msg)
-
-    for f in factor:
-        if f != int(f):
-            msg = f"Factor must be an int or tuple of ints, got {f!r}"
-            raise ValueError(msg)
-
-    new_shape = []
-    new_strides = []
-    for sh, st, f in zip(array.shape, array.strides, factor, strict=True):
-        new_shape.append(sh // f)
-        new_strides.append(st * f)
-    new_shape.extend(factor)
-    new_strides.extend(array.strides)
-
-    new_array = as_strided(array, shape=new_shape, strides=new_strides)
-    return np.mean(new_array, axis=tuple(range(-dim, 0)))
 
 
 def find_peak(image, xc, yc, boxsize, oversamp=8):
@@ -94,55 +69,64 @@ def find_peak(image, xc, yc, boxsize, oversamp=8):
     return peak
 
 
-def measure_strehl(im, psf0, pos=None, photometryradius=0.5, peakradius=0.1, pixelscale=6.035e-3):
-    # if the position of the star is not provided, then define it to be the location of the maximum value of the image
+def measure_strehl_otf(image, psf_model):
+    im_mtf = np.abs(np.fft.fft2(image))
+    psf_mtf = np.abs(np.fft.fft2(psf_model))
+
+    im_mtf_norm = im_mtf / np.max(im_mtf)
+    psf_mtf_norm = psf_mtf / np.max(psf_mtf)
+
+    im_volume = np.mean(im_mtf_norm)
+    psf_volume = np.mean(psf_mtf_norm)
+    return im_volume / psf_volume
+
+
+def measure_strehl(image, psf_model, pos=None, phot_rad=0.5, peak_search_rad=0.1, pxscale=5.5):
+    ## Step 1: find approximate location of PSF in image
+
+    # If no position given, start at the nan-max
     if pos is None:
-        # find the location of the maximum value of the image
-        # maxloc = np.where(im == np.amax(im))
-        maxloc = np.where(im == np.nanmax(im))
-        xc = maxloc[0][0]
-        yc = maxloc[1][0]
-    else:
-        xc = pos[0]
-        yc = pos[1]
+        pos = np.unravel_index(np.nanargmax(image), image.shape)
+    center = np.array(pos)
+    # Now, refine this centroid using cross-correlation
+    # this cutout must have same shape as PSF reference (chance for errors here)
+    cutout = Cutout2D(image, center[::-1], psf_model.shape)
+    assert cutout.data.shape == psf_model.shape
 
-    # compute the center more accurately
-    sz = im.shape
-    x, y = np.meshgrid(np.arange(sz[0]) - yc, np.arange(sz[1]) - xc)
-    peakradius_pixels = int(2 * np.ceil(0.5 * peakradius / pixelscale))
-    central_region = np.sqrt(x**2 + y**2) < peakradius_pixels
-    # xc,yc = scipy.ndimage.center_of_mass(im*central_region)
-    cntl_rgn = im * central_region
-    cntl_rgn[np.isnan(cntl_rgn)] = 0.0
-    xc, yc = scipy.ndimage.center_of_mass(cntl_rgn)
+    shift, _, _ = phase_cross_correlation(
+        psf_model.astype("=f4"), cutout.data.astype("=f4"), upsample_factor=4
+    )
+    refined_center = center + shift
 
-    # calculate the flux of the image
-    x, y = np.meshgrid(np.arange(sz[0]) - yc, np.arange(sz[1]) - xc)
-    central_region = np.sqrt(x**2 + y**2) < photometryradius / pixelscale
-    # flux = np.sum(im*central_region)
-    flux = np.nansum(im * central_region)
+    ## Step 2: Calculate peak flux with subsampling and flux
+    aper_rad_px = phot_rad / (pxscale * 1e-3)
+    image_flux, image_fluxerr, _ = sep.sum_circle(
+        image.astype("=f4"),
+        (refined_center[1],),
+        (refined_center[0],),
+        aper_rad_px,
+        err=np.sqrt(np.maximum(image, 0)),
+    )
+    peak_search_rad_px = peak_search_rad / (pxscale * 1e-3)
+    image_peak = find_peak(image, refined_center[0], refined_center[1], peak_search_rad_px)
 
-    peak = find_peak(im, xc, yc, peakradius_pixels)
+    ## Step 3: Calculate flux of PSF model
+    # note: our models are alrady centered
+    model_center = np.array(psf_model.shape[-2:]) / 2 - 0.5
+    # note: our models have zero background signal
+    model_flux, model_fluxerr, _ = sep.sum_circle(
+        psf_model.astype("=f4"),
+        (model_center[1],),
+        (model_center[0],),
+        aper_rad_px,
+        err=np.sqrt(np.maximum(psf_model, 0)),
+    )
+    model_peak = find_peak(psf_model, model_center[0], model_center[1], peak_search_rad_px)
 
-    # now repeat for the diffraction-limited PSF
-    maxloc0 = np.where(psf0 == np.amax(psf0))
-    xc0 = maxloc0[0][0]
-    yc0 = maxloc0[1][0]
-
-    sz0 = psf0.shape
-    x, y = np.meshgrid(np.arange(sz0[0]) - yc0, np.arange(sz0[1]) - xc0)
-    central_region = np.sqrt(x**2 + y**2) < peakradius_pixels
-    xc0, yc0 = scipy.ndimage.center_of_mass(
-        psf0 * central_region
-    )  # more accurate center coordinates
-
-    x, y = np.meshgrid(np.arange(sz0[0]) - yc0, np.arange(sz0[1]) - xc0)
-    central_region0 = np.sqrt(x**2 + y**2) < photometryradius / pixelscale
-    flux0 = np.sum(psf0 * central_region0)
-
-    peak0 = find_peak(psf0, xc0, yc0, peakradius_pixels)
-    strehl = (peak / flux) / (peak0 / flux0)
-
+    ## Step 4: Calculate Strehl via normalized ratio
+    image_norm_peak = image_peak / image_flux[0]
+    model_norm_peak = model_peak / model_flux[0]
+    strehl = image_norm_peak / model_norm_peak
     return strehl
 
 
@@ -153,14 +137,16 @@ def take_dark(data_shm_name: str, n=100):
     dark_shm.set_data(mean_frame.astype("f4"))
 
 
-def measure_strehl_shm(shm_name: str, nave=10, **kwargs):
+def measure_strehl_shm(shm_name: str, psf=None, nave=10, pxscale=5.77, **kwargs):
     shm = SHM(shm_name)
     dark_shm = SHM(f"{shm_name}_dark")
     dark = dark_shm.get_data()
     shmkwds = shm.get_keywords()
     curfilt = shmkwds["FILTER01"].strip()
-    psf = create_synth_psf(curfilt)
 
     frames = shm.multi_recv_data(nave, outputFormat=2)
     image = np.mean(frames - dark, axis=0)
-    return measure_strehl(image, psf)
+    # return image
+    if psf is None:
+        psf = create_synth_psf(curfilt, 200, pixel_scale=pxscale)
+    return measure_strehl(image, psf, pxscale=pxscale, **kwargs)

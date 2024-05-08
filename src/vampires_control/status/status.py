@@ -18,6 +18,7 @@ inactive_style = f"{Palette.gray} on #111111"
 
 REDIS_KEYS = [
     "D_IMRANG",
+    "D_IMRPAD",
     "D_IMRMOD",
     "P_RTAGL1",
     "P_STGPS1",
@@ -70,15 +71,17 @@ REDIS_KEYS = [
     "X_GRDST",
     "X_INTSPH",
     "X_NPS14",
-    "X_NPS15",
     "X_NPS216",
     "X_POLAR",
     "X_POLARP",
     "X_PYWPKO",
     "X_PYWPKP",
     "X_SRCFFT",
-    "X_SRCFIR",
-    "X_SRCFOP",
+    "X_SRCND1",
+    "X_SRCND2",
+    "X_SRCND3",
+    "X_SRCEN",
+    "X_SRCFLX",
     "X_SRCSEL",
     "X_VPLPKO",
     "X_VPLPKT",
@@ -149,7 +152,7 @@ def get_table():
     table.add_row(
         "Image rotator",
         status_dict["D_IMRMOD"],
-        f"θ={status_dict['D_IMRANG']:6.02f}°",
+        f"θ={status_dict['D_IMRANG']:6.02f}°, PA={status_dict['D_IMRPAD']:6.02f}°",
         style=default_style,
     )
 
@@ -158,9 +161,9 @@ def get_table():
     ## source
     table.add_section()
     style = default_style
-    if status_dict["X_NPS15"].upper() == "ON":
+    if status_dict["X_SRCEN"].upper() == "ON":
         style = active_style
-    info = f"Flt={status_dict['X_SRCFFT'].replace(' ', '')}, Opt={status_dict['X_SRCFOP'].replace(' ', '')}, IR={status_dict['X_SRCFIR'].replace(' ', '')}"
+    info = f"ND1={status_dict['X_SRCND1'].replace(' ', '')}, ND2={status_dict['X_SRCND2'].replace(' ', '')}, ND3={status_dict['X_SRCND3'].replace(' ', '')}, Flt={status_dict['X_SRCFFT'].replace(' ', '')}, flux={status_dict['X_SRCFLX']:.01f}%"
     table.add_row("Source", status_dict["X_SRCSEL"], info, style=style)
 
     ## integrating sphere
@@ -173,7 +176,7 @@ def get_table():
     style = default_style
     if status_dict["X_GRDST"].upper() != "OFF":
         style = active_style
-    info = f"r={status_dict['X_GRDSEP']} λ/D, a={status_dict['X_GRDAMP']} nm, f={status_dict['X_GRDMOD']} Hz"
+    info = f"r={status_dict['X_GRDSEP']} λ/D, a={status_dict['X_GRDAMP']} um, f={status_dict['X_GRDMOD']} Hz"
     table.add_row("Astrogrid", status_dict["X_GRDST"], info, style=style)
 
     ## LP

@@ -35,7 +35,7 @@ def get_temperature_status(tc):
 
 def main():
     args = parser.parse_args()
-    auto_register_to_watchers("VCAM_TEMP", "VCAM temperature redis updater")
+    auto_register_to_watchers("VCAM_TEMP", "FLC temperature redis updater")
     tc = connect(VAMPIRES.TC)
     while True:
         status = get_temperature_status(tc)
