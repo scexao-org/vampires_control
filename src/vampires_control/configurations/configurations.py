@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 from typing import Optional, Union
 
@@ -59,26 +60,30 @@ class Configuration(BaseModel):
             tomli_w.dump(model_dict, fh)
 
     async def move_async(self) -> None:
+        promises = []
         if self.filter:
-            await move_filter_async(self.filter)
+            promises += [move_filter_async(self.filter)]
         if self.diff:
-            await move_diffwheel_async(self.diff)
+            promises += [move_diffwheel_async(self.diff)]
         if self.bs:
-            await move_bs_async(self.bs)
+            promises += [move_bs_async(self.bs)]
         if self.camfcs:
-            await move_camfcs_async(self.camfcs, self.cam_defocus)
+            promises += [move_camfcs_async(self.camfcs, self.cam_defocus)]
         if self.fcs:
-            await move_fcs_async(self.fcs)
+            promises += [move_fcs_async(self.fcs)]
         if self.puplens:
-            await move_puplens_async(self.puplens)
+            promises += [move_puplens_async(self.puplens)]
         if self.mbi:
-            await move_mbi_async(self.mbi, self.mbi_nudge)
+            promises += [move_mbi_async(self.mbi, self.mbi_nudge)]
         if self.mask:
-            await move_mask_async(self.mask)
+            promises += [move_mask_async(self.mask)]
         if self.flc:
-            await move_flc_async(self.flc)
+            promises += [move_flc_async(self.flc)]
         if self.fieldstop:
-            await move_fieldstop_async(self.fieldstop)
+            promises += [move_fieldstop_async(self.fieldstop)]
+
+        asyncio.gather(*promises)
+
         click.secho(" Finished! ", bg=color_to_rgb(Palette.green), fg=color_to_rgb(Palette.white))
 
 
