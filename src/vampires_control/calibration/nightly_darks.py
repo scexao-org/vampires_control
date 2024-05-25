@@ -11,8 +11,10 @@ import pandas as pd
 from astropy.io import fits
 from scxconf.pyrokeys import VCAM1, VCAM2
 from swmain.network.pyroclient import connect
+import tqdm.auto as tqdm
 
 logger = getLogger(__file__)
+_DEFAULT_DELAY = 2 # s
 
 
 def _default_sc5_archive_folder():
@@ -29,7 +31,7 @@ def _default_output():
 def _relevant_header_for_darks(filename) -> dict:
     path = Path(filename)
     hdr = fits.getheader(path)
-    dark_keys = ("U_CAMERA", "EXPTIME", "U_DETMOD", "PRD-MIN1", "PRD-MIN2", "PRD-RNG1", "PRD-RNG2")
+    dark_keys = ("PRD-MIN1", "PRD-MIN2", "PRD-RNG1", "PRD-RNG2", "OBS-MOD", "U_DETMOD", "EXPTIME", "U_CAMERA")
     return {k: hdr[k] for k in dark_keys}
 
 
@@ -37,12 +39,17 @@ def vampires_dark_table(folder=None):
     if folder is None:
         folder = _default_sc5_archive_folder()
     # get all vcam1 and vcam2 filenames
-    filenames = folder.glob("vcam[12]/vcam*.fits")
-    logger.info(f"Found {len(filenames)} input FITS files")
+    filenames = list(folder.glob("vcam[12]/vcam*.fits"))
+    n_input = len(filenames)
+    logger.info(f"Found {n_input} input FITS files")
+    if n_input == 0:
+        msg = f"No FITS files found in VCAM1/2 folders of {folder}"
+        raise ValueError(msg)
     # get a table from all filenames
     header_rows = [_relevant_header_for_darks(f) for f in filenames]
     # get unique combinations
-    header_table = pd.DataFrame(header_rows).drop_duplicates()
+    header_table = pd.DataFrame(header_rows)
+    header_table.drop_duplicates(keep="first", inplace=True)
     header_table.sort_values(
         ["PRD-MIN1", "PRD-MIN2", "PRD-RNG1", "PRD-RNG2", "U_DETMOD", "EXPTIME", "U_CAMERA"],
         inplace=True,
@@ -51,7 +58,8 @@ def vampires_dark_table(folder=None):
 
 
 def _estimate_total_time(headers, num_frames=250):
-    tints = headers.groupby("U_CAMERA")["EXPTIME"].sum() * num_frames
+    exptimes = headers.groupby("U_CAMERA")["EXPTIME"]
+    tints = exptimes.sum() * num_frames + len(exptimes) * _DEFAULT_DELAY
     return tints.max()
 
 
@@ -59,36 +67,37 @@ BASE_COMMAND = ("milk-streamFITSlog", "-cset", "q_asl")
 
 
 def _kill_log(cam: int):
-    command = [*BASE_COMMAND, f"vcam{cam} kill"]
-    subprocess.run(command, capture_output=True)
+    command = [*BASE_COMMAND, f"vcam{cam}",  "kill"]
+    subprocess.run(command, check=True, capture_output=True)
 
 
-def _prep_log(cam_num: int, num_frame: int):
-    save_dir = Path("/mnt/fuuu/ARCHIVED_DATA")
-    click.echo(f"Saving data to directory {save_dir}")
+def _prep_log(cam_num: int, num_frame: int, folder: Path):
+    click.echo(f"Saving data to directory {folder.absolute()}")
     cmd = [
         *BASE_COMMAND,
         "-z",
         f"{num_frame}",
-        "-d",
-        save_dir.absolute(),
-        "-c 1",
+        "-D",
+        str(folder.absolute()),
+        "-c",
+        "1",
         f"vcam{cam_num}",
         "pstart",
     ]
-    subprocess.run(cmd, capture_output=True)
+    subprocess.run(cmd, check=True, capture_output=True)
 
 
 def _run_log(cam_num: int):
-    cmd = [*BASE_COMMAND, "-c 1", f"vcam{cam_num}", "on"]
-    subprocess.run(cmd, capture_output=True)
+    cmd = [*BASE_COMMAND, "-c", "1", f"vcam{cam_num}", "on"]
+    subprocess.run(cmd, check=True, capture_output=True)
 
 
-def _set_readout_mode(cam: int, mode: str):
+def _set_readout_mode(cam: int, mode: str, pbar):
     if cam == 1:
         camera = connect(VCAM1)
     elif cam == 2:
         camera = connect(VCAM2)
+    pbar.write(f"Setting readout mode to {mode} for VCAM{cam}")
     # readout mode
     camera.set_readout_mode(mode.strip().upper())
 
@@ -97,67 +106,84 @@ class WrongComputerError(BaseException):
     pass
 
 
-def _set_camera_crop(camera, crop):
-    width, height, w_offset, h_offset = crop
-    click.echo(f"Setting camera crop {crop}")
-    camera.set_camera_size(height, width, h_offset, w_offset)
+def _set_camera_crop(camera, crop, obsmode, pbar):
+    w_offset, h_offset, width, height = crop
+    # gotta do backflips to make sure data is labeled correctly
+    if obsmode.endswith("MBI"):
+        modename = "MBI"
+    elif obsmode.endswith("MBIR"):
+        modename = "MBI_REDUCED"
+    elif obsmode.endswith("PUP"):
+        modename = "PUPIL"
+    else:
+        modename = "CUSTOM"
+    
+    pbar.write(f"Setting camera crop x={w_offset} y={h_offset} w={width} h={height} ({modename})")
+    
+    camera.set_camera_size(height, width, h_offset, w_offset, mode_name=modename)
 
 
-def process_dark_frames(table, num_frames=250):
+def process_dark_frames(table, folder, num_frames=250):
     table["crop"] = table.apply(
-        lambda r: (r["PRD-MIN1"], r["PRD-MIN2"], r["PRD-RNG1"], r["PRD-RNG2"])
+        lambda r: (r["PRD-MIN1"], r["PRD-MIN2"], r["PRD-RNG1"], r["PRD-RNG2"]),
+        axis=1
     )
-    for key, group in table.groupby("crop"):
+    pbar = tqdm.tqdm(table.groupby("crop"), desc="Crop")
+    for key, group in pbar:
         if 1 in group["U_CAMERA"]:
-            _set_camera_crop(connect(VCAM1), key)
+            _set_camera_crop(connect(VCAM1), key, group["OBS-MOD"].iloc[0], pbar=pbar)
             _kill_log(1)
 
         if 2 in group["U_CAMERA"]:
-            _set_camera_crop(connect(VCAM2), key)
+            _set_camera_crop(connect(VCAM2), key, group["OBS-MOD"].iloc[0], pbar=pbar)
             _kill_log(2)
 
-        while not click.confirm("Confirm camera stream has restarted", default=True):
-            pass
-
         if 1 in group["U_CAMERA"]:
-            _prep_log(1, num_frames)
+            _prep_log(1, num_frames, folder)
         if 2 in group["U_CAMERA"]:
-            _prep_log(2, num_frames)
+            _prep_log(2, num_frames, folder)
 
-        for key2, group2 in group.sort_values("U_DETMOD", ascending=False).groupby("U_DETMOD"):
+        pbar2 = tqdm.tqdm(group.sort_values("U_DETMOD", ascending=False).groupby("U_DETMOD"), desc="Det. mode", leave=False)
+        for key2, group2 in pbar2:
             if 1 in group2["U_CAMERA"]:
-                _set_readout_mode(1, key2)
+                _set_readout_mode(1, key2, pbar=pbar)
 
             if 2 in group2["U_CAMERA"]:
-                _set_readout_mode(2, key2)
-
-            while not click.confirm("Confirm camera stream has restarted", default=True):
-                pass
-
-            for _, row in group2.iterrows():
+                _set_readout_mode(2, key2, pbar=pbar)
+            pbar3 = tqdm.tqdm(group2.iterrows(), total=len(group2), desc="Exp. time", leave=False)
+            for _, row in pbar3:
                 if row["U_CAMERA"] == 1:
                     camera = connect(VCAM1)
                 elif row["U_CAMERA"] == 2:
                     camera = connect(VCAM2)
                 camera.set_keyword("DATA-TYP", "DARK")
-                tint = row["EXPTIME"] * num_frames + 2  # s
-                camera.set_tint(tint)
+                camera.set_tint(row["EXPTIME"])
+                time.sleep(_DEFAULT_DELAY)
                 _run_log(row["U_CAMERA"])
+                tint = row["EXPTIME"] * num_frames + _DEFAULT_DELAY  # s
                 time.sleep(tint)
 
 
 @click.command("vampires_auto_darks")
 @click.argument("folder", type=Path, default=_default_sc5_archive_folder())
-def main(folder):
+@click.option("-o", "--outdir", type=Path, default=_default_sc5_archive_folder(), prompt=True)
+@click.option("-n", "--num-frames", default=250, type=int, help="Number of frames per dark.")
+@click.option("-y", "--no-confirm", is_flag=True, help="Skip confirmation prompts.")
+def main(folder: Path, outdir: Path, num_frames: int, no_confirm: bool):
     if os.getenv("WHICHCOMP", "") != "5":
         msg = "This script must be run from sc5 in the `vampires_control` conda env"
         raise WrongComputerError(msg)
     table = vampires_dark_table(folder)
     pprint.pprint(table)
-    est_tint = _estimate_total_time(table)
-    click.echo(f"Est. time for 250 frames is {est_tint/60:.01f} min.")
-    num_frames = click.prompt("Please enter num frames", default=250, type=int)
-    process_dark_frames(table, num_frames)
+    est_tint = _estimate_total_time(table, num_frames)
+    click.echo(f"Est. time for all darks with {num_frames} frames each is {est_tint/60:.01f} min.")
+    if not no_confirm:
+        click.confirm("Confirm to proceed", default=True, abort=True)
+    try:
+        process_dark_frames(table, outdir, num_frames)
+    finally:
+        _kill_log(1)
+        _kill_log(2)
 
 
 # @click.command("vampires_auto_darks")
