@@ -31,7 +31,7 @@ def _default_output():
 def _relevant_header_for_darks(filename) -> dict:
     path = Path(filename)
     hdr = fits.getheader(path)
-    dark_keys = ("PRD-MIN1", "PRD-MIN2", "PRD-RNG1", "PRD-RNG2", "OBS-MOD", "U_DETMOD", "EXPTIME", "U_CAMERA")
+    dark_keys = ("PRD-MIN1", "PRD-MIN2", "PRD-RNG1", "PRD-RNG2", "OBS-MOD", "DATA-TYP", "U_DETMOD", "EXPTIME", "U_CAMERA")
     return {k: hdr[k] for k in dark_keys}
 
 
@@ -48,14 +48,11 @@ def vampires_dark_table(folder=None):
     # get a table from all filenames
     header_rows = [_relevant_header_for_darks(f) for f in filenames]
     # get unique combinations
-    header_table = pd.DataFrame(header_rows)
-    header_table.drop_duplicates(keep="first", inplace=True)
-    header_table.sort_values(
-        ["PRD-MIN1", "PRD-MIN2", "PRD-RNG1", "PRD-RNG2", "U_DETMOD", "EXPTIME", "U_CAMERA"],
-        inplace=True,
-    )
+    header_table = pd.DataFrame(header_rows).query("`DATA-TYP` not in ('DARK', 'BIAS')")
+    dark_keys = ["PRD-MIN1", "PRD-MIN2", "PRD-RNG1", "PRD-RNG2", "U_DETMOD", "EXPTIME", "U_CAMERA"]
+    header_table.drop_duplicates(dark_keys, keep="first", inplace=True)
+    header_table.sort_values(dark_keys, inplace=True)
     return header_table
-
 
 def _estimate_total_time(headers, num_frames=250):
     exptimes = headers.groupby("U_CAMERA")["EXPTIME"]
@@ -78,7 +75,7 @@ def _prep_log(cam_num: int, num_frame: int, folder: Path):
         "-z",
         f"{num_frame}",
         "-D",
-        str(folder.absolute()),
+        str(folder.absolute() / f"vcam{cam_num}"),
         "-c",
         "1",
         f"vcam{cam_num}",
@@ -145,10 +142,10 @@ def process_dark_frames(table, folder, num_frames=250):
 
         pbar2 = tqdm.tqdm(group.sort_values("U_DETMOD", ascending=False).groupby("U_DETMOD"), desc="Det. mode", leave=False)
         for key2, group2 in pbar2:
-            if 1 in group2["U_CAMERA"]:
+            if 1 in group2["U_CAMERA"].values:
                 _set_readout_mode(1, key2, pbar=pbar)
 
-            if 2 in group2["U_CAMERA"]:
+            if 2 in group2["U_CAMERA"].values:
                 _set_readout_mode(2, key2, pbar=pbar)
             pbar3 = tqdm.tqdm(group2.iterrows(), total=len(group2), desc="Exp. time", leave=False)
             for _, row in pbar3:
@@ -160,8 +157,9 @@ def process_dark_frames(table, folder, num_frames=250):
                 camera.set_tint(row["EXPTIME"])
                 time.sleep(_DEFAULT_DELAY)
                 _run_log(row["U_CAMERA"])
-                tint = row["EXPTIME"] * num_frames + _DEFAULT_DELAY  # s
-                time.sleep(tint)
+                click.confirm("Confirm when cube is done", default=True, abort=True)
+                # tint = row["EXPTIME"] * num_frames + _DEFAULT_DELAY  # s
+                # time.sleep(tint)
 
 
 @click.command("vampires_auto_darks")
@@ -181,7 +179,7 @@ def main(folder: Path, outdir: Path, num_frames: int, no_confirm: bool):
         click.confirm("Confirm to proceed", default=True, abort=True)
     try:
         process_dark_frames(table, outdir, num_frames)
-    finally:
+    except:
         _kill_log(1)
         _kill_log(2)
 
