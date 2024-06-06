@@ -41,6 +41,15 @@ CONFIGS = {
         fcs="standard",
         mask=8,
     ),
+    "NRM": Configuration(
+        name="NRM",
+        diff=1,
+        bs="Open",
+        mbi="Mirror",
+        camfcs="single",
+        fcs="standard",
+        mask="SAM-7"
+    )
 }
 
 
@@ -140,6 +149,40 @@ def prep_vpl(beamsplitter, mbi):
     conf.mbi = mbi
     asyncio.run(conf.move_async())
 
+@click.command("nrm", help="NRM + MBI")
+@click.option(
+    "-bs",
+    "--beamsplitter",
+    default="Open",
+    type=click.Choice(["PBS", "Open"], case_sensitive=False),
+    prompt=True,
+)
+@click.option(
+    "-m",
+    "--mbi",
+    default="Mirror",
+    type=click.Choice(["Mirror", "Dichroics"], case_sensitive=False),
+    prompt=True,
+)
+@click.option(
+    "-h",
+    "--holes",
+    metavar = '<holes>',
+    default='7',
+    type=click.Choice(['7', '9', '18']),
+    prompt=True,
+)
+def prep_nrm_mbi(beamsplitter: str, mbi: str, holes: int):
+    conf = CONFIGS["NRM"]
+    conf.bs = beamsplitter
+    conf.mbi = mbi
+    conf.mask = f'SAM-{holes}'
+    if "PBS" in beamsplitter:
+        conf.camfcs = 'dual'
+    print(conf)
+    asyncio.run(conf.move_async())
+
+
 
 SUBCOMMANDS = {
     "parked": prep_parked,
@@ -148,6 +191,7 @@ SUBCOMMANDS = {
     "SDI": prep_sdi,
     "VPL": prep_vpl,
     "LAPD": prep_lapd,
+    "NRM": prep_nrm_mbi,
 }
 
 

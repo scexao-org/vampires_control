@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
+
 from pathlib import Path
-from typing import Optional, Union
 
 import click
 import tomli
@@ -14,17 +16,17 @@ from vampires_control.helpers import Palette, color_to_rgb
 
 class Configuration(BaseModel):
     name: str
-    filter: Optional[Union[str, int]] = None
-    diff: Optional[Union[str, int]] = None
-    bs: Optional[Union[str, int]] = None
-    camfcs: Optional[Union[str, int]] = None
+    filter: str | int | None = None
+    diff: str | int | None = None
+    bs: str | int | None = None
+    camfcs: str | int | None = None
     cam_defocus: float = 0
-    fcs: Optional[Union[str, int]] = None
-    puplens: Optional[Union[str, int]] = None
-    mbi: Optional[Union[str, int]] = None
-    mask: Optional[Union[str, int]] = None
-    flc: Optional[Union[str, int]] = None
-    fieldstop: Optional[Union[str, int]] = None
+    fcs: str | int | None = None
+    puplens: str | int | None = None
+    mbi: str | int | None = None
+    mask: str | int | None = None
+    flc: str | int | None = None
+    fieldstop: str | int | None = None
 
     @property
     def mbi_nudge(self) -> float:
