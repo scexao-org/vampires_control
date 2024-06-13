@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coronagraph Alignment &mdash; VAMPIRES Control</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Multiband Imaging" href="mbi.html" />
+    <link rel="prev" title="Autofocusing" href="autofocus.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            vampires_control
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#using-pip">Using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#from-source">From Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#navigating-the-documentation">Navigating the Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#operating-vampires">Operating VAMPIRES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#procedures">Procedures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#observing-with-vampires">Observing with VAMPIRES</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#code-examples">Code Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#python-example">1. Python example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#command-line">2. Command line</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#faq">FAQ</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API/Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/environment_variables.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/api.html">API/Reference</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Operating VAMPIRES</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../operating/layout.html">Instrument Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/cameras.html">Cameras</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#initialization-and-viewers">Initialization and Viewers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#vcam1-and-vcam2">VCAM1 and VCAM2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#vpupcam">VPUPCAM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#detector-readout-modes">Detector Readout Modes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#photon-transfer-curves">Photon Transfer Curves</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#detector-astrometric-solution">Detector Astrometric Solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#camera-crops">Camera Crops</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#standard">Standard</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#mbi">MBI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#mbi-reduced">MBI Reduced</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#pupil">Pupil</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#exposure-time">Exposure time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#camera-triggering">Camera Triggering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#aflc-disabled">AFLC Disabled</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#aflc-enabled">AFLC Enabled</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#crop-location-and-mbi-hotspots">Crop location and MBI hotspots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/viewers.html">Camera Viewers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../operating/viewers.html#vcam1-and-vcam2">VCAM1 and VCAM2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/viewers.html#vpupcam">VPUPCAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/viewers.html#others">Others</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/viewers.html#faq">FAQ</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/viewers.html#the-crop-is-all-weird">1. The crop is all weird!</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/viewers.html#the-cameras-froze">2. The cameras froze!</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/coronagraphs.html">Coronagraphs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../operating/coronagraphs.html#focal-plane-masks">Focal Plane Masks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/coronagraphs.html#lyot-stops">Lyot Stops</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/coronagraphs.html#advanced-details">Advanced Details</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/devices.html">Device Control</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#interacting-with-devices">Interacting with devices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#filters">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#field-stop-focal-plane-mask">Field Stop / Focal Plane Mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#mask-wheel">Mask Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#differential-wheel">Differential Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#beamsplitter-wheel">Beamsplitter Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#mbi-wheel">MBI Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#focus-stages">Focus Stages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#aflc-stage">AFLC Stage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#qwps">QWPs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/data.html">Data Acquisition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../operating/data.html#data-flowchart">Data Flowchart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/data.html#logging-fits-files">Logging FITS files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/data.html#option-1-using-vampires-scripts">Option 1: Using VAMPIRES scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/data.html#option-2-directly-using-fpsctrl">Option 2: Directly using fpsCTRL</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/data.html#watching-fits-files">Watching FITS files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Procedures</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="autofocus.html">Autofocusing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="autofocus.html#standard-procedure">Standard procedure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autofocus.html#narrowband-filters">Narrowband filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autofocus.html#visible-bench-pickoffs">Visible bench pickoffs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autofocus.html#single-cam-focus-no-beamsplitter">Single-cam focus (no beamsplitter)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="autofocus.html#pupil-mode">Pupil mode</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Coronagraph Alignment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#focal-plane-mask-aligment">Focal plane mask aligment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lyot-stop-alignment">Lyot stop alignment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-focusing">(Advanced) Focusing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#autofocusing">Autofocusing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mbi.html">Multiband Imaging</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mbi.html#inserting">Inserting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mbi.html#removing">Removing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mbi.html#mbi-reduced">MBI Reduced</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mbi.html#advanced-mbi-hotspotting">(Advanced) MBI Hotspotting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Post-observing Data Management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.html#synchronization-and-consolidation">Synchronization and Consolidation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#frame-ids">Frame IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#compression">Compression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#creating-manifest-and-uploading-to-stars2">Creating Manifest and Uploading to STARS2</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Observing with VAMPIRES</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../observing/calibrations.html">Calibration Procedures</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../observing/calibrations.html#nightly-pre-observing-calibrations">Nightly / Pre-observing Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#flat-frames">Flat frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#pinhole-frames">Pinhole frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#dark-frames">Dark frames</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/calibrations.html#post-observing-calibrations">Post-observing Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#id1">Dark frames</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/calibrations.html#on-sky-calibrations">On-sky Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#sky-frames">Sky Frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#photometric-standards">Photometric Standards</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#astrometric-standards">Astrometric Standards</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../observing/polarimetry.html">Polarimetry</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#setup-slow-mode">Setup: Slow Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#setup-fast-mode">Setup: Fast Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#operating">Operating</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/polarimetry.html#triggering">Triggering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/polarimetry.html#hwp-modulation">HWP Modulation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#teardown">Teardown</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">vampires_control</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Coronagraph Alignment</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/procedures/coronagraphs.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="coronagraph-alignment">
+<h1>Coronagraph Alignment<a class="headerlink" href="#coronagraph-alignment" title="Link to this heading"></a></h1>
+<section id="focal-plane-mask-aligment">
+<h2>Focal plane mask aligment<a class="headerlink" href="#focal-plane-mask-aligment" title="Link to this heading"></a></h2>
+<p>The best way to align the coronagraphs, currently, is manually using the VAMPIRES camera viewers. The process will be the same for each mask and we recommend aligning all masks to the internal source before going on-sky.</p>
+<p>Start by inserting one of the masks using the VCAM1 or VCAM2 camera viewer–</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CTRL</span> <span class="o">+</span> <span class="mi">8</span>        <span class="n">CLC</span><span class="o">-</span><span class="mi">2</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="mi">9</span>        <span class="n">CLC</span><span class="o">-</span><span class="mi">3</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="mi">0</span>        <span class="n">CLC</span><span class="o">-</span><span class="mi">5</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="o">-</span>        <span class="n">CLC</span><span class="o">-</span><span class="mi">7</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="o">=</span>        <span class="n">DGVVC</span>
+</pre></div>
+</div>
+<p>To move the coronagraph, use <code class="docutils literal notranslate"><span class="pre">CTRL</span> <span class="pre">+</span> <span class="pre">&lt;ARROW&gt;</span></code> for small steps, and <code class="docutils literal notranslate"><span class="pre">SHIFT</span> <span class="pre">+</span> <span class="pre">&lt;ARROW&gt;</span></code> for large steps. When satisfied, press <code class="docutils literal notranslate"><span class="pre">CTRL</span> <span class="pre">+</span> <span class="pre">s</span></code> to save the current position.</p>
+</section>
+<section id="lyot-stop-alignment">
+<h2>Lyot stop alignment<a class="headerlink" href="#lyot-stop-alignment" title="Link to this heading"></a></h2>
+<p>It is best to align the Lyot stop with <code class="docutils literal notranslate"><span class="pre">vpupcam</span></code>- the viewer has built-in keyboard shortcuts for roughly and finely adjusting x, y, and theta of the mask wheel.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ vpupcam &amp;
+</pre></div>
+</div>
+<p>To insert the stops, use</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CTRL</span> <span class="o">+</span> <span class="mi">9</span>               <span class="n">LyotStop</span><span class="o">-</span><span class="n">L</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">SHIFT</span> <span class="o">+</span>         <span class="n">LyotStop</span><span class="o">-</span><span class="n">S</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">SHIFT</span> <span class="o">+</span> <span class="mi">0</span>       <span class="n">LyotStop</span><span class="o">-</span><span class="n">M</span>
+</pre></div>
+</div>
+<p>and then use <code class="docutils literal notranslate"><span class="pre">CTRL</span> <span class="pre">+</span> <span class="pre">&lt;ARROW&gt;</span></code> for fine alignment (or <code class="docutils literal notranslate"><span class="pre">SHIFT</span> <span class="pre">+</span> <span class="pre">&lt;ARROW&gt;</span></code> for coarse alignment). The wheel can be rotated with <code class="docutils literal notranslate"><span class="pre">CTRL</span> <span class="pre">+</span> <span class="pre">[</span></code>/<code class="docutils literal notranslate"><span class="pre">CTRL</span> <span class="pre">+</span> <span class="pre">]</span></code> (or with <code class="docutils literal notranslate"><span class="pre">SHIFT</span></code> for coarse changes). Press <code class="docutils literal notranslate"><span class="pre">CTRL</span> <span class="pre">+</span> <span class="pre">s</span></code> to save the current position to the mount configuration for the selected mask.</p>
+</section>
+<section id="advanced-focusing">
+<h2>(Advanced) Focusing<a class="headerlink" href="#advanced-focusing" title="Link to this heading"></a></h2>
+<div class="warning admonition">
+<p class="admonition-title">Advanced</p>
+<p>The coronagraphs should not need refocusing, often. Only proceed with focusing the masks if necessary.</p>
+</div>
+<p>The fieldstop stage can move along the focus axis with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ vampires_fieldstop f
+</pre></div>
+</div>
+<p>The focus can also be adjusted in the camera viewers with <code class="docutils literal notranslate"><span class="pre">CTRL</span> <span class="pre">+</span> <span class="pre">,</span></code> and <code class="docutils literal notranslate"><span class="pre">CTRL</span> <span class="pre">+</span> <span class="pre">.</span></code> (comma and period).</p>
+<p>The fieldstop optic as well as the four classic-Lyot coronagraph (CLC) masks all should have the same focus position. These optics are all implemented as amplitude masks on the first surface of an optical window. The dgVVC mask has multiple layers and the optimal focus position is not the same as the CLC masks.</p>
+<section id="autofocusing">
+<h3>Autofocusing<a class="headerlink" href="#autofocusing" title="Link to this heading"></a></h3>
+<p>The fieldstop and CLC masks can be autofocused off-sky by optimizing the sharpness of the masks. This is best done using a flat lamp. It is easier to use the SCExAO integrating sphere source as a flat lamp than the NasIR calibration lamp. To set this up, first prepare the SCExAO bench by removing the source fiber and placing the integrating sphere in</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sc2 $ src_fib out &amp;
+sc2 $ intsphere
+</pre></div>
+</div>
+<p>Now, on the CHARIS computer turn the laser source on</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>mrclean $ charis laser enable
+mrclean $ charis laser power=100
+</pre></div>
+</div>
+<p>Lastly, make sure the tunable filter is set so that the first harmonic is in the VAMPIRES passband. The filter is controlled with the <code class="docutils literal notranslate"><span class="pre">nuller</span></code> NUC computer and requires Microsoft Remote Desktop protocol to connect. Once connected, launch “PHySpec” and connect the LLTF device</p>
+<p><img alt="" src="../_images/lltf_setup.png" />
+<img alt="" src="../_images/lltf_connect.png" /></p>
+<p>Once connected, make sure the filter is tuned to twice the desired wavelength in VAMPIRES, e.g. 1400 nm will produce a harmonic at 700 nm.</p>
+<p><img alt="" src="../_images/lltf_wavelength.png" /></p>
+<p>At this point you should see light in VAMPIRES. If not, see if there is light on the infrared bench and if so then check the VAMPIRES instrument status and increase exposure time or switch to slow readout mode. Slow readout mode at max framerate is usually sufficient for flat fields.</p>
+<p>Now, insert one of the CLC masks- the CLC-7 mask has the largest dot so it is easier to see.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ vampires_fieldstop clc-7
+</pre></div>
+</div>
+<p>now, run the following autofocus script, specifying which camera to use for measuring the sharpness metric:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ autofocus_fieldstop -c 1
+</pre></div>
+</div>
+<p>Record the output- if unsatisfactory run again with a different starting position close to the expected focus position.</p>
+<p>There is currently no easy way to save the focus value to multiple fieldstop configurations at once, so we recommend to directly edit <code class="docutils literal notranslate"><span class="pre">~/src/device_control/conf/vampires/conf_vampires_fieldstop.toml</span></code> directly and overwrite the <code class="docutils literal notranslate"><span class="pre">f=</span> <span class="pre">XX</span></code> values in the configurations for the</p>
+<ul class="simple">
+<li><p>Fieldstop</p></li>
+<li><p>CLC-2</p></li>
+<li><p>CLC-3</p></li>
+<li><p>CLC-5</p></li>
+<li><p>CLC-7</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="autofocus.html" class="btn btn-neutral float-left" title="Autofocusing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mbi.html" class="btn btn-neutral float-right" title="Multiband Imaging" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, 2023, 2024, Miles Lucas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

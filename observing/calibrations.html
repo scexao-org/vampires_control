@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calibration Procedures &mdash; VAMPIRES Control</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Polarimetry" href="polarimetry.html" />
+    <link rel="prev" title="Post-observing Data Management" href="../procedures/data.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            vampires_control
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#using-pip">Using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#from-source">From Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#navigating-the-documentation">Navigating the Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#operating-vampires">Operating VAMPIRES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#procedures">Procedures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#observing-with-vampires">Observing with VAMPIRES</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#code-examples">Code Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#python-example">1. Python example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#command-line">2. Command line</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#faq">FAQ</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API/Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/environment_variables.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/api.html">API/Reference</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Operating VAMPIRES</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../operating/layout.html">Instrument Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/cameras.html">Cameras</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#initialization-and-viewers">Initialization and Viewers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#vcam1-and-vcam2">VCAM1 and VCAM2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#vpupcam">VPUPCAM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#detector-readout-modes">Detector Readout Modes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#photon-transfer-curves">Photon Transfer Curves</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#detector-astrometric-solution">Detector Astrometric Solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#camera-crops">Camera Crops</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#standard">Standard</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#mbi">MBI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#mbi-reduced">MBI Reduced</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#pupil">Pupil</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#exposure-time">Exposure time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#camera-triggering">Camera Triggering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#aflc-disabled">AFLC Disabled</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/cameras.html#aflc-enabled">AFLC Enabled</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#crop-location-and-mbi-hotspots">Crop location and MBI hotspots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/cameras.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/viewers.html">Camera Viewers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../operating/viewers.html#vcam1-and-vcam2">VCAM1 and VCAM2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/viewers.html#vpupcam">VPUPCAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/viewers.html#others">Others</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/viewers.html#faq">FAQ</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/viewers.html#the-crop-is-all-weird">1. The crop is all weird!</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/viewers.html#the-cameras-froze">2. The cameras froze!</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/coronagraphs.html">Coronagraphs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../operating/coronagraphs.html#focal-plane-masks">Focal Plane Masks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/coronagraphs.html#lyot-stops">Lyot Stops</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/coronagraphs.html#advanced-details">Advanced Details</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/devices.html">Device Control</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#interacting-with-devices">Interacting with devices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#filters">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#field-stop-focal-plane-mask">Field Stop / Focal Plane Mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#mask-wheel">Mask Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#differential-wheel">Differential Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#beamsplitter-wheel">Beamsplitter Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#mbi-wheel">MBI Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#focus-stages">Focus Stages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#aflc-stage">AFLC Stage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/devices.html#qwps">QWPs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/data.html">Data Acquisition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../operating/data.html#data-flowchart">Data Flowchart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/data.html#logging-fits-files">Logging FITS files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../operating/data.html#option-1-using-vampires-scripts">Option 1: Using VAMPIRES scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../operating/data.html#option-2-directly-using-fpsctrl">Option 2: Directly using fpsCTRL</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../operating/data.html#watching-fits-files">Watching FITS files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../operating/troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Procedures</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/autofocus.html">Autofocusing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#standard-procedure">Standard procedure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#narrowband-filters">Narrowband filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#visible-bench-pickoffs">Visible bench pickoffs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#single-cam-focus-no-beamsplitter">Single-cam focus (no beamsplitter)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#pupil-mode">Pupil mode</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/coronagraphs.html">Coronagraph Alignment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/coronagraphs.html#focal-plane-mask-aligment">Focal plane mask aligment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/coronagraphs.html#lyot-stop-alignment">Lyot stop alignment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/coronagraphs.html#advanced-focusing">(Advanced) Focusing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../procedures/coronagraphs.html#autofocusing">Autofocusing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/mbi.html">Multiband Imaging</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#inserting">Inserting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#removing">Removing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#mbi-reduced">MBI Reduced</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#advanced-mbi-hotspotting">(Advanced) MBI Hotspotting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/data.html">Post-observing Data Management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#synchronization-and-consolidation">Synchronization and Consolidation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#frame-ids">Frame IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#compression">Compression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#creating-manifest-and-uploading-to-stars2">Creating Manifest and Uploading to STARS2</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Observing with VAMPIRES</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Calibration Procedures</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#nightly-pre-observing-calibrations">Nightly / Pre-observing Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#flat-frames">Flat frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pinhole-frames">Pinhole frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dark-frames">Dark frames</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#post-observing-calibrations">Post-observing Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Dark frames</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#on-sky-calibrations">On-sky Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sky-frames">Sky Frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#photometric-standards">Photometric Standards</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#astrometric-standards">Astrometric Standards</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="polarimetry.html">Polarimetry</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="polarimetry.html#setup-slow-mode">Setup: Slow Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polarimetry.html#setup-fast-mode">Setup: Fast Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polarimetry.html#operating">Operating</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="polarimetry.html#triggering">Triggering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="polarimetry.html#hwp-modulation">HWP Modulation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="polarimetry.html#teardown">Teardown</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">vampires_control</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Calibration Procedures</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/observing/calibrations.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="calibration-procedures">
+<h1>Calibration Procedures<a class="headerlink" href="#calibration-procedures" title="Link to this heading"></a></h1>
+<p>Procedures for VAMPIRES calibrations.</p>
+<section id="nightly-pre-observing-calibrations">
+<h2>Nightly / Pre-observing Calibrations<a class="headerlink" href="#nightly-pre-observing-calibrations" title="Link to this heading"></a></h2>
+<p>The following calibrations should be taken with every observation for each readout mode and crop planned during the observation. For all of these calibrations we recommend taking 1000 frames, minimum. Even in multiband mode, a single 1000-frame cube is okay; it will be a large file, but you only need to open it once to make the master calibration file.</p>
+<section id="flat-frames">
+<h3>Flat frames<a class="headerlink" href="#flat-frames" title="Link to this heading"></a></h3>
+<p>Flat frames are critical for calibrating CMOS images due to the variance in gain from pixel to pixel. Flat frames are not <em>strictly</em> necessary for polarimetric differential imaging because the frame differencing will remove the fixed pattern noise, but we still recommend taking them for all observations.</p>
+<div class="warning admonition">
+<p class="admonition-title">Coronagraph masks</p>
+<p>Because we align the coronagraph masks by moving the mask in the focal plane, it is difficult to take useful flats with the coronagraph mask in. We recommend taking standard flats with the fieldstop in addition to well-centered coronagraph mask flats.</p>
+</div>
+<p>To take flat frames, make sure the NsIR cal source is in- we recommend using <strong>14V</strong> and <strong>3A</strong> for the lamp settings. At these settings, there should be plenty of signal in any filter with 100 ms exposure times</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ set_tint 0.1
+sonne $ vampires_datatype flat
+</pre></div>
+</div>
+<p>then <a class="reference internal" href="../operating/data.html#logging"><span class="std std-ref">log the data to gen2</span></a>.</p>
+</section>
+<section id="pinhole-frames">
+<h3>Pinhole frames<a class="headerlink" href="#pinhole-frames" title="Link to this heading"></a></h3>
+<p>Pinhole frames should be taken right after flats by inserting the pinhole mask</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>scexao2 $ src_fib pinhole &amp;
+</pre></div>
+</div>
+<p>and then defocusing the DM with <code class="docutils literal notranslate"><span class="pre">manual_zernike</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>scexao2 $ manual_zernike &amp;
+</pre></div>
+</div>
+<p>To do this, manually adjust the focus slider to +60 nm (as a starting point)</p>
+<p>The datatype for pinholes is <code class="docutils literal notranslate"><span class="pre">COMPARISON</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ vampires_datatype comparison
+</pre></div>
+</div>
+</section>
+<section id="dark-frames">
+<h3>Dark frames<a class="headerlink" href="#dark-frames" title="Link to this heading"></a></h3>
+<p>For dark frames just match the exposure time of the flats and pinholes</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ set_tint 0.1
+</pre></div>
+</div>
+<p>and set the datatype</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ vampires_datatype dark
+</pre></div>
+</div>
+</section>
+</section>
+<section id="post-observing-calibrations">
+<h2>Post-observing Calibrations<a class="headerlink" href="#post-observing-calibrations" title="Link to this heading"></a></h2>
+<section id="id1">
+<h3>Dark frames<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<p>There is a half-baked script for automatically logging all necessary dark frames AFTER an observation has completed. This is convenient to have a perfect match for all the science data, but the script needs work.</p>
+</section>
+</section>
+<section id="on-sky-calibrations">
+<h2>On-sky Calibrations<a class="headerlink" href="#on-sky-calibrations" title="Link to this heading"></a></h2>
+<p>In general, on-sky calibrations are reserved for stellar calibrators and are up to the observer to specify since they ultimately come out of their time budget.</p>
+<section id="sky-frames">
+<h3>Sky Frames<a class="headerlink" href="#sky-frames" title="Link to this heading"></a></h3>
+<p>Sky frames are not strictly necessary for all VAMPIRES observations– we estimate that the sky background at its brightest is ~18 mag/sq.arcsec, which is not the limiting noise term for exposure times less than 1 second. One may consider taking sky frames as a proxy for dark frames, though. Sky frames have the data type <code class="docutils literal notranslate"><span class="pre">SKYFLAT</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ vampires_datatype skyflat
+</pre></div>
+</div>
+</section>
+<section id="photometric-standards">
+<h3>Photometric Standards<a class="headerlink" href="#photometric-standards" title="Link to this heading"></a></h3>
+<p>We recommend scheduling a photometric standard for each filter used if you are concerned with photometric accuracy. If using a coronagraph with satellite spots, we recommend scheduling a “ladder sequence”, where the coronagraph mask is removed to calibrate the photometry of satellite spots. Flux standard stars and ladder sequences have the data type <code class="docutils literal notranslate"><span class="pre">STANDARD</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ vampires_datatype standard
+</pre></div>
+</div>
+</section>
+<section id="astrometric-standards">
+<h3>Astrometric Standards<a class="headerlink" href="#astrometric-standards" title="Link to this heading"></a></h3>
+<p>We recommend observing an astrometric standard if you are concerned with astrometric accuracy. We have a list of binary stars with high-precision orbital ephemerides which can be used for VAMPIRES observations. This calibration should only need to be done once per run, if desired. The data type for astrometric standards is the normal <code class="docutils literal notranslate"><span class="pre">OBJECT</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ vampires_datatype object
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../procedures/data.html" class="btn btn-neutral float-left" title="Post-observing Data Management" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="polarimetry.html" class="btn btn-neutral float-right" title="Polarimetry" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, 2023, 2024, Miles Lucas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

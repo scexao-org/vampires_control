@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cameras &mdash; VAMPIRES Control</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Camera Viewers" href="viewers.html" />
+    <link rel="prev" title="Instrument Layout" href="layout.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            vampires_control
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#using-pip">Using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#from-source">From Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#navigating-the-documentation">Navigating the Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#operating-vampires">Operating VAMPIRES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#procedures">Procedures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#observing-with-vampires">Observing with VAMPIRES</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#code-examples">Code Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#python-example">1. Python example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#command-line">2. Command line</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#faq">FAQ</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API/Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/environment_variables.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/api.html">API/Reference</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Operating VAMPIRES</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="layout.html">Instrument Layout</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Cameras</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#initialization-and-viewers">Initialization and Viewers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#vcam1-and-vcam2">VCAM1 and VCAM2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vpupcam">VPUPCAM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#detector-readout-modes">Detector Readout Modes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#photon-transfer-curves">Photon Transfer Curves</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#detector-astrometric-solution">Detector Astrometric Solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#camera-crops">Camera Crops</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#standard">Standard</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mbi">MBI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mbi-reduced">MBI Reduced</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pupil">Pupil</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#exposure-time">Exposure time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#camera-triggering">Camera Triggering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#aflc-disabled">AFLC Disabled</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#aflc-enabled">AFLC Enabled</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#crop-location-and-mbi-hotspots">Crop location and MBI hotspots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="viewers.html">Camera Viewers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="viewers.html#vcam1-and-vcam2">VCAM1 and VCAM2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="viewers.html#vpupcam">VPUPCAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="viewers.html#others">Others</a></li>
+<li class="toctree-l2"><a class="reference internal" href="viewers.html#faq">FAQ</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="viewers.html#the-crop-is-all-weird">1. The crop is all weird!</a></li>
+<li class="toctree-l3"><a class="reference internal" href="viewers.html#the-cameras-froze">2. The cameras froze!</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="coronagraphs.html">Coronagraphs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="coronagraphs.html#focal-plane-masks">Focal Plane Masks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coronagraphs.html#lyot-stops">Lyot Stops</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="coronagraphs.html#advanced-details">Advanced Details</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="devices.html">Device Control</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#interacting-with-devices">Interacting with devices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#filters">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#field-stop-focal-plane-mask">Field Stop / Focal Plane Mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#mask-wheel">Mask Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#differential-wheel">Differential Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#beamsplitter-wheel">Beamsplitter Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#mbi-wheel">MBI Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#focus-stages">Focus Stages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#aflc-stage">AFLC Stage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#qwps">QWPs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Acquisition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.html#data-flowchart">Data Flowchart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#logging-fits-files">Logging FITS files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.html#option-1-using-vampires-scripts">Option 1: Using VAMPIRES scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#option-2-directly-using-fpsctrl">Option 2: Directly using fpsCTRL</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#watching-fits-files">Watching FITS files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Procedures</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/autofocus.html">Autofocusing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#standard-procedure">Standard procedure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#narrowband-filters">Narrowband filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#visible-bench-pickoffs">Visible bench pickoffs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#single-cam-focus-no-beamsplitter">Single-cam focus (no beamsplitter)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#pupil-mode">Pupil mode</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/coronagraphs.html">Coronagraph Alignment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/coronagraphs.html#focal-plane-mask-aligment">Focal plane mask aligment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/coronagraphs.html#lyot-stop-alignment">Lyot stop alignment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/coronagraphs.html#advanced-focusing">(Advanced) Focusing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../procedures/coronagraphs.html#autofocusing">Autofocusing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/mbi.html">Multiband Imaging</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#inserting">Inserting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#removing">Removing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#mbi-reduced">MBI Reduced</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#advanced-mbi-hotspotting">(Advanced) MBI Hotspotting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/data.html">Post-observing Data Management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#synchronization-and-consolidation">Synchronization and Consolidation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#frame-ids">Frame IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#compression">Compression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#creating-manifest-and-uploading-to-stars2">Creating Manifest and Uploading to STARS2</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Observing with VAMPIRES</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../observing/calibrations.html">Calibration Procedures</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../observing/calibrations.html#nightly-pre-observing-calibrations">Nightly / Pre-observing Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#flat-frames">Flat frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#pinhole-frames">Pinhole frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#dark-frames">Dark frames</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/calibrations.html#post-observing-calibrations">Post-observing Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#id1">Dark frames</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/calibrations.html#on-sky-calibrations">On-sky Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#sky-frames">Sky Frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#photometric-standards">Photometric Standards</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#astrometric-standards">Astrometric Standards</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../observing/polarimetry.html">Polarimetry</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#setup-slow-mode">Setup: Slow Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#setup-fast-mode">Setup: Fast Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#operating">Operating</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/polarimetry.html#triggering">Triggering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/polarimetry.html#hwp-modulation">HWP Modulation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#teardown">Teardown</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">vampires_control</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Cameras</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/operating/cameras.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="cameras">
+<h1>Cameras<a class="headerlink" href="#cameras" title="Link to this heading"></a></h1>
+<p>VAMPIRES uses two <a class="reference external" href="https://www.hamamatsu.com/us/en/product/cameras/qcmos-cameras/C15550-20UP.html">Hamamatsu ORCA-Quest</a> [<a class="reference external" href="https://www.hamamatsu.com/content/dam/hamamatsu-photonics/sites/static/sys/en/manual/C15550-20UP_IM_En.pdf">manual</a>] CMOS detectors for its science cameras. There is also a UNKNOWN FLEA camera used for the pupil return beam (pupil cam).</p>
+<section id="initialization-and-viewers">
+<h2>Initialization and Viewers<a class="headerlink" href="#initialization-and-viewers" title="Link to this heading"></a></h2>
+<p>Each camera has its own framegrabber and viewer class which inherits a common interface from <code class="docutils literal notranslate"><span class="pre">camstack</span></code>.</p>
+<section id="vcam1-and-vcam2">
+<h3>VCAM1 and VCAM2<a class="headerlink" href="#vcam1-and-vcam2" title="Link to this heading"></a></h3>
+<div class="tip admonition">
+<p class="admonition-title">SSH for VNC</p>
+<p>Make sure to forward your display over SSH if running from the VAMPIRES VNC</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ ssh -Y sc5
+</pre></div>
+</div>
+</div>
+<p>To start the camera framegrabber (which should not be done unless necessary)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>scexao5 $ camstart vcam1 # start vcam1
+scexao5 $ camstart vcam2 # start vcam2
+</pre></div>
+</div>
+<p>if the cameras are already running, this will restart their processes (including TCP streams, etc.), and revert to the default <code class="docutils literal notranslate"><span class="pre">STANDARD</span></code> crop.</p>
+<p>To start the pygame viewers</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>scexao5 $ vcam1 &amp; # cam 1 viewer
+scexao5 $ vcam2 &amp; # cam 2 viewer
+</pre></div>
+</div>
+<p>the viewers can also be ran from <code class="docutils literal notranslate"><span class="pre">sonne</span></code> or <code class="docutils literal notranslate"><span class="pre">scexao6</span></code> using the SHM stream forwarding.</p>
+<div class="info admonition">
+<p class="admonition-title">Raw SHM Viewer</p>
+<p>If you want to see the raw data (useful to see MBI frames without cropping), use one of the generic viewers with the appropriate SHM name (<code class="docutils literal notranslate"><span class="pre">vcam1</span></code>/<code class="docutils literal notranslate"><span class="pre">vcam2</span></code>)</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>scexao5 $ anycam vcam1 # pygame viewer
+scexao5 $ shmImshow.py vcam1 # qt viewer
+</pre></div>
+</div>
+<p>Be careful using <code class="docutils literal notranslate"><span class="pre">anycam</span></code> with the MBI crop- the window is much larger than the VNC viewer desktop. Use <code class="docutils literal notranslate"><span class="pre">-b</span> <span class="pre">2</span></code> or <code class="docutils literal notranslate"><span class="pre">-b</span> <span class="pre">3</span></code> to bin down to a more reasonable size</p>
+</div>
+</section>
+<section id="vpupcam">
+<h3>VPUPCAM<a class="headerlink" href="#vpupcam" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ camstart vpupcam # start vpupcam
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ vpupcam &amp;
+</pre></div>
+</div>
+</section>
+</section>
+<section id="detector-readout-modes">
+<h2>Detector Readout Modes<a class="headerlink" href="#detector-readout-modes" title="Link to this heading"></a></h2>
+<p>VAMPIRES has two readout modes: “Slow” and “Fast”. The main differences are the maximum framerate and read noise. The slow mode uses the extra readout time to reduce the jitter in the ADC conversion, which enables sensitivity low enough for photon number resolving. The noise characteristics of the cameras are only related to the readout mode. The timing characteristics, however, are dependent on the camera crop and trigger modes with a somewhat complicated relationship that also depends on the readout mode.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Cam</p></th>
+<th class="head"><p>Gain (e-/adu)</p></th>
+<th class="head"><p>RN (e-)</p></th>
+<th class="head"><p>DC (e-/px/s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Fast</p></td>
+<td><p>1</p></td>
+<td><p>0.103</p></td>
+<td><p>0.403</p></td>
+<td><p>3.6e-3</p></td>
+</tr>
+<tr class="row-odd"><td><p>Fast</p></td>
+<td><p>2</p></td>
+<td><p>0.103</p></td>
+<td><p>0.399</p></td>
+<td><p>3.5e-3</p></td>
+</tr>
+<tr class="row-even"><td><p>Slow</p></td>
+<td><p>1</p></td>
+<td><p>0.105</p></td>
+<td><p>0.245</p></td>
+<td><p>3.6e-3</p></td>
+</tr>
+<tr class="row-odd"><td><p>Slow</p></td>
+<td><p>2</p></td>
+<td><p>0.105</p></td>
+<td><p>0.220</p></td>
+<td><p>3.5e-3</p></td>
+</tr>
+</tbody>
+</table>
+<section id="photon-transfer-curves">
+<h3>Photon Transfer Curves<a class="headerlink" href="#photon-transfer-curves" title="Link to this heading"></a></h3>
+<p>These photon transfer curves were fit with the use of frame-differencing to remove the fixed pattern noise. The bias is not estimated from any light frames, but from a bias frame directly after fitting the gain.</p>
+<a class="reference internal image-reference" href="../_images/ptc_fast.png"><img alt="../_images/ptc_fast.png" src="../_images/ptc_fast.png" style="width: 800px;" /></a>
+<a class="reference internal image-reference" href="../_images/ptc_slow.png"><img alt="../_images/ptc_slow.png" src="../_images/ptc_slow.png" style="width: 800px;" /></a>
+<p><strong>Note:</strong> The minimum detector integration time determines the saturation limit for VAMPIRES. In fast readout mode, the minimum is the minimum for four rows to read out. At this speed, that means there is an extreme rolling shutter effect, so each group of four rows will be simultaneous but no group of 4 will overlap in time.</p>
+<div class="warning admonition">
+<p class="admonition-title">Framegrabber reset</p>
+<p>When you change the readout mode the camera framegrabber has to reset, so you’ll have to wait for it to restart before acquisition can resume.</p>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ set_readout &lt;mode&gt;
+</pre></div>
+</div>
+</section>
+</section>
+<section id="detector-astrometric-solution">
+<h2>Detector Astrometric Solution<a class="headerlink" href="#detector-astrometric-solution" title="Link to this heading"></a></h2>
+<p>The astrometric solution for each camera is derived from observations of visual binaries</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Cam</p></th>
+<th class="head"><p>px. scale (mas/px)</p></th>
+<th class="head"><p>PA offset (deg)</p></th>
+<th class="head"><p>Inst. offset (deg)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>5.908 ± 0.014</p></td>
+<td><p>102.10 ± 0.15</p></td>
+<td><p>-38.90 ± 0.15</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>5.895 ± 0.015</p></td>
+<td><p>102.42 ± 0.17</p></td>
+<td><p>-38.58 ± 0.17</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="camera-crops">
+<span id="id1"></span><h2>Camera Crops<a class="headerlink" href="#camera-crops" title="Link to this heading"></a></h2>
+<p>VAMPIRES has three camera modes to accommadate the different crops required for the multiband imaging mode</p>
+<section id="standard">
+<h3>Standard<a class="headerlink" href="#standard" title="Link to this heading"></a></h3>
+<p>This is the standard 3”x3” FOV crop</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ set_crop standard
+</pre></div>
+</div>
+<p>There are also some reduced crop sizes</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ set_crop twoarc # 2&quot; x 2&quot; FOV
+sonne $ set_crop onearc # 1&quot; x 1&quot; FOV
+sonne $ set_crop halfarc # 0.5&quot; x 0.5&quot; FOV
+</pre></div>
+</div>
+</section>
+<section id="mbi">
+<h3>MBI<a class="headerlink" href="#mbi" title="Link to this heading"></a></h3>
+<p>This is a 12”x6” crop that accommadates the four 3”x3” fields produced in the multi-band imaging (MBI) mode.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ set_crop mbi
+</pre></div>
+</div>
+</section>
+<section id="mbi-reduced">
+<h3>MBI Reduced<a class="headerlink" href="#mbi-reduced" title="Link to this heading"></a></h3>
+<p>This field crops out the 625nm field so that the maximum readout speed of the detector can still reach ~500 fps while still imaging three 3”x3” FOVs.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ set_crop mbi_reduced
+</pre></div>
+</div>
+</section>
+<section id="pupil">
+<h3>Pupil<a class="headerlink" href="#pupil" title="Link to this heading"></a></h3>
+<p>This crop is like the standard crop but larger to accommadate the size of the full pupil when imaged with the pupil-imaging lens. Note that currently it is only possible to get a focused pupil image on VCAM1.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ set_crop pupil
+</pre></div>
+</div>
+</section>
+</section>
+<section id="exposure-time">
+<h2>Exposure time<a class="headerlink" href="#exposure-time" title="Link to this heading"></a></h2>
+<p>To set the camera exposure time (in s)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ set_tint &lt;tint&gt;
+</pre></div>
+</div>
+<p>to get the exposure time</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ get_tint
+</pre></div>
+</div>
+<p>You can try to automatically set the exposure time to a given maximum value (in adu)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ target_tint &lt;adu&gt;
+</pre></div>
+</div>
+<p>You can also set/query the framerate, although these values become confusing when using the external trigger because the framerate is no longer the inverse of the exposure time.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ get_fps
+sonne $ set_fps &lt;fps&gt;
+</pre></div>
+</div>
+</section>
+<section id="camera-triggering">
+<span id="trigger"></span><h2>Camera Triggering<a class="headerlink" href="#camera-triggering" title="Link to this heading"></a></h2>
+<p>The cameras are synchronized using a hardware micro-controller (<a class="reference external" href="https://learn.adafruit.com/adafruit-metro-m4-express-featuring-atsamd51">Metro M4 Express</a>). This controller also synchronizes the AFLC when it is enabled. It is important to understand that there are two interfaces required for hardware triggering: the detector external trigger setting and the micro-controller trigger settings.</p>
+<p>The cameras need to be set to external trigger mode in order to send and receive trigger signals-</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ set_trigger enable
+</pre></div>
+</div>
+<p>then the micro-controller can be enabled</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ vampires_trig enable
+</pre></div>
+</div>
+<p>The state diagram for the camera trigger is as follows:</p>
+<section id="aflc-disabled">
+<h3>AFLC Disabled<a class="headerlink" href="#aflc-disabled" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ vampires_trig set -nf
+</pre></div>
+</div>
+digraph {
+    node [shape=box]
+    &quot;trigger cameras&quot; -&gt; {
+        &quot;wait for camera 1 ready&quot;;
+        &quot;wait for camera 2 ready&quot;;
+    } -&gt;
+    &quot;logical AND&quot; -&gt;
+    &quot;trigger cameras&quot;;
+}</section>
+<section id="aflc-enabled">
+<h3>AFLC Enabled<a class="headerlink" href="#aflc-enabled" title="Link to this heading"></a></h3>
+<div class="tip admonition">
+<p class="admonition-title">Critical: FLC jitter</p>
+<p>When saving the camera SHM streams there is no way to know <em>a priori</em> the FLC state of each frame. To overcome this, we add an asymmetric delay so that every other frame can be consistently identified from the framegrabber timestamp. We call this delay the FLC jitter.</p>
+</div>
+<p>It is critical that the FLC jitter is larger than any statistical randomness in the frame timings. For our ORCA-Quest detectors, there is an inherent stochasticity that is a function of the detector readout mode (7.2 us in FAST mode and 172.8 us in SLOW mode). The jitter half-width (half the total jitter) is set directly with the <code class="docutils literal notranslate"><span class="pre">vampires_trig</span></code> command. After testing, we recommend using the following half-jitter values-</p>
+<ul class="simple">
+<li><p>FAST: 50 us</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ vampires_trig set -j 50 -f
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>SLOW: 500 us</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ vampires_trig set -j 500 -f
+</pre></div>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">Warning: AFLC Aging</p>
+<p>We want to limit the usage of the AFLC to minimize aging effcts, so when the cameras are not acquiring we recommend leaving it disabled.</p>
+</div>
+digraph {
+    node [shape=box]
+    &quot;trigger cameras A&quot; -&gt; {
+        &quot;wait for camera 1 ready A&quot;;
+        &quot;wait for camera 2 ready A&quot;;
+    } -&gt;
+    &quot;logical AND A&quot; -&gt;
+    &quot;delay half_width A&quot; -&gt;
+    &quot;trigger AFLC high&quot; -&gt;
+    &quot;delay half_width B&quot; -&gt;
+    &quot;trigger cameras B&quot; -&gt; {
+        &quot;wait for camera 1 ready B&quot;;
+        &quot;wait for camera 2 ready B&quot;;
+    } -&gt;
+    &quot;logical AND B&quot; -&gt;
+    &quot;trigger AFLC low&quot; -&gt;
+    &quot;trigger cameras A&quot;;
+}</section>
+</section>
+<section id="crop-location-and-mbi-hotspots">
+<h2>Crop location and MBI hotspots<a class="headerlink" href="#crop-location-and-mbi-hotspots" title="Link to this heading"></a></h2>
+<p>The crop location for the standard crop (and the smaller subcrops) are always centered on the detector. The MBI crops are more complicated and the hotspots for each PSF are required for the camera viewers and the WCS dictionary info.</p>
+<p>TODO describe <code class="docutils literal notranslate"><span class="pre">vampires_hotspot</span></code> and simplify implementation in camstack</p>
+</section>
+<section id="miscellaneous">
+<h2>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="layout.html" class="btn btn-neutral float-left" title="Instrument Layout" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="viewers.html" class="btn btn-neutral float-right" title="Camera Viewers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, 2023, 2024, Miles Lucas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

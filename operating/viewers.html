@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Camera Viewers &mdash; VAMPIRES Control</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Coronagraphs" href="coronagraphs.html" />
+    <link rel="prev" title="Cameras" href="cameras.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            vampires_control
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#using-pip">Using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#from-source">From Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#navigating-the-documentation">Navigating the Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#operating-vampires">Operating VAMPIRES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#procedures">Procedures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#observing-with-vampires">Observing with VAMPIRES</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#code-examples">Code Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#python-example">1. Python example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#command-line">2. Command line</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#faq">FAQ</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API/Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/environment_variables.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/api.html">API/Reference</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Operating VAMPIRES</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="layout.html">Instrument Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cameras.html">Cameras</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cameras.html#initialization-and-viewers">Initialization and Viewers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cameras.html#vcam1-and-vcam2">VCAM1 and VCAM2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cameras.html#vpupcam">VPUPCAM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cameras.html#detector-readout-modes">Detector Readout Modes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cameras.html#photon-transfer-curves">Photon Transfer Curves</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cameras.html#detector-astrometric-solution">Detector Astrometric Solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cameras.html#camera-crops">Camera Crops</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cameras.html#standard">Standard</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cameras.html#mbi">MBI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cameras.html#mbi-reduced">MBI Reduced</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cameras.html#pupil">Pupil</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cameras.html#exposure-time">Exposure time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cameras.html#camera-triggering">Camera Triggering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cameras.html#aflc-disabled">AFLC Disabled</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cameras.html#aflc-enabled">AFLC Enabled</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cameras.html#crop-location-and-mbi-hotspots">Crop location and MBI hotspots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cameras.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Camera Viewers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#vcam1-and-vcam2">VCAM1 and VCAM2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#vpupcam">VPUPCAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#others">Others</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#faq">FAQ</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-crop-is-all-weird">1. The crop is all weird!</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-cameras-froze">2. The cameras froze!</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="coronagraphs.html">Coronagraphs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="coronagraphs.html#focal-plane-masks">Focal Plane Masks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coronagraphs.html#lyot-stops">Lyot Stops</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="coronagraphs.html#advanced-details">Advanced Details</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="devices.html">Device Control</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#interacting-with-devices">Interacting with devices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#filters">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#field-stop-focal-plane-mask">Field Stop / Focal Plane Mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#mask-wheel">Mask Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#differential-wheel">Differential Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#beamsplitter-wheel">Beamsplitter Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#mbi-wheel">MBI Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#focus-stages">Focus Stages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#aflc-stage">AFLC Stage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices.html#qwps">QWPs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Acquisition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.html#data-flowchart">Data Flowchart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#logging-fits-files">Logging FITS files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.html#option-1-using-vampires-scripts">Option 1: Using VAMPIRES scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#option-2-directly-using-fpsctrl">Option 2: Directly using fpsCTRL</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#watching-fits-files">Watching FITS files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Procedures</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/autofocus.html">Autofocusing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#standard-procedure">Standard procedure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#narrowband-filters">Narrowband filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#visible-bench-pickoffs">Visible bench pickoffs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#single-cam-focus-no-beamsplitter">Single-cam focus (no beamsplitter)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/autofocus.html#pupil-mode">Pupil mode</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/coronagraphs.html">Coronagraph Alignment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/coronagraphs.html#focal-plane-mask-aligment">Focal plane mask aligment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/coronagraphs.html#lyot-stop-alignment">Lyot stop alignment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/coronagraphs.html#advanced-focusing">(Advanced) Focusing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../procedures/coronagraphs.html#autofocusing">Autofocusing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/mbi.html">Multiband Imaging</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#inserting">Inserting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#removing">Removing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#mbi-reduced">MBI Reduced</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/mbi.html#advanced-mbi-hotspotting">(Advanced) MBI Hotspotting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../procedures/data.html">Post-observing Data Management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#synchronization-and-consolidation">Synchronization and Consolidation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#frame-ids">Frame IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#compression">Compression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../procedures/data.html#creating-manifest-and-uploading-to-stars2">Creating Manifest and Uploading to STARS2</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Observing with VAMPIRES</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../observing/calibrations.html">Calibration Procedures</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../observing/calibrations.html#nightly-pre-observing-calibrations">Nightly / Pre-observing Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#flat-frames">Flat frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#pinhole-frames">Pinhole frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#dark-frames">Dark frames</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/calibrations.html#post-observing-calibrations">Post-observing Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#id1">Dark frames</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/calibrations.html#on-sky-calibrations">On-sky Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#sky-frames">Sky Frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#photometric-standards">Photometric Standards</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/calibrations.html#astrometric-standards">Astrometric Standards</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../observing/polarimetry.html">Polarimetry</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#setup-slow-mode">Setup: Slow Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#setup-fast-mode">Setup: Fast Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#operating">Operating</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../observing/polarimetry.html#triggering">Triggering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../observing/polarimetry.html#hwp-modulation">HWP Modulation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../observing/polarimetry.html#teardown">Teardown</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">vampires_control</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Camera Viewers</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/operating/viewers.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="camera-viewers">
+<h1>Camera Viewers<a class="headerlink" href="#camera-viewers" title="Link to this heading"></a></h1>
+<section id="vcam1-and-vcam2">
+<h2>VCAM1 and VCAM2<a class="headerlink" href="#vcam1-and-vcam2" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>scexao5 $ vcam1 &amp;
+scexao5 $ vcam2 &amp;
+</pre></div>
+</div>
+<p><strong>Help Message</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">VAMPIRES</span> <span class="n">Camera</span> <span class="n">Viewer</span>
+<span class="o">=======================================</span>
+<span class="n">h</span>           <span class="p">:</span> <span class="n">display</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">ESC</span>      <span class="p">:</span> <span class="n">quit</span> <span class="n">viewer</span>
+
+<span class="n">Camera</span> <span class="n">controls</span><span class="p">:</span>
+<span class="p">(</span><span class="n">Note</span><span class="p">:</span> <span class="n">these</span> <span class="n">get</span> <span class="n">applied</span> <span class="n">to</span> <span class="n">both</span> <span class="n">cameras</span><span class="o">.</span>
+ <span class="k">if</span> <span class="n">you</span> <span class="n">press</span> <span class="n">ALT</span><span class="p">,</span> <span class="n">will</span> <span class="n">only</span> <span class="n">apply</span> <span class="n">to</span> <span class="n">one</span> <span class="n">camera</span><span class="p">)</span>
+<span class="o">--------------------------------------------------</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">j</span>         <span class="p">:</span> <span class="n">Increase</span> <span class="n">exposure</span> <span class="n">time</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">k</span>         <span class="p">:</span> <span class="n">Decrease</span> <span class="n">exposure</span> <span class="n">time</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">e</span>         <span class="p">:</span> <span class="n">Enable</span> <span class="n">hardware</span> <span class="n">trigger</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">e</span>         <span class="p">:</span> <span class="n">Disable</span> <span class="n">hardware</span> <span class="n">trigger</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">t</span>         <span class="p">:</span> <span class="n">Enable</span> <span class="n">micro</span><span class="o">-</span><span class="n">controller</span> <span class="n">trigger</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">t</span>         <span class="p">:</span> <span class="n">Disable</span> <span class="n">micro</span><span class="o">-</span><span class="n">controller</span> <span class="n">trigger</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">f</span>         <span class="p">:</span> <span class="n">Switch</span> <span class="n">to</span> <span class="n">SLOW</span> <span class="n">readout</span> <span class="n">mode</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">f</span>         <span class="p">:</span> <span class="n">Switch</span> <span class="n">to</span> <span class="n">FAST</span> <span class="n">readout</span> <span class="n">mode</span>
+
+<span class="n">Display</span> <span class="n">controls</span><span class="p">:</span>
+<span class="o">--------------------------------------------------</span>
+<span class="n">c</span>         <span class="p">:</span> <span class="n">display</span> <span class="n">cross</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">c</span> <span class="p">:</span> <span class="n">display</span> <span class="n">centered</span> <span class="n">cross</span>
+<span class="n">d</span>         <span class="p">:</span> <span class="n">subtract</span> <span class="n">dark</span> <span class="n">frame</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">d</span>  <span class="p">:</span> <span class="n">take</span> <span class="n">dark</span> <span class="n">frame</span>
+<span class="n">r</span>         <span class="p">:</span> <span class="n">subtract</span> <span class="n">reference</span> <span class="n">frame</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">r</span>  <span class="p">:</span> <span class="n">take</span> <span class="n">reference</span> <span class="n">frame</span>
+<span class="n">p</span>         <span class="p">:</span> <span class="n">display</span> <span class="n">compass</span>
+<span class="n">i</span>         <span class="p">:</span> <span class="n">display</span> <span class="n">scale</span> <span class="n">bar</span>
+<span class="n">l</span>         <span class="p">:</span> <span class="n">linear</span><span class="o">/</span><span class="n">non</span><span class="o">-</span><span class="n">linear</span> <span class="n">display</span>
+<span class="n">m</span>         <span class="p">:</span> <span class="n">cycle</span> <span class="n">colormaps</span>
+<span class="n">v</span>         <span class="p">:</span> <span class="n">start</span><span class="o">/</span><span class="n">stop</span> <span class="n">accumulating</span> <span class="ow">and</span> <span class="n">averaging</span> <span class="n">frames</span>
+<span class="n">z</span>         <span class="p">:</span> <span class="n">zoom</span><span class="o">/</span><span class="n">unzoom</span> <span class="n">on</span> <span class="n">the</span> <span class="n">center</span> <span class="n">of</span> <span class="n">the</span> <span class="n">image</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">z</span> <span class="p">:</span> <span class="n">unzoom</span> <span class="n">image</span> <span class="p">(</span><span class="n">cycle</span> <span class="n">backwards</span><span class="p">)</span>
+<span class="n">ARROW</span>     <span class="p">:</span> <span class="n">steer</span> <span class="n">crop</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">z</span>  <span class="p">:</span> <span class="n">reset</span> <span class="n">zoom</span> <span class="ow">and</span> <span class="n">crop</span>
+
+<span class="n">Pupil</span> <span class="n">mode</span><span class="p">:</span>
+<span class="o">--------------------------------------------------</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">p</span> <span class="p">:</span> <span class="n">toggle</span> <span class="n">pupil</span> <span class="n">lens</span>
+
+<span class="n">Focus</span> <span class="n">controls</span><span class="p">:</span>
+<span class="o">--------------------------------------------------</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">u</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="n">focus</span> <span class="n">by</span>  <span class="mf">0.005</span> <span class="n">mm</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">i</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="n">focus</span> <span class="n">by</span> <span class="o">-</span><span class="mf">0.005</span> <span class="n">mm</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">u</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="n">focus</span> <span class="n">by</span>  <span class="mf">0.1</span> <span class="n">mm</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">i</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="n">focus</span> <span class="n">by</span> <span class="o">-</span><span class="mf">0.1</span> <span class="n">mm</span>
+
+<span class="n">Cam</span> <span class="n">focus</span> <span class="n">controls</span><span class="p">:</span>
+<span class="o">--------------------------------------------------</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">l</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="n">cam</span> <span class="n">focus</span> <span class="n">by</span>  <span class="mf">0.01</span> <span class="n">mm</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="p">;</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="n">cam</span> <span class="n">focus</span> <span class="n">by</span> <span class="o">-</span><span class="mf">0.01</span><span class="n">mm</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">l</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="n">cam</span> <span class="n">focus</span> <span class="n">by</span>  <span class="mf">0.1</span> <span class="n">mm</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="p">;</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="n">cam</span> <span class="n">focus</span> <span class="n">by</span> <span class="o">-</span><span class="mf">0.1</span> <span class="n">mm</span>
+
+<span class="n">MBI</span> <span class="n">wheel</span> <span class="n">controls</span><span class="p">:</span>
+<span class="o">--------------------------------------------------</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="p">[]</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="n">wheel</span> <span class="mf">0.005</span> <span class="n">deg</span> <span class="n">CCW</span> <span class="o">/</span> <span class="n">CW</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="p">[]</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="n">wheel</span> <span class="mf">0.2</span> <span class="n">deg</span> <span class="n">CCW</span> <span class="o">/</span> <span class="n">CW</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">m</span>  <span class="p">:</span> <span class="n">Insert</span> <span class="n">MBI</span> <span class="n">dichroics</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">m</span>  <span class="p">:</span> <span class="n">Remove</span> <span class="n">MBI</span> <span class="n">dichroics</span>
+<span class="n">ALT</span>   <span class="o">+</span> <span class="n">m</span>  <span class="p">:</span> <span class="n">Save</span> <span class="n">current</span> <span class="n">angle</span> <span class="n">to</span> <span class="n">last</span> <span class="n">configuration</span>
+
+<span class="n">Field</span> <span class="n">stop</span> <span class="n">controls</span><span class="p">:</span>
+<span class="o">--------------------------------------------------</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">7</span>     <span class="p">:</span> <span class="n">Fieldstop</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">8</span>     <span class="p">:</span> <span class="n">CLC</span><span class="o">-</span><span class="mi">2</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">9</span>     <span class="p">:</span> <span class="n">CLC</span><span class="o">-</span><span class="mi">3</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">0</span>     <span class="p">:</span> <span class="n">CLC</span><span class="o">-</span><span class="mi">5</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="o">-</span>     <span class="p">:</span> <span class="n">CLC</span><span class="o">-</span><span class="mi">7</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="o">=</span>     <span class="p">:</span> <span class="n">DGVVC</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">ARROW</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="mf">0.001</span> <span class="n">mm</span> <span class="ow">in</span> <span class="n">x</span> <span class="p">(</span><span class="n">left</span><span class="o">/</span><span class="n">right</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span> <span class="p">(</span><span class="n">up</span><span class="o">/</span><span class="n">down</span><span class="p">)</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">ARROW</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="mf">0.05</span> <span class="n">mm</span> <span class="ow">in</span> <span class="n">x</span> <span class="p">(</span><span class="n">left</span><span class="o">/</span><span class="n">right</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span> <span class="p">(</span><span class="n">up</span><span class="o">/</span><span class="n">down</span><span class="p">)</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">o</span>     <span class="p">:</span> <span class="n">Offset</span> <span class="n">fieldstop</span> <span class="mf">0.5</span> <span class="n">mm</span><span class="p">;</span> <span class="n">press</span> <span class="n">again</span> <span class="n">to</span> <span class="k">return</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">s</span>     <span class="p">:</span> <span class="n">Save</span> <span class="n">current</span> <span class="n">position</span> <span class="n">to</span> <span class="n">last</span> <span class="n">configuration</span>
+
+<span class="n">Filter</span> <span class="n">controls</span><span class="p">:</span>
+<span class="o">--------------------------------------------------</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">Open</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:</span> <span class="mi">625</span><span class="o">-</span><span class="mi">50</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="mi">3</span> <span class="p">:</span> <span class="mi">675</span><span class="o">-</span><span class="mi">60</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="mi">4</span> <span class="p">:</span> <span class="mi">725</span><span class="o">-</span><span class="mi">50</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="mi">5</span> <span class="p">:</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="mi">6</span> <span class="p">:</span> <span class="mi">775</span><span class="o">-</span><span class="mi">50</span>
+
+<span class="n">Diff</span> <span class="nb">filter</span> <span class="n">controls</span><span class="p">:</span>
+<span class="o">--------------------------------------------------</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">SHIFT</span> <span class="o">+</span> <span class="mi">7</span> <span class="p">:</span> <span class="n">Open</span> <span class="o">/</span> <span class="n">Open</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">SHIFT</span> <span class="o">+</span> <span class="mi">8</span> <span class="p">:</span> <span class="n">SII</span><span class="o">-</span><span class="n">Cont</span> <span class="o">/</span> <span class="n">SII</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">SHIFT</span> <span class="o">+</span> <span class="mi">9</span> <span class="p">:</span> <span class="n">Ha</span><span class="o">-</span><span class="n">Cont</span> <span class="o">/</span> <span class="n">Halpha</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">SHIFT</span> <span class="o">+</span> <span class="mi">0</span> <span class="p">:</span> <span class="n">Open</span> <span class="o">/</span> <span class="n">Open</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">SHIFT</span> <span class="o">+</span> <span class="o">-</span> <span class="p">:</span> <span class="n">SII</span> <span class="o">/</span> <span class="n">SII</span><span class="o">-</span><span class="n">Cont</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">SHIFT</span> <span class="o">+</span> <span class="o">=</span> <span class="p">:</span> <span class="n">Halpha</span> <span class="o">/</span> <span class="n">Ha</span><span class="o">-</span><span class="n">Cont</span>
+
+<span class="n">Field</span> <span class="n">stop</span> <span class="n">controls</span><span class="p">:</span>
+<span class="o">--------------------------------------------------</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">7</span>     <span class="p">:</span> <span class="n">Fieldstop</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">8</span>     <span class="p">:</span> <span class="n">CLC</span><span class="o">-</span><span class="mi">2</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">9</span>     <span class="p">:</span> <span class="n">CLC</span><span class="o">-</span><span class="mi">3</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">0</span>     <span class="p">:</span> <span class="n">CLC</span><span class="o">-</span><span class="mi">5</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="o">-</span>     <span class="p">:</span> <span class="n">CLC</span><span class="o">-</span><span class="mi">7</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="o">=</span>     <span class="p">:</span> <span class="n">DGVVC</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">ARROW</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="mf">0.001</span> <span class="n">mm</span> <span class="ow">in</span> <span class="n">x</span> <span class="p">(</span><span class="n">left</span><span class="o">/</span><span class="n">right</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span> <span class="p">(</span><span class="n">up</span><span class="o">/</span><span class="n">down</span><span class="p">)</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">ARROW</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="mf">0.05</span> <span class="n">mm</span> <span class="ow">in</span> <span class="n">x</span> <span class="p">(</span><span class="n">left</span><span class="o">/</span><span class="n">right</span><span class="p">)</span> <span class="ow">and</span> <span class="n">y</span> <span class="p">(</span><span class="n">up</span><span class="o">/</span><span class="n">down</span><span class="p">)</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="o">.</span>     <span class="p">:</span> <span class="n">Nudge</span> <span class="o">-</span><span class="mf">0.05</span> <span class="n">mm</span> <span class="ow">in</span> <span class="n">focus</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="p">;</span>     <span class="p">:</span> <span class="n">Nudge</span> <span class="mf">0.05</span> <span class="n">mm</span> <span class="ow">in</span> <span class="n">focus</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">o</span>     <span class="p">:</span> <span class="n">Offset</span> <span class="n">fieldstop</span> <span class="mf">0.5</span> <span class="n">mm</span><span class="p">;</span> <span class="n">press</span> <span class="n">again</span> <span class="n">to</span> <span class="k">return</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">s</span>     <span class="p">:</span> <span class="n">Save</span> <span class="n">current</span> <span class="n">position</span> <span class="n">to</span> <span class="n">last</span> <span class="n">configuration</span>
+</pre></div>
+</div>
+</section>
+<section id="vpupcam">
+<h2>VPUPCAM<a class="headerlink" href="#vpupcam" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sonne $ vpupcam &amp;
+</pre></div>
+</div>
+<p><strong>Help Message</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">VPUPCAM</span> <span class="n">controls</span>
+<span class="o">=======================================</span>
+<span class="n">h</span>           <span class="p">:</span> <span class="n">display</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">ESC</span>      <span class="p">:</span> <span class="n">quit</span> <span class="n">vpupcam</span>
+
+<span class="n">Display</span> <span class="n">controls</span><span class="p">:</span>
+<span class="o">---------------------------------------</span>
+<span class="n">c</span>         <span class="p">:</span> <span class="n">display</span> <span class="n">cross</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">c</span> <span class="p">:</span> <span class="n">display</span> <span class="n">centered</span> <span class="n">cross</span>
+<span class="n">r</span>         <span class="p">:</span> <span class="n">subtract</span> <span class="n">reference</span> <span class="n">frame</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">r</span>  <span class="p">:</span> <span class="n">take</span> <span class="n">reference</span> <span class="n">frame</span>
+<span class="n">p</span>         <span class="p">:</span> <span class="n">display</span> <span class="n">pupil</span> <span class="n">overlay</span>
+<span class="n">l</span>         <span class="p">:</span> <span class="n">linear</span><span class="o">/</span><span class="n">non</span><span class="o">-</span><span class="n">linear</span> <span class="n">display</span>
+<span class="n">m</span>         <span class="p">:</span> <span class="n">cycle</span> <span class="n">colormaps</span>
+<span class="n">v</span>         <span class="p">:</span> <span class="n">start</span><span class="o">/</span><span class="n">stop</span> <span class="n">accumulating</span> <span class="ow">and</span> <span class="n">averaging</span> <span class="n">frames</span>
+<span class="n">z</span>         <span class="p">:</span> <span class="n">zoom</span><span class="o">/</span><span class="n">unzoom</span> <span class="n">on</span> <span class="n">the</span> <span class="n">center</span> <span class="n">of</span> <span class="n">the</span> <span class="n">image</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">z</span> <span class="p">:</span> <span class="n">unzoom</span> <span class="n">image</span> <span class="p">(</span><span class="n">cycle</span> <span class="n">backwards</span><span class="p">)</span>
+<span class="n">ARROW</span>     <span class="p">:</span> <span class="n">steer</span> <span class="n">crop</span>
+<span class="n">CTRL</span> <span class="o">+</span> <span class="n">z</span>  <span class="p">:</span> <span class="n">reset</span> <span class="n">zoom</span> <span class="ow">and</span> <span class="n">crop</span>
+
+<span class="n">Pupil</span> <span class="n">wheel</span> <span class="n">alignment</span><span class="p">:</span>
+<span class="o">-----------------------------------------------------</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">ARROW</span> <span class="p">:</span> <span class="n">Nudge</span> <span class="n">wheel</span> <span class="mf">0.01</span> <span class="n">mm</span> <span class="ow">in</span> <span class="n">x</span> <span class="p">(</span><span class="n">left</span><span class="o">/</span><span class="n">right</span><span class="p">)</span>
+                                   <span class="ow">and</span> <span class="n">y</span> <span class="p">(</span><span class="n">up</span><span class="o">/</span><span class="n">down</span><span class="p">)</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="n">ARROW</span> <span class="p">:</span> <span class="n">Move</span> <span class="n">wheel</span> <span class="mi">1</span> <span class="n">mm</span> <span class="ow">in</span> <span class="n">x</span> <span class="p">(</span><span class="n">left</span><span class="o">/</span><span class="n">right</span><span class="p">)</span>
+                               <span class="ow">and</span> <span class="n">y</span> <span class="p">(</span><span class="n">up</span><span class="o">/</span><span class="n">down</span><span class="p">)</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="p">[]</span>    <span class="p">:</span> <span class="n">Nudge</span> <span class="n">wheel</span> <span class="mf">0.1</span> <span class="n">deg</span> <span class="ow">in</span> <span class="n">theta</span> <span class="p">(</span><span class="n">ccw</span><span class="o">/</span><span class="n">cw</span><span class="p">)</span>
+<span class="n">SHIFT</span> <span class="o">+</span> <span class="p">[]</span>    <span class="p">:</span> <span class="n">Nudge</span> <span class="n">wheel</span> <span class="mi">1</span> <span class="n">deg</span> <span class="ow">in</span> <span class="n">theta</span> <span class="p">(</span><span class="n">ccw</span><span class="o">/</span><span class="n">cw</span><span class="p">)</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">S</span>     <span class="p">:</span> <span class="n">Save</span> <span class="n">position</span> <span class="n">to</span> <span class="n">the</span> <span class="n">last</span> <span class="n">configuration</span>
+
+<span class="n">Pupil</span> <span class="n">wheel</span> <span class="n">masks</span><span class="p">:</span>
+<span class="o">----------------------------------</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">1</span>         <span class="p">:</span> <span class="n">Open</span> <span class="p">(</span><span class="mi">0</span> <span class="n">deg</span><span class="p">)</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">2</span>         <span class="p">:</span> <span class="n">SAM</span><span class="o">-</span><span class="mi">7</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">3</span>         <span class="p">:</span> <span class="n">SAM</span><span class="o">-</span><span class="mi">9</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">4</span>         <span class="p">:</span> <span class="n">Open</span> <span class="p">(</span><span class="mi">73</span> <span class="n">deg</span><span class="p">)</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">5</span>         <span class="p">:</span> <span class="n">SAM</span><span class="o">-</span><span class="mi">18</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">6</span>         <span class="p">:</span> <span class="n">SAM</span><span class="o">-</span><span class="n">Ann</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">7</span>         <span class="p">:</span> <span class="n">Mirror</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">8</span>         <span class="p">:</span> <span class="n">Open</span> <span class="p">(</span><span class="mi">164</span> <span class="n">deg</span><span class="p">)</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">9</span>         <span class="p">:</span> <span class="n">LyotStop</span><span class="o">-</span><span class="n">L</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="mi">0</span>         <span class="p">:</span> <span class="n">RAP</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="o">-</span>         <span class="p">:</span> <span class="n">ND10</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="o">=</span>         <span class="p">:</span> <span class="n">ND25</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">SHIFT</span> <span class="o">+</span> <span class="mi">7</span> <span class="p">:</span> <span class="n">LyotStop</span><span class="o">-</span><span class="n">M</span>
+<span class="n">CTRL</span>  <span class="o">+</span> <span class="n">SHIFT</span> <span class="o">+</span> <span class="mi">8</span> <span class="p">:</span> <span class="n">LyotStop</span><span class="o">-</span><span class="n">S</span>
+</pre></div>
+</div>
+</section>
+<section id="others">
+<h2>Others<a class="headerlink" href="#others" title="Link to this heading"></a></h2>
+<p>anycam is a base PyGame viewer tool– all of the VAMPIRES PyGame viewers are subclasses of the anycam class. Therefore, anycam is only useful if you need to see a raw image stream, without any of the cropping automated into the VCAM viewers.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ anycam vcam1 &amp;
+</pre></div>
+</div>
+<p>shmImshow uses a QT viewer that is dynamically resizable, zoomable, and with an adjustable color scale</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ shmImshow.py vcam1 &amp;
+</pre></div>
+</div>
+</section>
+<section id="faq">
+<h2>FAQ<a class="headerlink" href="#faq" title="Link to this heading"></a></h2>
+<section id="the-crop-is-all-weird">
+<h3>1. The crop is all weird!<a class="headerlink" href="#the-crop-is-all-weird" title="Link to this heading"></a></h3>
+<p>After setting a new crop, the state of the camera viewers can become corrupted and steering the image with the arrow keys will mess with the displayed image showing very off-center PSFs or multiple copies of the same PSF in MBI mode. To fix this, reset the crop and steering- <code class="docutils literal notranslate"><span class="pre">CTRL+Z</span></code>, then any arrow key, then <code class="docutils literal notranslate"><span class="pre">CTRL+Z</span></code>.</p>
+</section>
+<section id="the-cameras-froze">
+<h3>2. The cameras froze!<a class="headerlink" href="#the-cameras-froze" title="Link to this heading"></a></h3>
+<p>The easiest fix is to restart the camera processes, which will reset your crops and the camera PyRO instance</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>scexao5 $ camstart vcam1
+scexao5 $ camstart vcam2
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cameras.html" class="btn btn-neutral float-left" title="Cameras" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="coronagraphs.html" class="btn btn-neutral float-right" title="Coronagraphs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, 2023, 2024, Miles Lucas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

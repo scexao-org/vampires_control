@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started &mdash; VAMPIRES Control</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=01f34227"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API/Reference" href="api/index.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            vampires_control
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#using-pip">Using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#from-source">From Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#navigating-the-documentation">Navigating the Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#operating-vampires">Operating VAMPIRES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#procedures">Procedures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#observing-with-vampires">Observing with VAMPIRES</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#code-examples">Code Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#python-example">1. Python example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#command-line">2. Command line</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#faq">FAQ</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API/Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/environment_variables.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/api.html">API/Reference</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Operating VAMPIRES</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="operating/layout.html">Instrument Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operating/cameras.html">Cameras</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="operating/cameras.html#initialization-and-viewers">Initialization and Viewers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="operating/cameras.html#vcam1-and-vcam2">VCAM1 and VCAM2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="operating/cameras.html#vpupcam">VPUPCAM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="operating/cameras.html#detector-readout-modes">Detector Readout Modes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="operating/cameras.html#photon-transfer-curves">Photon Transfer Curves</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="operating/cameras.html#detector-astrometric-solution">Detector Astrometric Solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/cameras.html#camera-crops">Camera Crops</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="operating/cameras.html#standard">Standard</a></li>
+<li class="toctree-l3"><a class="reference internal" href="operating/cameras.html#mbi">MBI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="operating/cameras.html#mbi-reduced">MBI Reduced</a></li>
+<li class="toctree-l3"><a class="reference internal" href="operating/cameras.html#pupil">Pupil</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="operating/cameras.html#exposure-time">Exposure time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/cameras.html#camera-triggering">Camera Triggering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="operating/cameras.html#aflc-disabled">AFLC Disabled</a></li>
+<li class="toctree-l3"><a class="reference internal" href="operating/cameras.html#aflc-enabled">AFLC Enabled</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="operating/cameras.html#crop-location-and-mbi-hotspots">Crop location and MBI hotspots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/cameras.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="operating/viewers.html">Camera Viewers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="operating/viewers.html#vcam1-and-vcam2">VCAM1 and VCAM2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/viewers.html#vpupcam">VPUPCAM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/viewers.html#others">Others</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/viewers.html#faq">FAQ</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="operating/viewers.html#the-crop-is-all-weird">1. The crop is all weird!</a></li>
+<li class="toctree-l3"><a class="reference internal" href="operating/viewers.html#the-cameras-froze">2. The cameras froze!</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="operating/coronagraphs.html">Coronagraphs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="operating/coronagraphs.html#focal-plane-masks">Focal Plane Masks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/coronagraphs.html#lyot-stops">Lyot Stops</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="operating/coronagraphs.html#advanced-details">Advanced Details</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="operating/devices.html">Device Control</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="operating/devices.html#interacting-with-devices">Interacting with devices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/devices.html#filters">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/devices.html#field-stop-focal-plane-mask">Field Stop / Focal Plane Mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/devices.html#mask-wheel">Mask Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/devices.html#differential-wheel">Differential Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/devices.html#beamsplitter-wheel">Beamsplitter Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/devices.html#mbi-wheel">MBI Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/devices.html#focus-stages">Focus Stages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/devices.html#aflc-stage">AFLC Stage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/devices.html#qwps">QWPs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="operating/data.html">Data Acquisition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="operating/data.html#data-flowchart">Data Flowchart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operating/data.html#logging-fits-files">Logging FITS files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="operating/data.html#option-1-using-vampires-scripts">Option 1: Using VAMPIRES scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="operating/data.html#option-2-directly-using-fpsctrl">Option 2: Directly using fpsCTRL</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="operating/data.html#watching-fits-files">Watching FITS files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="operating/troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Procedures</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="procedures/autofocus.html">Autofocusing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="procedures/autofocus.html#standard-procedure">Standard procedure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/autofocus.html#narrowband-filters">Narrowband filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/autofocus.html#visible-bench-pickoffs">Visible bench pickoffs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/autofocus.html#single-cam-focus-no-beamsplitter">Single-cam focus (no beamsplitter)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/autofocus.html#pupil-mode">Pupil mode</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="procedures/coronagraphs.html">Coronagraph Alignment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="procedures/coronagraphs.html#focal-plane-mask-aligment">Focal plane mask aligment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/coronagraphs.html#lyot-stop-alignment">Lyot stop alignment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/coronagraphs.html#advanced-focusing">(Advanced) Focusing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="procedures/coronagraphs.html#autofocusing">Autofocusing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="procedures/mbi.html">Multiband Imaging</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="procedures/mbi.html#inserting">Inserting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/mbi.html#removing">Removing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/mbi.html#mbi-reduced">MBI Reduced</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/mbi.html#advanced-mbi-hotspotting">(Advanced) MBI Hotspotting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="procedures/data.html">Post-observing Data Management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="procedures/data.html#synchronization-and-consolidation">Synchronization and Consolidation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/data.html#frame-ids">Frame IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/data.html#compression">Compression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures/data.html#creating-manifest-and-uploading-to-stars2">Creating Manifest and Uploading to STARS2</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Observing with VAMPIRES</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="observing/calibrations.html">Calibration Procedures</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="observing/calibrations.html#nightly-pre-observing-calibrations">Nightly / Pre-observing Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="observing/calibrations.html#flat-frames">Flat frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observing/calibrations.html#pinhole-frames">Pinhole frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observing/calibrations.html#dark-frames">Dark frames</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="observing/calibrations.html#post-observing-calibrations">Post-observing Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="observing/calibrations.html#id1">Dark frames</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="observing/calibrations.html#on-sky-calibrations">On-sky Calibrations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="observing/calibrations.html#sky-frames">Sky Frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observing/calibrations.html#photometric-standards">Photometric Standards</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observing/calibrations.html#astrometric-standards">Astrometric Standards</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="observing/polarimetry.html">Polarimetry</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="observing/polarimetry.html#setup-slow-mode">Setup: Slow Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observing/polarimetry.html#setup-fast-mode">Setup: Fast Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observing/polarimetry.html#operating">Operating</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="observing/polarimetry.html#triggering">Triggering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observing/polarimetry.html#hwp-modulation">HWP Modulation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="observing/polarimetry.html#teardown">Teardown</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">vampires_control</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Getting Started</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/gettingstarted.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h1>
+<p>Welcome to the VAMPIRES instrument control manual. Theis documentation serves as the primary resource for operating VAMPIRES and is composed of as much automatically-generated docs as possible so that it stays up to date with less direct maintenence. The version of these docs on the VAMPIRES computer will always serve as the most up-to-date reference for this manual.</p>
+<section id="navigating-the-documentation">
+<h2>Navigating the Documentation<a class="headerlink" href="#navigating-the-documentation" title="Link to this heading"></a></h2>
+<section id="operating-vampires">
+<h3>Operating VAMPIRES<a class="headerlink" href="#operating-vampires" title="Link to this heading"></a></h3>
+<p>The operations documentation is mostly technical information– how does VAMPIRES work, what are the interfaces with the hardware and cameras, etc.</p>
+</section>
+<section id="procedures">
+<h3>Procedures<a class="headerlink" href="#procedures" title="Link to this heading"></a></h3>
+<p>There are some tutorials for different operational aspects of VAMPIRES, like autofocusing and coronagraph alignment. These procedures are focused on accmoplishing tasks without explaining each technical component- for more information refere back to the operations documentation.</p>
+</section>
+<section id="observing-with-vampires">
+<h3>Observing with VAMPIRES<a class="headerlink" href="#observing-with-vampires" title="Link to this heading"></a></h3>
+<p>These documents contain explicit checklists and procedures for observing with VAMPIRES. These steps may include references back to other procedures</p>
+</section>
+</section>
+<section id="code-examples">
+<h2>Code Examples<a class="headerlink" href="#code-examples" title="Link to this heading"></a></h2>
+<p>In general, if there are code examples they will come in these forms:</p>
+<section id="python-example">
+<h3>1. Python example<a class="headerlink" href="#python-example" title="Link to this heading"></a></h3>
+<p>These examples will have python prompts <code class="docutils literal notranslate"><span class="pre">&gt;&gt;&gt;</span></code> included in them. For example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dev</span> <span class="o">=</span> <span class="n">connect</span><span class="p">(</span><span class="n">VAMPIRES</span><span class="o">.</span><span class="n">FILTER</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="command-line">
+<h3>2. Command line<a class="headerlink" href="#command-line" title="Link to this heading"></a></h3>
+<p>Any command line program to run will come in the format</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[computer] $ [prog]
+</pre></div>
+</div>
+<p>for example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>scexao5 $ cam-vcamstart
+</pre></div>
+</div>
+<p>so that the computer you are running the command on is obvious. In the case that a command can run an <em>any</em> computer, the command will look like</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ [prog]
+</pre></div>
+</div>
+<p>for example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pgrep &quot;dpp&quot;
+</pre></div>
+</div>
+</section>
+</section>
+<section id="faq">
+<h2>FAQ<a class="headerlink" href="#faq" title="Link to this heading"></a></h2>
+<p>Each section of the documentation contains a frequently asked questions (FAQ) page to hopefully answer your questions about VAMPIRES. If there’s something that slipped through the cracks, reach out on the SCExAO slack <code class="docutils literal notranslate"><span class="pre">#bench_help</span></code> channel, or email me directly (Miles Lucas <a class="reference external" href="mailto:mdlucas&#37;&#52;&#48;hawaii&#46;edu">mdlucas<span>&#64;</span>hawaii<span>&#46;</span>edu</a>). Please be considerate of the SCExAO team’s time and double-check the documentation (use the search bar!) before reaching out.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/index.html" class="btn btn-neutral float-right" title="API/Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, 2023, 2024, Miles Lucas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
