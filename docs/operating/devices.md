@@ -1,4 +1,4 @@
-# Devices
+# Device Control
 
 VAMPIRES interacts with many devices, some of which are connected locally, some of which run on other SCExAO computers, and others interface with external facility instruments. The majority of the device control code is at https://github.com/scexao-org/device_control.
 
@@ -10,13 +10,13 @@ We aim to provide an interface to the VAMPIRES devices that can be scripted usin
 Use the following code snippet to connect to a device using python
 ```python
 from swmain.network.pyroclient import connect
-from device_control.vampires import PYRO_KEYS
-device = connect(PYRO_KEYS["devicename"])
+from scxconf.pyrokeys import VAMPIRES
+device = connect(VAMPIRES.<DEVICE>)
 ```
 for example, to connect to the focus stage
 
 ```python
-fcs = connect(PYRO_KEYS["focus"])
+fcs = connect(VAMPIRES.FOCUS)
 fcs.get_position()
 ```
 
@@ -28,8 +28,7 @@ Filter options:
 3. 675-50
 4. 725-50
 6. 750-50
-7. 775-50
-
+7. 775-50 
 
 ```
 vampires_filter <filtname>
@@ -43,6 +42,7 @@ Field stop options:
 3. CLC-3
 4. CLC-5
 5. CLC-7
+6. DGVVC
 
 
 ```
@@ -53,13 +53,18 @@ vampires_fieldstop <posn>
 
 Mask wheel options:
 1. Open
-2. Mirror
-3. LyotStop-S
-4. LyotStop-L
-5. 7hole
-6. 9hole
-7. 18hole
-8. Annulus
+2. SAM-7
+3. SAM-9
+4. SAM-18
+5. Open
+6. SAM-Ann
+7. Mirror
+8. Open
+9. LyotStop-L
+10. ND10
+11. ND25
+12. LyotStop-M
+13. LyotStop-S
 
 ```
 vampires_mask <mask>
@@ -69,14 +74,14 @@ vampires_mask <mask>
 
 Differential wheel options
 1. Open / Open
-2. H-alpha / Continuum
-3. SII / Continuum
+2. SII / Continuum
+3. H-alpha / Continuum
 4. Open / Open
-5. Continuum / H-alpha
-6. Continuum / SII
+5. Continuum / SII
+6. Continuum / H-alpha
 
 ```
-vampires_diffwheel <posn>
+vampires_diff <posn>
 ```
 
 ## Beamsplitter Wheel
@@ -93,8 +98,8 @@ vampires_bs <posn>
 ## MBI Wheel
 
 MBI wheel options
-1. Mirror
-2. Dichroic
+1. Dichroics
+2. Mirror
 
 ## Focus Stages
 

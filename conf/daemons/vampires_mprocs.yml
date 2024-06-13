@@ -11,31 +11,25 @@ procs:
     shell: "vampires_prep"
     autostart: false
   set datatype:
-    shell: "set_datatype"
+    shell: "vampires_datatype"
     autostart: false
   preplog:
-    shell: "startlog"
+    shell: "vampires_preplog"
     autostart: false
   startlog:
-    shell: "resumelog"
+    shell: "vampires_startlog"
     autostart: false
   stoplog:
-    shell: "pauselog"
+    shell: "vampires_pauselog"
     autostart: false
   stoplog (wait):
-    shell: "pauselog --wait"
+    shell: "vampires_pauselog --wait"
     autostart: false
   killlog:
     shell: "stoplog --kill"
     autostart: false
-  take cals:
-    shell: "take_cals"
-    autostart: false
   sdi daemon:
     shell: "sdi_daemon"
-    autostart: false
-  autofocus: 
-    shell: "autofocus all"
     autostart: false
   filter sweep:
     shell: "filter_sweep"

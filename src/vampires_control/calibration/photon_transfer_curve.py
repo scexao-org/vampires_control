@@ -100,7 +100,7 @@ class PTCAcquirer:
 
 
 def get_cube(shm, nframes):
-    return SHMS[shm].multi_recv_data(nframes, outputFormat=2, timeout=6)
+    return SHMS[shm].multi_recv_data(nframes, output_as_cube=True, timeout=6)
 
 
 def main():

@@ -8,13 +8,13 @@ from pathlib import Path
 
 import click
 import pandas as pd
+import tqdm.auto as tqdm
 from astropy.io import fits
 from scxconf.pyrokeys import VCAM1, VCAM2
 from swmain.network.pyroclient import connect
-import tqdm.auto as tqdm
 
 logger = getLogger(__file__)
-_DEFAULT_DELAY = 2 # s
+_DEFAULT_DELAY = 2  # s
 
 
 def _default_sc5_archive_folder():
@@ -31,7 +31,17 @@ def _default_output():
 def _relevant_header_for_darks(filename) -> dict:
     path = Path(filename)
     hdr = fits.getheader(path)
-    dark_keys = ("PRD-MIN1", "PRD-MIN2", "PRD-RNG1", "PRD-RNG2", "OBS-MOD", "DATA-TYP", "U_DETMOD", "EXPTIME", "U_CAMERA")
+    dark_keys = (
+        "PRD-MIN1",
+        "PRD-MIN2",
+        "PRD-RNG1",
+        "PRD-RNG2",
+        "OBS-MOD",
+        "DATA-TYP",
+        "U_DETMOD",
+        "EXPTIME",
+        "U_CAMERA",
+    )
     return {k: hdr[k] for k in dark_keys}
 
 
@@ -54,6 +64,7 @@ def vampires_dark_table(folder=None):
     header_table.sort_values(dark_keys, inplace=True)
     return header_table
 
+
 def _estimate_total_time(headers, num_frames=250):
     exptimes = headers.groupby("U_CAMERA")["EXPTIME"]
     tints = exptimes.sum() * num_frames + len(exptimes) * _DEFAULT_DELAY
@@ -64,7 +75,7 @@ BASE_COMMAND = ("milk-streamFITSlog", "-cset", "q_asl")
 
 
 def _kill_log(cam: int):
-    command = [*BASE_COMMAND, f"vcam{cam}",  "kill"]
+    command = [*BASE_COMMAND, f"vcam{cam}", "kill"]
     subprocess.run(command, check=True, capture_output=True)
 
 
@@ -114,16 +125,15 @@ def _set_camera_crop(camera, crop, obsmode, pbar):
         modename = "PUPIL"
     else:
         modename = "CUSTOM"
-    
+
     pbar.write(f"Setting camera crop x={w_offset} y={h_offset} w={width} h={height} ({modename})")
-    
+
     camera.set_camera_size(height, width, h_offset, w_offset, mode_name=modename)
 
 
 def process_dark_frames(table, folder, num_frames=250):
     table["crop"] = table.apply(
-        lambda r: (r["PRD-MIN1"], r["PRD-MIN2"], r["PRD-RNG1"], r["PRD-RNG2"]),
-        axis=1
+        lambda r: (r["PRD-MIN1"], r["PRD-MIN2"], r["PRD-RNG1"], r["PRD-RNG2"]), axis=1
     )
     pbar = tqdm.tqdm(table.groupby("crop"), desc="Crop")
     for key, group in pbar:
@@ -140,7 +150,11 @@ def process_dark_frames(table, folder, num_frames=250):
         if 2 in group["U_CAMERA"]:
             _prep_log(2, num_frames, folder)
 
-        pbar2 = tqdm.tqdm(group.sort_values("U_DETMOD", ascending=False).groupby("U_DETMOD"), desc="Det. mode", leave=False)
+        pbar2 = tqdm.tqdm(
+            group.sort_values("U_DETMOD", ascending=False).groupby("U_DETMOD"),
+            desc="Det. mode",
+            leave=False,
+        )
         for key2, group2 in pbar2:
             if 1 in group2["U_CAMERA"].values:
                 _set_readout_mode(1, key2, pbar=pbar)
@@ -179,7 +193,7 @@ def main(folder: Path, outdir: Path, num_frames: int, no_confirm: bool):
         click.confirm("Confirm to proceed", default=True, abort=True)
     try:
         process_dark_frames(table, outdir, num_frames)
-    except:
+    except Exception:
         _kill_log(1)
         _kill_log(2)
 

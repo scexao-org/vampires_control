@@ -1,21 +1,42 @@
 # Coronagraph Alignment
 
-## Manual aligment
+## Focal plane mask aligment
 
 The best way to align the coronagraphs, currently, is manually using the VAMPIRES camera viewers. The process will be the same for each mask and we recommend aligning all masks to the internal source before going on-sky.
 
-Start by inserting one of the masks using the camera viewer
-* `CTRL + 8` - CLC-2
-* `CTRL + 9` - CLC-3
-* `CTRL + 0` - CLC-5
-* `CTRL + -` - CLC-7
-* `CTRL + =` - dgVVC
+Start by inserting one of the masks using the VCAM1 or VCAM2 camera viewer--
+```
+CTRL + 8        CLC-2
+CTRL + 9        CLC-3
+CTRL + 0        CLC-5
+CTRL + -        CLC-7
+CTRL + =        DGVVC
+```
 
-If the mask is far from centered, start with rough alignment by using `SHIFT` plus the arrow keys. When using the viewers the direction of the arrow key corresponds to the direction the mask will move.
+To move the coronagraph, use `CTRL + <ARROW>` for small steps, and `SHIFT + <ARROW>` for large steps. When satisfied, press `CTRL + s` to save the current position.
 
-Once close, use the fine alignment by pressing `CTRL` plus the arrow keys. When satisfied, press `CTRL + s` to save the current position.
+## Lyot stop alignment
 
-## Focusing
+It is best to align the Lyot stop with `vpupcam`- the viewer has built-in keyboard shortcuts for roughly and finely adjusting x, y, and theta of the mask wheel.
+
+```
+sonne $ vpupcam &
+```
+To insert the stops, use
+```
+CTRL + 9               LyotStop-L
+CTRL + SHIFT +         LyotStop-S
+CTRL + SHIFT + 0       LyotStop-M
+```
+and then use `CTRL + <ARROW>` for fine alignment (or `SHIFT + <ARROW>` for coarse alignment). The wheel can be rotated with `CTRL + [`/`CTRL + ]` (or with `SHIFT` for coarse changes). Press `CTRL + s` to save the current position to the mount configuration for the selected mask.
+
+## (Advanced) Focusing
+
+```{admonition} Advanced
+:class: warning
+
+The coronagraphs should not need refocusing, often. Only proceed with focusing the masks if necessary.
+```
 
 The fieldstop stage can move along the focus axis with
 

@@ -7,6 +7,8 @@ from numpy.polynomial import Polynomial
 from pyMilk.interfacing.isio_shmlib import SHM
 from swmain.network.pyroclient import connect
 
+from .strehl import measure_strehl_shm
+
 # set up logging
 formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger("autofocus")
@@ -47,31 +49,31 @@ class Autofocuser:
 
     def autofocus_lens(self, shm, start_point, num_frames=10):
         focus_range = _focus_range(start_point)
-        metrics = np.empty_like(focus_range)
+        strehls = np.empty_like(focus_range)
         pbar = tqdm.tqdm(focus_range, desc="Scanning lens", leave=False)
         for i, position in enumerate(pbar):
             pbar.write(f"Moving lens focus to {position:4.02f} mm", end=" | ")
             self.lens_stage.move_absolute(position)
-            metrics[i] = measure_metric(shm, num_frames)
-            pbar.write(f"normalized variance: {metrics[i]:3.02e} (adu)")
+            strehls[i] = measure_metric(shm, num_frames)
+            pbar.write(f"Strehl ratio: {strehls[i]*1e2:04.01f}%")
 
-        best_fit = fit_optimal_focus(focus_range, metrics)
-        logger.info(f"Best-fit focus was {best_fit:4.02f} mm")
+        best_fit, best_value = fit_optimal_focus(focus_range, strehls)
+        logger.info(f"Best Strehl - {best_value * 1e2:04.01f}% - focus= {best_fit:4.02f} mm")
         self.lens_stage.move_absolute(best_fit)
         return best_fit
 
     def autofocus_camfocus(self, shm, start_point, num_frames=10):
         focus_range = _focus_range(start_point)
-        metrics = np.empty_like(focus_range)
+        strehls = np.empty_like(focus_range)
         pbar = tqdm.tqdm(focus_range, desc="Scanning camfocus", leave=False)
         for i, position in enumerate(pbar):
             pbar.write(f"Moving camera focus to {position:4.02f} mm", end=" | ")
             self.cam_stage.move_absolute(position)
-            metrics[i] = measure_metric(shm, num_frames)
-            pbar.write(f"normalized variance: {metrics[i]:3.02e} (adu)")
+            strehls[i] = measure_metric(shm, num_frames)
+            pbar.write(f"Strehl ratio: {strehls[i]*1e2:04.01f}%")
 
-        best_fit = fit_optimal_focus(focus_range, metrics)
-        logger.info(f"Best-fit focus was {best_fit:4.02f} mm")
+        best_fit, best_value = fit_optimal_focus(focus_range, strehls)
+        logger.info(f"Best Strehl - {best_value * 1e2:04.01f}% - focus= {best_fit:4.02f} mm")
         self.cam_stage.move_absolute(best_fit)
         return best_fit
 
@@ -87,17 +89,10 @@ def _focus_range(start_point: float):
 
 def measure_metric(shm: SHM, num_frames: int, **kwargs):
     """Get multiple frames, collapse, and measure focus metric"""
-    cube = shm.multi_recv_data(num_frames, outputFormat=2, **kwargs)
-    frame = np.median(cube, axis=0, overwrite_input=True)
-    return autofocus_metric(frame)
-
-
-def autofocus_metric(frame):
-    """Return the autofocus metric (to maximize) from a single frame"""
-    # calculate normalized variance
-    var = np.var(frame)
-    mean = np.mean(frame)
-    return var / mean
+    return measure_strehl_shm(shm.FNAME, nave=num_frames, **kwargs)
+    # cube = shm.multi_recv_data(num_frames, output_as_cube=True, **kwargs)
+    # frame = np.median(cube, axis=0, overwrite_input=True)
+    # return autofocus_metric(frame)
 
 
 def fit_optimal_focus(focus, metrics) -> float:
@@ -106,11 +101,13 @@ def fit_optimal_focus(focus, metrics) -> float:
     # to convert back to origina domain and range
     poly = Polynomial.fit(focus, metrics, deg=2).convert()
     # vertex of polynomial
-    return -poly.coef[1] / (2 * poly.coef[2])
+    vertex = -poly.coef[1] / (2 * poly.coef[2])
+    value = poly(vertex)
+    return vertex, value
 
 
 @click.command(
-    "autofocus",
+    "vampires_autofocus",
     help="Optimize the focus using either the objective lens stage or the VCAM1 mount stage",
 )
 @click.argument("stage", type=click.Choice(["lens", "cam"], case_sensitive=False))

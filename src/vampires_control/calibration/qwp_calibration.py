@@ -69,7 +69,7 @@ class QWPOptimizer:
             for j, ang2 in enumerate(tqdm.tqdm(qwp2_angles, desc="Scanning QWP2", leave=False)):
                 logger.info(f"Moving QWP2 to {ang2:3.01f} deg")
                 self.qwp2.move_absolute(ang2)
-                cube = self.shms[1].multi_recv_data(num_frames, outputFormat=2)
+                cube = self.shms[1].multi_recv_data(num_frames, output_as_cube=True)
                 metrics[i, j] = np.median(cube, overwrite_input=True)
             if i % 2:
                 metrics[i] = metrics[i][::-1]

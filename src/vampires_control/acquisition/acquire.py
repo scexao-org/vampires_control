@@ -105,7 +105,7 @@ def resume_acq_one_camera(cam_num, num_cubes=-1):
         update_keys(U_VLOG2=True)
 
 
-@click.command("startlog")
+@click.command("vampires_preplog")
 @click.option("-n", "--nframes", type=int, prompt="Specify number of frames per cube")
 @click.option(
     "-z", "--ncubes", type=int, default=-1, prompt="Specify number of cubes (-1 for infinite)"
@@ -152,7 +152,7 @@ def start_acquisition(nframes, ncubes=-1, data_type="OBJECT", cam=-1, archive=Fa
     click.echo(msg)
 
 
-@click.command("datatype")
+@click.command("vampires_datatype")
 @click.option(
     "--data-type",
     "-t",
@@ -171,7 +171,7 @@ def set_datatype(data_type: str) -> None:
         click.echo(f"Cam {i + 1} DATA-TYP={data_type}")
 
 
-@click.command("stoplog")
+@click.command("vampires_stoplog")
 @click.option("-c", "--cam", default=-1, type=int, help="Specify camera, if -1 uses both")
 @click.option(
     "-k/-nk", "--kill/--no-kill", default=True, help="Kills logging process and closes tmux"
@@ -192,7 +192,7 @@ def stop_acquisition(cam=-1, kill=True):
         pool.join()
 
 
-@click.command("pauselog")
+@click.command("vampires_pauselog")
 @click.option("-c", "--cam", default=-1, type=int, help="Specify camera, if -1 uses both")
 @click.option("-w/-nw", "--wait/--no-wait", default=False, help="Finish last cube before pausing")
 def pause_acquisition_main(cam=-1, wait: bool = False):
@@ -210,7 +210,7 @@ def pause_acquisition(cam=-1, wait: bool = False):
         pool.join()
 
 
-@click.command("resumelog")
+@click.command("vampires_startlog")
 @click.option("-c", "--cam", default=-1, type=int, help="Specify camera, if -1 uses both")
 @click.option(
     "-z", "--ncubes", type=int, default=-1, prompt="Specify number of cubes (-1 for infinite)"

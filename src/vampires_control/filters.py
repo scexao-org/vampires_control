@@ -6,7 +6,18 @@ import numpy as np
 from astropy.utils.data import download_file
 from synphot import SpectralElement
 
-VAMPIRES_STD_FILTERS: Final[set] = {"Open", "625-50", "675-50", "725-50", "750-50", "775-50"}
+VAMPIRES_STD_FILTERS: Final[set] = {
+    "Open",
+    "625-50",
+    "675-50",
+    "725-50",
+    "750-50",
+    "775-50",
+    "F620",
+    "F670",
+    "F720",
+    "F760",
+}
 VAMPIRES_MBI_FILTERS: Final[set] = {"F610", "F670", "F720", "F760"}
 VAMPIRES_NB_FILTERS: Final[set] = {"Halpha", "Ha-Cont", "SII", "SII-Cont"}
 VAMPIRES_FILTERS: Final[set] = set.union(

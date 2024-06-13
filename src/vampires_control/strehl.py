@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import sep
 from astropy.nddata import Cutout2D
@@ -81,7 +83,7 @@ def measure_strehl_otf(image, psf_model):
     return im_volume / psf_volume
 
 
-def measure_strehl(image, psf_model, pos=None, phot_rad=0.5, peak_search_rad=0.1, pxscale=5.5):
+def measure_strehl(image, psf_model, pos=None, phot_rad=0.5, peak_search_rad=0.1, pxscale=5.9):
     ## Step 1: find approximate location of PSF in image
 
     # If no position given, start at the nan-max
@@ -90,13 +92,16 @@ def measure_strehl(image, psf_model, pos=None, phot_rad=0.5, peak_search_rad=0.1
     center = np.array(pos)
     # Now, refine this centroid using cross-correlation
     # this cutout must have same shape as PSF reference (chance for errors here)
-    cutout = Cutout2D(image, center[::-1], psf_model.shape)
+    cutout = Cutout2D(image, center[::-1], psf_model.shape, mode="partial")
     assert cutout.data.shape == psf_model.shape
 
     shift, _, _ = phase_cross_correlation(
-        psf_model.astype("=f4"), cutout.data.astype("=f4"), upsample_factor=4
+        psf_model.astype("=f4"), cutout.data.astype("=f4"), upsample_factor=30
     )
     refined_center = center + shift
+    if np.any(np.abs(refined_center - center) > 5):
+        msg = f"PSF centroid appears to have failed, got {refined_center!r}"
+        warnings.warn(msg, stacklevel=2)
 
     ## Step 2: Calculate peak flux with subsampling and flux
     aper_rad_px = phot_rad / (pxscale * 1e-3)
@@ -133,20 +138,65 @@ def measure_strehl(image, psf_model, pos=None, phot_rad=0.5, peak_search_rad=0.1
 def take_dark(data_shm_name: str, n=100):
     data_shm = SHM(data_shm_name)
     dark_shm = SHM(f"{data_shm_name}_dark", (data_shm.shape, "f4"))
-    mean_frame = data_shm.multi_recv_data(n, outputFormat=n).mean(axis=0)
+    data = data_shm.multi_recv_data(n, outputFormat=n)
+    mean_frame = np.nanmedian(data, axis=0)
     dark_shm.set_data(mean_frame.astype("f4"))
 
 
-def measure_strehl_shm(shm_name: str, psf=None, nave=10, pxscale=5.77, **kwargs):
+def get_mbi_cutout(data, camera: int, field: str, reduced: bool = False):
+    hy, hx = np.array(data.shape[-2:]) / 2 - 0.5
+    # use cam2 as reference
+    match field:
+        case "F610":
+            x = hx * 0.25
+            y = hy * 1.5
+        case "F670":
+            x = hx * 0.25
+            y = hy * 0.5
+        case "F720":
+            x = hx * 0.75
+            y = hy * 0.5
+        case "F760":
+            x = hx * 1.75
+            y = hy * 0.5
+        case _:
+            msg = f"Invalid MBI field {field}"
+            raise ValueError(msg)
+    if reduced:
+        y *= 2
+    # flip y axis for cam 1 indices
+    if camera == 1:
+        y = data.shape[-2] - y
+    return Cutout2D(data, position=(x, y), size=500, mode="partial")
+
+
+def measure_strehl_mbi(image, cam: int, pxscale: float = 5.9, **kwargs):
+    filters = ("F610", "F670", "F720", "F760")
+    results = {}
+    for _i, filt in enumerate(filters):
+        psf = create_synth_psf(filt, 201, pixel_scale=pxscale)
+        cutout = get_mbi_cutout(image, cam, filt)
+        results[filt] = measure_strehl(cutout.data, psf, pxscale=pxscale, **kwargs)
+        print(f"{filt}: measured Strehl {results[filt]*100:.01f}%")
+    return results
+
+
+def measure_strehl_shm(shm_name: str, psf=None, nave=10, pxscale=5.9, **kwargs):
     shm = SHM(shm_name)
-    dark_shm = SHM(f"{shm_name}_dark")
-    dark = dark_shm.get_data()
+    # dark_shm = SHM(f"{shm_name}_dark")
+    # dark = dark_shm.get_data()
     shmkwds = shm.get_keywords()
+
+    frames = shm.multi_recv_data(nave, output_as_cube=True)
+    image = np.mean(frames.astype("f4") - 200, axis=0)
+    if shm.shape[0] > 1000 and shm.shape[1] > 2000:
+        return measure_strehl_mbi(image, cam=shmkwds["U_CAMERA"], pxscale=pxscale, **kwargs)
+
     curfilt = shmkwds["FILTER01"].strip()
 
-    frames = shm.multi_recv_data(nave, outputFormat=2)
-    image = np.mean(frames - dark, axis=0)
     # return image
     if psf is None:
-        psf = create_synth_psf(curfilt, 200, pixel_scale=pxscale)
+        psf = create_synth_psf(curfilt, 201, pixel_scale=pxscale)
+    if shmkwds["U_CAMERA"] == 1:
+        psf = np.flipud(psf)
     return measure_strehl(image, psf, pxscale=pxscale, **kwargs)

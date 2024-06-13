@@ -4,35 +4,29 @@ Welcome to the VAMPIRES instrument control manual. Theis documentation serves as
 
 ## Navigating the Documentation
 
-Each major section of operating VAMPIRES is broken into 
+### Operating VAMPIRES
 
-1. Camera operation
-2. Device control
-3. Data acquisition
-4. Calibrations
+The operations documentation is mostly technical information-- how does VAMPIRES work, what are the interfaces with the hardware and cameras, etc. 
 
-In addition, there are some full tutorials for these observational modes of VAMPIRES
-1. Single-cam imaging
-2. Polarimetric imaging
-3. Narrowband / SDI imaging
-4. Sparse Aperture Mask interferometry
+### Procedures
 
-Finally, there are miscellaneous documentation for servicing VAMPIRES, mostly technical information for people working on the bench
-1. Aligment and Baffling
-2. Cameras
-3. Parts and Design
+There are some tutorials for different operational aspects of VAMPIRES, like autofocusing and coronagraph alignment. These procedures are focused on accmoplishing tasks without explaining each technical component- for more information refere back to the operations documentation.
+
+### Observing with VAMPIRES
+
+These documents contain explicit checklists and procedures for observing with VAMPIRES. These steps may include references back to other procedures
 
 ## Code Examples
 
 In general, if there are code examples they will come in these forms:
 
-1. **Python example**
+### 1. Python example
 
 These examples will have python prompts `>>>` included in them. For example
 ```python
 >>> dev = connect(VAMPIRES.FILTER)
 ```
-2. **Command line**
+### 2. Command line
 
 Any command line program to run will come in the format
 ```

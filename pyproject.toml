@@ -50,11 +50,11 @@ set_readout_mode = "vampires_control.cameras:set_readout_mode"
 get_crop = "vampires_control.cameras:get_crop"
 set_crop = "vampires_control.cameras:set_crop"
 # logging
-set_datatype = "vampires_control.acquisition.acquire:set_datatype_main"
-startlog = "vampires_control.acquisition.acquire:start_acquisition_main"
-stoplog = "vampires_control.acquisition.acquire:stop_acquisition_main"
-resumelog = "vampires_control.acquisition.acquire:resume_acquisition_main"
-pauselog = "vampires_control.acquisition.acquire:pause_acquisition_main"
+vampires_datatype = "vampires_control.acquisition.acquire:set_datatype_main"
+vampires_preplog = "vampires_control.acquisition.acquire:start_acquisition_main"
+vampires_stoplog = "vampires_control.acquisition.acquire:stop_acquisition_main"
+vampires_startlog = "vampires_control.acquisition.acquire:resume_acquisition_main"
+vampires_pauselog = "vampires_control.acquisition.acquire:pause_acquisition_main"
 # configurations
 vampires_prep = "vampires_control.configurations.main:main"
 # health

@@ -59,7 +59,7 @@ def _focus_range(start_point: float):
 
 def measure_metric(shm: SHM, num_frames: int, **kwargs):
     """Get multiple frames, collapse, and measure focus metric"""
-    cube = shm.multi_recv_data(num_frames, outputFormat=2, **kwargs)
+    cube = shm.multi_recv_data(num_frames, output_as_cube=True, **kwargs)
     frame = np.median(cube, axis=0, overwrite_input=True)
     return autofocus_metric(frame)
 

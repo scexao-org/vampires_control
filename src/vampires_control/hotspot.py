@@ -91,7 +91,7 @@ def fit_hotspots_standard(frame, shm: SHM) -> HotspotInfo:
     curfilt = shm_kwds["FILTER01"].strip()
     # psf = create_synth_psf(curfilt)
     ctr_guess = np.unravel_index(np.nanargmax(frame), frame.shape)
-    centroid = gaussian_centroid(frame, ctr_guess)
+    centroid = model_centroid(frame, ctr_guess)
     hotspot = HotspotInfo(
         cam=shm.FNAME,
         field=curfilt,
@@ -276,7 +276,7 @@ def generate_mbir_crop_config(hotspots: Iterable[HotspotInfo]) -> CropConfig:
 )
 def hotspot(shm_name: str, num_frames=10, save: bool = True, report: bool = False):
     shm = SHM(shm_name)
-    data = shm.multi_recv_data(num_frames, outputFormat=2)
+    data = shm.multi_recv_data(num_frames, output_as_cube=True)
     frame = np.median(data, axis=0, overwrite_input=True)
     mbi_status = redis.RDB.hget("U_MBI", "value")
     if mbi_status.lower() == "dichroics":

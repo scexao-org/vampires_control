@@ -40,7 +40,7 @@ class FastAndFurious:
         self.dm_cmd_shm = SHM(self.cmd_shm_name)
 
     def take_image(self, nframes=10):
-        frames = self.shm.multi_recv_data(nframes, outputFormat=2)
+        frames = self.shm.multi_recv_data(nframes, output_as_cube=True)
         calib_frames = frames - self.dark_frame
         mean_frame = np.mean(calib_frames, axis=0)
         # centroid and crop

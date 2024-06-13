@@ -20,12 +20,14 @@ To start the camera framegrabber (which should not be done unless necessary)
 scexao5 $ camstart vcam1 # start vcam1
 scexao5 $ camstart vcam2 # start vcam2
 ```
+if the cameras are already running, this will restart their processes (including TCP streams, etc.), and revert to the default `STANDARD` crop.
 
-and to start the pygame viewers
+To start the pygame viewers
 ```
 scexao5 $ vcam1 & # cam 1 viewer
 scexao5 $ vcam2 & # cam 2 viewer
 ```
+the viewers can also be ran from `sonne` or `scexao6` using the SHM stream forwarding.
 
 ```{admonition} Raw SHM Viewer
 :class: info
@@ -34,6 +36,8 @@ If you want to see the raw data (useful to see MBI frames without cropping), use
 
     scexao5 $ anycam vcam1 # pygame viewer
     scexao5 $ shmImshow.py vcam1 # qt viewer
+
+Be careful using `anycam` with the MBI crop- the window is much larger than the VNC viewer desktop. Use `-b 2` or `-b 3` to bin down to a more reasonable size
 ```
 
 ### VPUPCAM
@@ -46,7 +50,7 @@ sonne $ camstart vpupcam # start vpupcam
 sonne $ vpupcam &
 ```
 
-## Camera Crops and Modes
+## Detector Readout Modes
 
 VAMPIRES has two readout modes: "Slow" and "Fast". The main differences are the maximum framerate and read noise. The slow mode uses the extra readout time to reduce the jitter in the ADC conversion, which enables sensitivity low enough for photon number resolving. The noise characteristics of the cameras are only related to the readout mode. The timing characteristics, however, are dependent on the camera crop and trigger modes with a somewhat complicated relationship that also depends on the readout mode.
 
@@ -79,10 +83,20 @@ When you change the readout mode the camera framegrabber has to reset, so you'll
 ```
 
 ```
-set_readout <mode>
+sonne $ set_readout <mode>
 ```
 
-## Camera Modes
+## Detector Astrometric Solution
+
+The astrometric solution for each camera is derived from observations of visual binaries
+
+| Cam | px. scale (mas/px) | PA offset (deg) | Inst. offset (deg) |
+| - | - | - | - |
+| 1 | 5.908 ± 0.014 | 102.10 ± 0.15 | -38.90 ± 0.15 |
+| 2 | 5.895 ± 0.015 | 102.42 ± 0.17 | -38.58 ± 0.17 |
+
+(camera_crops)=
+## Camera Crops
 
 VAMPIRES has three camera modes to accommadate the different crops required for the multiband imaging mode
 
@@ -91,14 +105,14 @@ VAMPIRES has three camera modes to accommadate the different crops required for 
 This is the standard 3"x3" FOV crop
 
 ```
-sonne $ set_mode standard
+sonne $ set_crop standard
 ```
 
 There are also some reduced crop sizes
 ```
-sonne $ set_mode twoarc # 2" x 2" FOV
-sonne $ set_mode onearc # 1" x 1" FOV
-sonne $ set_mode halfarc # 0.5" x 0.5" FOV
+sonne $ set_crop twoarc # 2" x 2" FOV
+sonne $ set_crop onearc # 1" x 1" FOV
+sonne $ set_crop halfarc # 0.5" x 0.5" FOV
 ```
 
 ### MBI
@@ -106,7 +120,7 @@ This is a 12"x6" crop that accommadates the four 3"x3" fields produced in the mu
 
 
 ```
-sonne $ set_mode mbi
+sonne $ set_crop mbi
 ```
 
 ### MBI Reduced
@@ -114,7 +128,7 @@ sonne $ set_mode mbi
 This field crops out the 625nm field so that the maximum readout speed of the detector can still reach ~500 fps while still imaging three 3"x3" FOVs.
 
 ```
-sonne $ set_mode mbi-reduced
+sonne $ set_crop mbi_reduced
 ```
 
 ### Pupil
@@ -122,26 +136,53 @@ sonne $ set_mode mbi-reduced
 This crop is like the standard crop but larger to accommadate the size of the full pupil when imaged with the pupil-imaging lens. Note that currently it is only possible to get a focused pupil image on VCAM1.
 
 ```
-sonne $ set_mode pupil
+sonne $ set_crop pupil
 ```
 
 ## Exposure time
 
-To set the camera exposure time
-
+To set the camera exposure time (in s)
 
 ```
-set_tint <tint>
+sonne $ set_tint <tint>
 ```
 
+to get the exposure time
+```
+sonne $ get_tint
+```
+
+You can try to automatically set the exposure time to a given maximum value (in adu)
+```
+sonne $ target_tint <adu>
+```
+
+You can also set/query the framerate, although these values become confusing when using the external trigger because the framerate is no longer the inverse of the exposure time.
+
+```
+sonne $ get_fps
+sonne $ set_fps <fps>
+```
+(trigger)=
 ## Camera Triggering
 
-The cameras are synchronized using a hardware micro-controller ([Metro M4 Express](https://learn.adafruit.com/adafruit-metro-m4-express-featuring-atsamd51)). This controller also synchronizes the AFLC when it is enabled. The state diagram for the camera trigger is as follows:
+The cameras are synchronized using a hardware micro-controller ([Metro M4 Express](https://learn.adafruit.com/adafruit-metro-m4-express-featuring-atsamd51)). This controller also synchronizes the AFLC when it is enabled. It is important to understand that there are two interfaces required for hardware triggering: the detector external trigger setting and the micro-controller trigger settings. 
+
+The cameras need to be set to external trigger mode in order to send and receive trigger signals-
+```
+sonne $ set_trigger enable
+```
+then the micro-controller can be enabled
+```
+$ vampires_trig enable
+```
+
+The state diagram for the camera trigger is as follows:
 
 ### AFLC Disabled
 
 ```
-vampires_trigger --no-flc enable
+$ vampires_trig set -nf
 ```
 
 ```{graphviz}
@@ -158,15 +199,27 @@ digraph {
 
 ### AFLC Enabled
 
+```{admonition} Critical: FLC jitter
+:class: tip
+
+When saving the camera SHM streams there is no way to know *a priori* the FLC state of each frame. To overcome this, we add an asymmetric delay so that every other frame can be consistently identified from the framegrabber timestamp. We call this delay the FLC jitter.
+```
+It is critical that the FLC jitter is larger than any statistical randomness in the frame timings. For our ORCA-Quest detectors, there is an inherent stochasticity that is a function of the detector readout mode (7.2 us in FAST mode and 172.8 us in SLOW mode). The jitter half-width (half the total jitter) is set directly with the `vampires_trig` command. After testing, we recommend using the following half-jitter values-
+* FAST: 50 us
+```
+$ vampires_trig set -j 50 -f
+```
+* SLOW: 500 us
+```
+$ vampires_trig set -j 500 -f
+```
+
 ```{admonition} Warning: AFLC Aging
 :class: warning
 
 We want to limit the usage of the AFLC to minimize aging effcts, so when the cameras are not acquiring we recommend leaving it disabled.
 ```
 
-```
-vampires_trigger --flc enable
-```
 
 ```{graphviz}
 digraph {
@@ -189,9 +242,11 @@ digraph {
 }
 ```
 
-## (Advanced) Crop location
+## Crop location and MBI hotspots
 
-TODO
+The crop location for the standard crop (and the smaller subcrops) are always centered on the detector. The MBI crops are more complicated and the hotspots for each PSF are required for the camera viewers and the WCS dictionary info.
+
+TODO describe `vampires_hotspot` and simplify implementation in camstack
 
 ## Miscellaneous
 

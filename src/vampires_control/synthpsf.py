@@ -7,8 +7,8 @@ from . import paths
 from .filters import load_vampires_filter
 
 ## constants
-PUPIL_DIAMETER = 7.95  # m
-OBSTRUCTION_DIAMETER = 2.3397  # m
+PUPIL_DIAMETER = 7.92  # m
+OBSTRUCTION_DIAMETER = 2.3  # m
 INNER_RATIO = OBSTRUCTION_DIAMETER / PUPIL_DIAMETER
 SPIDER_WIDTH = 0.1735  # m
 SPIDER_OFFSET = 0.639  # m, spider intersection offset
@@ -17,8 +17,8 @@ ACTUATOR_SPIDER_WIDTH = 0.089  # m
 ACTUATOR_SPIDER_OFFSET = (0.521, -1.045)
 ACTUATOR_DIAMETER = 0.632  # m
 ACTUATOR_OFFSET = ((1.765, 1.431), (-0.498, -2.331))  # (x, y), m
-PUPIL_OFFSET = -41  # deg
-PIXEL_SCALE = 5.77  # mas / pix
+PUPIL_OFFSET = 90 - 38.75  # deg
+PIXEL_SCALE = 5.9  # mas / pix
 
 # -------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------------------

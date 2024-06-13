@@ -1,5 +1,5 @@
-VAMPIRES Control Software
-========================================
+VAMPIRES Instrument Manual
+==========================
 
 .. image:: https://img.shields.io/badge/Code-GitHub-black.svg
    :target: https://github.com/scexao-org/vampires_control
@@ -10,19 +10,15 @@ VAMPIRES Control Software
 .. image:: https://img.shields.io/github/license/scexao-org/vampires_control?color=yellow
    :target: https://github.com/scexao-org/vampires_control/blob/main/LICENSE
 
+**Primary maintainer:** `Miles Lucas <https://github.com/mileslucas>`_ (mdlucas@hawaii.edu)
 
-.. admonition:: Warning: Experimental
+Welcome to the instrument manual and documentation for SCExAO/VAMPIRES. This documentation is a mix of technical instrument information, API documentation, procedures, and checklists. The documentation is built directly into the python package ``vampires_control``, which is used for the VAMPIRES instrument control. Other important code repositories include ``device_control`` (hardware interfaces), ``swmain`` (SCExAO common tools), and others (TODO).
+
+.. admonition:: Warning: 🧪 Experimental and 🚧 Under Construction
    :class: warning
 
    ``vampires_control`` is still under development, and the API can change without notice. Use with your own caution (and consider contributing).
 
-**Primary maintainer:** `Miles Lucas <https://github.com/mileslucas>`_
-
-VAMPIRES control software. Get started by installing the package
-
-.. code-block:: bash
-
-   pip install git+https://github.com/scexao-org/vampires_control.git#egg=vampires_control
 
 Contents
 --------
@@ -41,10 +37,10 @@ Contents
 
    operating/layout
    operating/cameras
-   operating/coronagraphy
+   operating/viewers
+   operating/coronagraphs
    operating/devices
    operating/data
-   operating/calibrations
    operating/troubleshooting
 
 .. toctree::
@@ -53,15 +49,15 @@ Contents
 
    procedures/autofocus
    procedures/coronagraphs
+   procedures/mbi
+   procedures/data
 
 .. toctree::
    :maxdepth: 1
    :caption: Observing with VAMPIRES
 
    observing/calibrations
-   observing/singlecam
    observing/polarimetry
-   observing/sdi
 
 
 License
