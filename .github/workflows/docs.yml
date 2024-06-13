@@ -42,7 +42,6 @@ jobs:
         run: |
           mkdir -p ../_build
           sphinx-build -b html docs _build
-      - name: Commit documentation changes
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
