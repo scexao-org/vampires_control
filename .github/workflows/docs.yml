@@ -5,6 +5,12 @@ on:
       - main
   workflow_dispatch:
 
+      # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build:
     name: Deploy docs
@@ -27,19 +33,31 @@ jobs:
           mkdir -p ../_build
           sphinx-build -b html docs _build
       - name: Commit documentation changes
-        run: |
-          git clone https://github.com/scexao-org/vampires_control.git --branch gh-pages --single-branch gh-pages
-          cp -r _build/* gh-pages/
-          cd gh-pages
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          git commit -m "Update documentation" -a || true
-          # The above command will fail if no changes were present, so we ignore
-          # the return code.
-      - name: Push changes
-        uses: ad-m/github-push-action@master
+
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Single deploy job since we're just deploying
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          branch: gh-pages
-          directory: gh-pages
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Upload entire repository
+          path: '_build'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
