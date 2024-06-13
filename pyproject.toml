@@ -13,11 +13,7 @@ dependencies = [
     "docopt",
     "numpy",
     "scikit-image",
-    "scxconf",
-    "swmain",
-    "scxkw",
     "tqdm",
-    "device_control",
     "rich",
     "pyzmq",
     "paramiko",
@@ -29,6 +25,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
+scexao = ["scxkw", "swmain", "device_control", "scxkw"]
 test = ["pytest", "pytest-cov"]
 docs = ["sphinx", "sphinx-rtd-theme", "myst-parser", "sphinx-autobuild", "sphinxcontrib-plantuml"]
 
