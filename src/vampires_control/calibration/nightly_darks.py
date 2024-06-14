@@ -97,7 +97,7 @@ def _prep_log(cam_num: int, num_frame: int, folder: Path):
 
 
 def _connect_fps(cam_num: int):
-    fps_name = f"streamFITS-vcam{cam_num:1d}"
+    fps_name = f"streamFITSlog-vcam{cam_num:1d}"
     fps = FPS(fps_name)
     return fps
 
@@ -144,22 +144,24 @@ def process_dark_frames(table, folder, num_frames=250):
     )
     pbar = tqdm.tqdm(table.groupby("crop"), desc="Crop")
     for key, group in pbar:
-        if 1 in group["U_CAMERA"]:
+        cam_vals = group["U_CAMERA"].values
+        if 1 in cam_vals:
             _set_camera_crop(connect(VCAM1), key, group["OBS-MOD"].iloc[0], pbar=pbar)
             _kill_log(1)
 
-        if 2 in group["U_CAMERA"]:
+        if 2 in cam_vals:
             _set_camera_crop(connect(VCAM2), key, group["OBS-MOD"].iloc[0], pbar=pbar)
             _kill_log(2)
 
-        if 1 in group["U_CAMERA"]:
+        if 1 in cam_vals:
             _prep_log(1, num_frames, folder)
-        if 2 in group["U_CAMERA"]:
+        if 2 in cam_vals:
             _prep_log(2, num_frames, folder)
+        time.sleep(1) # pause to make sure FPS's have launched
         try:
-            if 1 in group["U_CAMERA"]:
+            if 1 in cam_vals:
                 fps1 = _connect_fps(1)
-            if 2 in group["U_CAMERA"]:
+            if 2 in cam_vals:
                 fps2 = _connect_fps(2)
         except Exception:
             click.confirm(
@@ -192,18 +194,17 @@ def process_dark_frames(table, folder, num_frames=250):
                 fps.set_param("saveON", True)
                 while fps.get_param("saveON"):
                     time.sleep(0.2)
-                # _run_log(row["U_CAMERA"])
-                # click.confirm("Confirm when cube is done", default=True, abort=True)
-                # tint = row["EXPTIME"] * num_frames + _DEFAULT_DELAY  # s
-                # time.sleep(tint)
 
 
-@click.command("vampires_auto_darks")
+@click.command("vampires_autodarks")
 @click.argument("folder", type=Path, default=_default_sc5_archive_folder())
-@click.option("-o", "--outdir", type=Path, default=_default_sc5_archive_folder(), prompt=True)
+@click.option("-o", "--outdir", type=Path)
 @click.option("-n", "--num-frames", default=250, type=int, help="Number of frames per dark.")
 @click.option("-y", "--no-confirm", is_flag=True, help="Skip confirmation prompts.")
 def main(folder: Path, outdir: Path, num_frames: int, no_confirm: bool):
+    if outdir is None:
+        outdir = folder
+    click.echo(f"Saving data to {outdir.absolute()}")
     if os.getenv("WHICHCOMP", "") != "5":
         msg = "This script must be run from sc5 in the `vampires_control` conda env"
         raise WrongComputerError(msg)
@@ -215,6 +216,7 @@ def main(folder: Path, outdir: Path, num_frames: int, no_confirm: bool):
         click.confirm("Confirm to proceed", default=True, abort=True)
     try:
         process_dark_frames(table, outdir, num_frames)
-    except Exception:
+    except Exception as e:
+        print(e)
         _kill_log(1)
         _kill_log(2)

@@ -78,7 +78,7 @@ and run the `vampires_autodarks` script
 ```
 scexao5 $ vampires_autodarks -n 1000 .
 ```
-feel free to change the number of frames per dark with the `-n` flag.
+feel free to change the number of frames per dark with the `-n` flag. I recommend 1000 frames unless it is prohibitively long.
 
 ## On-sky Calibrations
 
