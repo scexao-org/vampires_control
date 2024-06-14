@@ -26,7 +26,7 @@ procs:
     shell: "vampires_pauselog --wait"
     autostart: false
   killlog:
-    shell: "stoplog --kill"
+    shell: "vampires_stoplog --kill"
     autostart: false
   sdi daemon:
     shell: "sdi_daemon"
