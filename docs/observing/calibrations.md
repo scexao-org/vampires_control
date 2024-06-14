@@ -59,7 +59,26 @@ sonne $ vampires_datatype dark
 
 ### Dark frames
 
-There is a half-baked script for automatically logging all necessary dark frames AFTER an observation has completed. This is convenient to have a perfect match for all the science data, but the script needs work.
+```{admonition} 🧪: Automatated script
+There is a script for automatically logging all necessary dark frames AFTER an observation has completed. This is convenient to have a perfect match for all the science data, but be aware the script is somewhat experimental.
+```
+First, prepare VAMPIRES for darks by putting the pupil mirror in
+```
+$ vampires_mask mirror
+```
+then on `scexao5` activate the `vampires_control` environment
+```
+scexao5 $ conda activate vampires_control
+```
+and enter the night's saved data directory
+```
+scexao5 $ cd /mnt/fuuu/ARCHIVED_DATA/$(date -u +%Y%m%d)
+```
+and run the `vampires_autodarks` script
+```
+scexao5 $ vampires_autodarks -n 1000 .
+```
+feel free to change the number of frames per dark with the `-n` flag.
 
 ## On-sky Calibrations
 

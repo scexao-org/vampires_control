@@ -10,6 +10,7 @@ import click
 import pandas as pd
 import tqdm.auto as tqdm
 from astropy.io import fits
+from pyMilk.interfacing.fps import FPS
 from scxconf.pyrokeys import VCAM1, VCAM2
 from swmain.network.pyroclient import connect
 
@@ -95,6 +96,12 @@ def _prep_log(cam_num: int, num_frame: int, folder: Path):
     subprocess.run(cmd, check=True, capture_output=True)
 
 
+def _connect_fps(cam_num: int):
+    fps_name = f"streamFITS-vcam{cam_num:1d}"
+    fps = FPS(fps_name)
+    return fps
+
+
 def _run_log(cam_num: int):
     cmd = [*BASE_COMMAND, "-c", "1", f"vcam{cam_num}", "on"]
     subprocess.run(cmd, check=True, capture_output=True)
@@ -149,6 +156,17 @@ def process_dark_frames(table, folder, num_frames=250):
             _prep_log(1, num_frames, folder)
         if 2 in group["U_CAMERA"]:
             _prep_log(2, num_frames, folder)
+        try:
+            if 1 in group["U_CAMERA"]:
+                fps1 = _connect_fps(1)
+            if 2 in group["U_CAMERA"]:
+                fps2 = _connect_fps(2)
+        except Exception:
+            click.confirm(
+                "Could not connect to FPS. Set up manually confirm loggers ready to go",
+                default=True,
+                abort=True,
+            )
 
         pbar2 = tqdm.tqdm(
             group.sort_values("U_DETMOD", ascending=False).groupby("U_DETMOD"),
@@ -165,13 +183,17 @@ def process_dark_frames(table, folder, num_frames=250):
             for _, row in pbar3:
                 if row["U_CAMERA"] == 1:
                     camera = connect(VCAM1)
+                    fps = fps1
                 elif row["U_CAMERA"] == 2:
                     camera = connect(VCAM2)
+                    fps = fps2
                 camera.set_keyword("DATA-TYP", "DARK")
                 camera.set_tint(row["EXPTIME"])
-                time.sleep(_DEFAULT_DELAY)
-                _run_log(row["U_CAMERA"])
-                click.confirm("Confirm when cube is done", default=True, abort=True)
+                fps.set_param("saveON", True)
+                while fps.get_param("saveON"):
+                    time.sleep(0.2)
+                # _run_log(row["U_CAMERA"])
+                # click.confirm("Confirm when cube is done", default=True, abort=True)
                 # tint = row["EXPTIME"] * num_frames + _DEFAULT_DELAY  # s
                 # time.sleep(tint)
 
@@ -196,46 +218,3 @@ def main(folder: Path, outdir: Path, num_frames: int, no_confirm: bool):
     except Exception:
         _kill_log(1)
         _kill_log(2)
-
-
-# @click.command("vampires_auto_darks")
-# @click.option("-e", "--exptime", default=0.1, type=float, prompt="Specify exposure time")
-# @click.option("-n", "--nframes", default=100, type=int, prompt="Specify number of frames per cube")
-# @click.option(
-#     "-z", "--ncubes", type=int, default=1, prompt="Specify number of cubes (-1 for infinite)"
-# )
-# @click.option("-c", "--cam", default=-1, type=int, prompt="Specify camera, if -1 uses both")
-# @click.option("-a/-na", "--archive/--no-archive", default=True, prompt="Archive data to Gen2")
-# def main(exptime, nframes, ncubes, cam, archive):
-#     # step 1: take pinholes
-#     delta_time = nframes * ncubes * exptime  # s
-#     if click.confirm("Would you like to take pinholes?", default=True):
-#         click.echo(f"Beginning to take pinholes, should take ~{delta_time:.0f}s")
-#         calibs.take_pinholes.callback(
-#             nframes=nframes, ncubes=ncubes, exptime=exptime, cam=cam, archive=archive
-#         )
-#         time.sleep(delta_time)
-
-#     if click.confirm("Would you like to move pinholes out?", default=True):
-#         subprocess.run(["ssh", "sc2", "src_fib", "out"], capture_output=True)
-
-#     if click.confirm("Would you like to take flats?", default=True):
-#         click.echo(f"Beginning to take flats, should take ~{delta_time:.0f}s")
-#         calibs.take_flats.callback(
-#             nframes=nframes, ncubes=ncubes, exptime=exptime, cam=cam, archive=archive
-#         )
-#         time.sleep(delta_time)
-
-#     if click.confirm("Would you like to take darks?", default=True):
-#         move_diff = click.confirm("Would you like to block using diff wheel?", default=True)
-#         if move_diff:
-#             diff = connect(VAMPIRES.DIFF)
-#             prior_diff_position = diff.get_position()
-#             diff.move_relative(31)
-#         click.echo(f"Beginning to take darks, should take ~{delta_time:.0f}s")
-#         calibs.take_darks.callback(
-#             nframes=nframes, ncubes=ncubes, exptime=exptime, cam=cam, archive=archive
-#         )
-#         time.sleep(delta_time)
-#         if move_diff:
-#             diff.move_absolute(prior_diff_position)
