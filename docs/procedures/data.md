@@ -2,10 +2,10 @@
 
 There are a few pre-processing steps we take before uploading data to the STARS2 archive. These only need to be ran if data is going to be archived. If you need to synchronize polarimetry data the first step is necessary, too.
 
-1. Synchronization and Consolidation
-2. Assign FRAME IDs
-3. Compress
-
+1. Synchronization and consolidation
+1. Fix headers
+1. Assign frame IDs
+1. Compress
 
 ## Synchronization and Consolidation
 
@@ -31,11 +31,52 @@ Once satisfied, the `.fitsframes` files must be consolidated with their OG FITS 
 sc5 $ scxkw-fitsframe-consolidate .
 ```
 
+## Fix Headers
+
+The FITS headers in the raw format contain floating point values that have more precision than expected based on the FITS dictionary for the instrument. To address this, run a simple script that ensures formatting is valid. This will not change any values, functionally, just the representation of the value in the FITS card.
+
+```
+sc5 $ cd /mnt/fuuu/ARCHIVED_DATA/<date>
+sc5 $ scxkw-fix-headers vgen2
+```
+
 ## Frame IDs
 
+Frame IDs are designed to be sequential, and therefore if batch processing make sure to start with the oldest data, first.
+
+```
+sc5 $ cd /mnt/fuuu/ARCHIVED_DATA/<date>
+sc5 $ scxkw-assign-frameids -f $(pwd) -v
+```
 
 ## Compression
 
+fpack compression should be done after all header manipulations are completed, because afterwards data access becomes much slower, by an order of magnitude. Note that the following runs a daemon which scans all `/mnt/fuuu/ARCHIVED_DATA/**/**/VMP*.fits` files to archive, so you don't need to run it in any particular directory, nor do you have control over which files get compressed.
+
+```
+sc5 $ scxkw-daemon-all select fpackthendie
+```
 
 ## Creating Manifest and Uploading to STARS2
 
+The final step is preparing a STARS manifest and sending to the STARS team (Eric Jeschke <eric@naoj.org>).
+
+Begin by creating the manifest (make sure to edit the CSV name appropriately)
+
+```
+sc5 $ cd /mnt/fuuu/ARCHIVED_DATA/<date>
+sc5 $ scxkw-g2archive-manifest -o manifest_VMP_<date>.csv -p VMP vgen2/VMPA*.fits.fz
+```
+
+```{admonition} Combining manifests
+
+It is preferred to only send one manifest in the email to the STARS team, so if you have multiple manifest files, concatenate them first
+
+    cat manifest_VMP_<date1>.csv manifest_VMP_<date2>.csv > manifest_VMP_combined.csv
+```
+
+after the manifest is created, you can manually send an email by downloading the CSV to your local computer, or you can send an unsigned email from scexao5, directly. Be sure to mention the IP of the machine the data is stored on.
+
+```
+sc5 $ echo "Dear Eric,\nAttached is a VMPA manifest for <date>. The IP of the machine the data is stored on is $(hostname -i).\n\nBest, SCExAO\n." | mail -s 'VMP manifest <date>' -A manifest_VMP_<date>.csv eric@naoj.org vdeo@naoj.org mdlucas@hawaii.edu
+```
