@@ -12,7 +12,7 @@ from scxconf.pyrokeys import VAMPIRES
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values
 
-from vampires_control.acquisition.manager import VCAMManager
+from vampires_control.acquisition.manager import VCAMLogManager
 
 conf_dir = Path(os.getenv("CONF_DIR", f"{os.getenv('HOME')}/src/vampires_control/conf/"))
 
@@ -40,7 +40,7 @@ class PolCalManager:
 
     def __init__(self, mode: str = "standard", use_flc: bool = False, debug=False):
         self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
-        self.managers = {1: VCAMManager(1), 2: VCAMManager(2)}
+        self.managers = {1: VCAMLogManager(1), 2: VCAMLogManager(2)}
         self.use_flc = use_flc
         if self.use_flc:
             self.flc = connect(VAMPIRES.FLC)
@@ -146,25 +146,19 @@ class PolCalManager:
 
             pbar.write(f"HWP angles: [{', '.join(map(str, hwp_range))}]")
             for hwpang in tqdm.tqdm(hwp_range, total=len(hwp_range), desc="HWP"):
-                self.pause_cameras()
                 self.move_hwp(hwpang)
-                self.resume_cameras()
+                self.acquire_cube()
                 time.sleep(time_per_cube)
         self.pause_cameras()
 
-    def pause_cameras(self):
+    def acquire_cube(self):
         if self.debug:
-            logger.debug("PLAY PRETEND MODE: turn VAMPIRES off")
-            return
-        for mgr in self.managers.values():
-            mgr.pause_acquisition()
-
-    def resume_cameras(self):
-        if self.debug:
-            logger.debug("PLAY PRETEND MODE: turn VAMPIRES on")
+            logger.debug("PLAY PRETEND MODE: take VAMPIRES cube")
             return
         for mgr in self.managers.values():
             mgr.start_acquisition()
+        for mgr in self.managers.values():
+            mgr.pause_acquisition(wait_for_cube=True)
 
     def move_filters(self, filt):
         logger.info(f"Moving filter to {filt}")
@@ -227,7 +221,6 @@ class PolCalManager:
     type=click.Choice(["standard", "MBI", "NB"], case_sensitive=False),
     prompt="Select calibraiton mode",
 )
-@click.option("-t", "--time", type=float, default=5, prompt="Time (s) per position")
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt="Use FLC")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
 def main(time, mode: str, flc: bool = False, debug=False):

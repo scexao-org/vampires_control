@@ -1,7 +1,11 @@
 import logging
+import subprocess
 import time
+from pathlib import Path
+from typing import Literal
 
 from paramiko import AutoAddPolicy, SSHClient
+from pyMilk.interfacing.fps import FPS
 from swmain.redis import RDB
 
 logger = logging.getLogger(__name__)
@@ -67,3 +71,81 @@ class VCAMManager(CamManager):
                 break
             except Exception:
                 time.sleep(0.5)
+
+
+class CamLogManager:
+    DATA_DIR_BASE = Path("/mnt/fuuu/")
+    ARCHIVE_DATA_DIR_BASE = Path("/mnt/fuuu/ARCHIVED_DATA")
+
+    def __init__(self, shm_name: str, computer: str = "scexao5", cset: str = "q_asl"):
+        self.shm_name = shm_name
+        self.computer = computer
+        self.cset = cset
+        self.base_command = ("milk-streamFITSlog", "-cset", self.cset)
+        fps_name = f"streamFITSlog-{self.shm_name}"
+        self.fps = FPS(fps_name)
+
+    # def prepare(self, num_frames: int, num_cubes=-1, archive: bool=False):
+    #     if archive:
+    #         save_dir = self.ARCHIVE_DATA_DIR_BASE
+    #     else:
+    #         save_dir = self.DATA_DIR_BASE
+    #     today = datetime.datetime.now(datetime.timezone.utc)
+    #     folder = save_dir / f"{today:%Y%m%d}" / self.shm_name
+    #     # print(f"Saving data to directory {folder.absolute()}")
+    #     cmd = [
+    #         "ssh",
+    #         f"scexao@{self.computer}",
+    #         *self.base_command,
+    #         "-z",
+    #         str(num_frames),
+    #         "-D",
+    #         str(folder.absolute())
+    #     ]
+
+    #     if num_cubes > 0:
+    #         cmd.extend(("-c", f"{num_cubes}"))
+    #     cmd.extend((self.shm_name, "pstart"))
+    #     subprocess.run(cmd, check=True, capture_output=True)
+
+    def start_acquisition(self):
+        # start logging
+        self.fps.set_param("saveON", True)
+        self.update_keys(logging=True)
+
+    def pause_acquisition(self, wait_for_cube=False):
+        # pause logging
+        if wait_for_cube:
+            # allow cube to fill up
+            self.fps.set_param("lastcubeON", True)
+            self.wait_for_acquire()
+        else:
+            # truncate cube immediately
+            self.fps.set_param("saveON", False)
+        self.update_keys(logging=False)
+
+    def wait_for_acquire(self):
+        _wait_delay = 0.1
+        while self.fps.get_param("saveON"):
+            time.sleep(_wait_delay)
+
+    def kill_process(self):
+        command = ["ssh", f"scexao@{self.computer}", *self.base_command, self.shm_name, "kill"]
+        subprocess.run(command, check=True, capture_output=True)
+        self.update_keys(logging=False)
+
+    def acquire_cubes(self, num_cubes: int):
+        # assert we start at 0 filecnt
+        self.fps.set_param("filecnt", 0)
+        self.fps.set_param("maxfilecnt", num_cubes)
+        self.start_acquisition()
+        self.wait_for_acquire()
+
+    def update_keys(self, logging: bool):
+        pass
+
+
+class VCAMLogManager(CamLogManager):
+    def __init__(self, cam_num: Literal[1, 2], **kwargs):
+        shm_name = f"vcam{cam_num:d}"
+        super().__init__(shm_name, **kwargs)

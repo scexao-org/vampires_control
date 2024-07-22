@@ -48,5 +48,5 @@ html_contex = {
     "display_github": True,
     "github_user": "scexao-org",
     "github_repo": "vampires_control",
-    "github_version": "main/docs/",
+    "github_version": "main",
 }
