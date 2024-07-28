@@ -134,7 +134,6 @@ class PolCalManager:
 
         pbar = tqdm.tqdm(imr_range, desc="IMR")
         for i, imrang in enumerate(pbar):
-            self.pause_cameras()
             self.move_imr(imrang)
 
             hwp_range = self.HWP_POSNS
@@ -148,8 +147,6 @@ class PolCalManager:
             for hwpang in tqdm.tqdm(hwp_range, total=len(hwp_range), desc="HWP"):
                 self.move_hwp(hwpang)
                 self.acquire_cube()
-                time.sleep(time_per_cube)
-        self.pause_cameras()
 
     def acquire_cube(self):
         if self.debug:
@@ -223,7 +220,7 @@ class PolCalManager:
 )
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt="Use FLC")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
-def main(time, mode: str, flc: bool = False, debug=False):
+def main(mode: str, flc: bool = False, debug=False):
     manager = PolCalManager(mode=mode, use_flc=flc, debug=debug)
     manager.run(time_per_cube=time)
 

@@ -66,9 +66,10 @@ def vampires_dark_table(folder=None):
     return header_table
 
 
-def _estimate_total_time(headers, num_frames=250):
-    exptimes = headers.groupby("U_CAMERA")["EXPTIME"]
-    tints = exptimes.sum() * num_frames + len(exptimes) * _DEFAULT_DELAY
+def _estimate_total_time(headers):
+    groups = headers.groupby("U_CAMERA")
+    exptimes = groups["EXPTIME"]
+    tints = exptimes.sum() * groups["nframes"].max() + len(exptimes) * _DEFAULT_DELAY
     return tints.max()
 
 
@@ -138,13 +139,14 @@ def _set_camera_crop(camera, crop, obsmode, pbar):
     camera.set_camera_size(height, width, h_offset, w_offset, mode_name=modename)
 
 
-def process_dark_frames(table, folder, num_frames=250):
+def process_dark_frames(table, folder):
     table["crop"] = table.apply(
         lambda r: (r["PRD-MIN1"], r["PRD-MIN2"], r["PRD-RNG1"], r["PRD-RNG2"]), axis=1
     )
     pbar = tqdm.tqdm(table.groupby("crop"), desc="Crop")
     for key, group in pbar:
         cam_vals = group["U_CAMERA"].values
+        num_frames = group["nframes"].max()
         if 1 in cam_vals:
             _set_camera_crop(connect(VCAM1), key, group["OBS-MOD"].iloc[0], pbar=pbar)
             _kill_log(1)
@@ -209,13 +211,17 @@ def main(folder: Path, outdir: Path, num_frames: int, no_confirm: bool):
         msg = "This script must be run from sc5 in the `vampires_control` conda env"
         raise WrongComputerError(msg)
     table = vampires_dark_table(folder)
+    table["nframes"] = num_frames
+    mask = table["EXPTIME"] > 0.5
+    #table[table["EXPTIME"] > 0.5]["nframes"] = 250 // table["EXPTIME"]
+    table = table.query("EXPTIME < 1")
     pprint.pprint(table)
-    est_tint = _estimate_total_time(table, num_frames)
+    est_tint = _estimate_total_time(table)
     click.echo(f"Est. time for all darks with {num_frames} frames each is {est_tint/60:.01f} min.")
     if not no_confirm:
         click.confirm("Confirm to proceed", default=True, abort=True)
     try:
-        process_dark_frames(table, outdir, num_frames)
+        process_dark_frames(table, outdir)
     except Exception as e:
         print(e)
         _kill_log(1)
