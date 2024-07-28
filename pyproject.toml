@@ -67,7 +67,7 @@ sdi_daemon = "vampires_control.acquisition.sdi_daemon:main"
 bs_calib = "vampires_control.calibration.bs_throughput:main"
 pol_calib = "vampires_control.calibration.polarization_calibration:main"
 drr_calib = "vampires_control.calibration.drr_calibration:main"
-hotspot = "vampires_control.hotspot:hotspot"
+vampires_hotspot = "vampires_control.hotspot:hotspot"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_control.__version__"}

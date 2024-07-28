@@ -4,6 +4,7 @@ import sep
 from astropy.modeling import fitting, models
 from astropy.nddata import Cutout2D
 from matplotlib import colors
+from skimage.registraiton import phase_cross_correlation
 
 
 def guess_mbi_centroid(frame, field, camera=1):
@@ -186,6 +187,17 @@ def fit_moffat_psf(data, error=None, center=None, window=30, plot: bool = False)
     return fit_model
 
 
-def model_centroid(data, center=None):
-    model = fit_moffat_psf(data, center=center)
+def model_centroid(data, center=None, **kwargs):
+    model = fit_moffat_psf(data, center=center, **kwargs)
     return (model.y0.value, model.x0.value)
+
+
+def dft_centroid(data, psf, center=None, window=30):
+    if center is None:
+        center = np.unravel_index(np.nanargmax(data), data.shape)
+    cutout = Cutout2D(data, center[::-1], window=window, mode="partial")
+    shift, _, _ = phase_cross_correlation(
+        psf.astype("=f4"), cutout.astype("=f4"), upsample_factor=30, normalization=None
+    )
+    refined_center = center + shift
+    return refined_center

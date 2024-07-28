@@ -96,7 +96,7 @@ def measure_strehl(image, psf_model, pos=None, phot_rad=0.5, peak_search_rad=0.1
     assert cutout.data.shape == psf_model.shape
 
     shift, _, _ = phase_cross_correlation(
-        psf_model.astype("=f4"), cutout.data.astype("=f4"), upsample_factor=30
+        psf_model.astype("=f4"), cutout.data.astype("=f4"), upsample_factor=30, normalization=None
     )
     refined_center = center + shift
     if np.any(np.abs(refined_center - center) > 5):
