@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from logging import getLogger
 from pathlib import Path
 from typing import Literal
+import multiprocessing as mp
 
 import click
 import pandas as pd
@@ -12,6 +13,7 @@ import tqdm.auto as tqdm
 from astropy.io import fits
 from scxconf.pyrokeys import VCAM1, VCAM2
 from swmain.network.pyroclient import connect
+from vampires_control.acquisition.manager import VCAMLogManager
 
 logger = getLogger(__file__)
 _DEFAULT_DELAY = 2  # s
@@ -66,10 +68,13 @@ def vampires_dark_table(folder=None):
 
 
 def _estimate_total_time(headers):
+    headers["TINT"] = headers["EXPTIME"] * headers["nframes"]
     groups = headers.groupby("U_CAMERA")
-    exptimes = groups["EXPTIME"]
-    tints = exptimes.sum() * groups["nframes"].max() + len(exptimes) * _DEFAULT_DELAY
+    tints = headers["TINT"].sum() + len(groups) * _DEFAULT_DELAY
     return tints.max()
+
+
+BASE_COMMAND = ("milk-streamFITSlog", "-cset", "q_asl")
 
 
 def _set_readout_mode(cam: int, mode: str, pbar):
@@ -102,23 +107,20 @@ def _set_camera_crop(camera, crop, obsmode, pbar):
 
     camera.set_camera_size(height, width, h_offset, w_offset, mode_name=modename)
 
-
-def process_one_camera(table, folder, cam_num: Literal[1, 2], num_frames=1000):
-    pbar = tqdm.tqdm(table.groupby("crop"), desc="Crop")
+def process_one_camera(table, cam_num: Literal[1, 2], num_frames=1000, folder=None):
     camera = connect(VCAM1) if cam_num == 1 else connect(VCAM2)
+    manager = VCAMLogManager.create(cam_num, num_frames=num_frames, num_cubes=1, folder=folder)
+    time.sleep(1)
+    table["crop"] = table.apply(
+        lambda r: (r["PRD-MIN1"], r["PRD-MIN2"], r["PRD-RNG1"], r["PRD-RNG2"]), axis=1
+    )
+
+    pbar = tqdm.tqdm(table.groupby("crop"), desc="Crop")
 
     for key, group in pbar:
-        _set_camera_crop(connect(VCAM1), key, group["OBS-MOD"].iloc[0], pbar=pbar)
-        _kill_log(cam_num)
-        time.sleep(0.5)  # pause to make sure FPS's have launched
-        _prep_log(cam_num, num_frames, folder)
-        fps = None
-        while fps is None:
-            try:
-                fps = _connect_fps(cam_num)
-            except Exception:
-                msg = f"Could not connect to FPS for VCAM{cam_num}. Set up manually confirm loggers ready to go"
-                click.confirm(msg, default=True, abort=True)
+        manager.fps.run_stop()
+        manager.fps.conf_stop()
+        _set_camera_crop(camera, key, group["OBS-MOD"].iloc[0], pbar=pbar)
 
         pbar2 = tqdm.tqdm(
             group.sort_values("U_DETMOD", ascending=False).groupby("U_DETMOD"),
@@ -131,25 +133,26 @@ def process_one_camera(table, folder, cam_num: Literal[1, 2], num_frames=1000):
             for _, row in pbar3:
                 camera.set_keyword("DATA-TYP", "DARK")
                 camera.set_tint(row["EXPTIME"])
-
                 manager.fps.conf_start()
+                time.sleep(1)
                 manager.fps.set_param("cubesize", row["nframes"])
                 manager.fps.run_start()
+                time.sleep(1)
                 assert manager.fps.run_isrunning()
                 manager.acquire_cubes(1)
 
 
-def process_dark_frames(table, folder, num_frames=250):
-    table["crop"] = table.apply(
-        lambda r: (r["PRD-MIN1"], r["PRD-MIN2"], r["PRD-RNG1"], r["PRD-RNG2"]), axis=1
-    )
 
-    tqdm.tqdm(
-        group.sort_values("U_DETMOD", ascending=False).groupby("U_DETMOD"),
-        desc="Det. mode",
-        leave=False,
-    )
-
+def process_dark_frames(table, folder):
+    kwargs = dict(folder=folder)
+    groups = table.groupby("U_CAMERA")
+    with mp.Pool(2) as pool:
+        jobs = []
+        for key, group in groups:
+            job = pool.apply_async(process_one_camera, args=(group, key), kwds=kwargs)
+            jobs.append(job)
+        for job in jobs:
+            job.get()
 
 @click.command("vampires_autodarks")
 @click.argument("folder", type=Path, default=_default_sc5_archive_folder())
@@ -165,16 +168,11 @@ def main(folder: Path, outdir: Path, num_frames: int, no_confirm: bool):
         raise WrongComputerError(msg)
     table = vampires_dark_table(folder)
     table["nframes"] = num_frames
-    # table[table["EXPTIME"] > 0.5]["nframes"] = 250 // table["EXPTIME"]
-    table = table.query("EXPTIME < 1")
+    mask_med = (0.5 < table["EXPTIME"]) & (table["EXPTIME"] < 5)
+    table[mask_med]["nframes"] = 500
+    mask_long = table["EXPTIME"] >= 5
+    table[mask_long]["nframes"] = 100
     pprint.pprint(table)
     est_tint = _estimate_total_time(table)
     click.echo(f"Est. time for all darks with {num_frames} frames each is {est_tint/60:.01f} min.")
-    if not no_confirm:
-        click.confirm("Confirm to proceed", default=True, abort=True)
-    try:
-        process_dark_frames(table, outdir)
-    except Exception as e:
-        print(e)
-        _kill_log(1)
-        _kill_log(2)
+    process_dark_frames(table, outdir)

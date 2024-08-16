@@ -8,6 +8,7 @@ from typing import Literal
 from paramiko import AutoAddPolicy, SSHClient
 from pyMilk.interfacing.fps import FPS
 from swmain.redis import RDB
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -86,10 +87,12 @@ class CamLogManager:
         self.fps = FPS(fps_name)
 
     @classmethod
-    def create(cls, shm_name, num_frames: int, num_cubes=-1, archive: bool = False):
-        save_dir = cls.ARCHIVE_DATA_DIR_BASE if archive else cls.DATA_DIR_BASE
-        today = datetime.datetime.now(datetime.timezone.utc)
-        folder = save_dir / f"{today:%Y%m%d}" / shm_name
+    def create(cls, shm_name, num_frames: int, num_cubes=-1, folder=None):
+        # if archive:
+        #     save_dir = cls.ARCHIVE_DATA_DIR_BASE
+        # else:
+        #     save_dir = cls.DATA_DIR_BASE
+        path = Path(folder) / shm_name
         # print(f"Saving data to directory {folder.absolute()}")
         cmd = [
             "ssh",
@@ -98,7 +101,7 @@ class CamLogManager:
             "-z",
             str(num_frames),
             "-D",
-            str(folder.absolute()),
+            str(path.absolute()),
         ]
         if num_cubes > 0:
             cmd.extend(("-c", f"{num_cubes}"))
@@ -150,3 +153,29 @@ class VCAMLogManager(CamLogManager):
     def __init__(self, cam_num: Literal[1, 2], **kwargs):
         shm_name = f"vcam{cam_num:d}"
         super().__init__(shm_name, **kwargs)
+
+
+    @classmethod
+    def create(cls, cam_num: Literal[1, 2], num_frames: int, num_cubes=-1, folder=None):
+        shm_name = f"vcam{cam_num:d}"
+        # if archive:
+        #     save_dir = cls.ARCHIVE_DATA_DIR_BASE
+        # else:
+        #     save_dir = cls.DATA_DIR_BASE
+        path = Path(folder) / shm_name
+        # print(f"Saving data to directory {folder.absolute()}")
+        cmd = [
+            "ssh",
+            f"scexao@{cls.COMPUTER}",
+            *cls.BASE_COMMAND,
+            "-z",
+            str(num_frames),
+            "-D",
+            str(path.absolute()),
+        ]
+        if num_cubes > 0:
+            cmd.extend(("-c", f"{num_cubes}"))
+        cmd.extend((shm_name, "pstart"))
+        subprocess.run(cmd, check=True, capture_output=True)
+        time.sleep(0.5)
+        return cls(cam_num)
