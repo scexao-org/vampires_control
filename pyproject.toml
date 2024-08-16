@@ -55,10 +55,11 @@ vampires_pauselog = "vampires_control.acquisition.acquire:pause_acquisition_main
 # configurations
 vampires_prep = "vampires_control.configurations.main:main"
 # health
-healthcheck = "vampires_control.status.healthcheck:main"
+vampires_healthcheck = "vampires_control.status.healthcheck:main"
 # calibrations
-autofocus = "vampires_control.autofocus:main"
-autofocus_fieldstop = "vampires_control.autofocus_fieldstop:main"
+vampires_autofocus = "vampires_control.autofocus:main"
+vampires_autofocus_fieldstop = "vampires_control.autofocus_fieldstop:main"
+vampires_ptc = "vampires_control.calibration.photon_transfer_curve:main"
 # take_cals = "vampires_control.calibration.calibs:main"
 vampires_autodarks = "vampires_control.calibration.nightly_darks:main"
 filter_sweep = "vampires_control.calibration.filter_sweep:main"
@@ -68,6 +69,8 @@ bs_calib = "vampires_control.calibration.bs_throughput:main"
 pol_calib = "vampires_control.calibration.polarization_calibration:main"
 drr_calib = "vampires_control.calibration.drr_calibration:main"
 vampires_hotspot = "vampires_control.hotspot:hotspot"
+# strehl
+vampires_strehl = "vampires_control.strehl:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_control.__version__"}

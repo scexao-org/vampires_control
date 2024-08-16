@@ -20,7 +20,7 @@ sonne $ vampires_camfocus dual
 ```
 from here run
 ```
-sonne $ autofocus lens -c 2
+sonne $ vampires_autofocus lens -c 2
 ```
 and then save the outputs if everything looks good
 ```
@@ -28,7 +28,7 @@ sonne $ vampires_focus --save 1
 ```
 and now do the same for the converse stage-
 ```
-sonne $ autofocus cam -c 1
+sonne $ vampires_autofocus cam -c 1
 sonne $ vampires_camfocus --save 1
 ```
 
@@ -41,7 +41,7 @@ sonne $ vampires_camfocus dual
 ```
 In theory the differential focus should not change with the introduction of the differential narrowband filters, so only the lens stage needs optimized- the following will only use the VCAM1 image to focus the lens
 ```
-sonne $ autofocus lens -c 1
+sonne $ vampires_autofocus lens -c 1
 sonne $ vampires_focus --save 2
 ```
 
@@ -50,7 +50,7 @@ Similar to the narrowband filter case, if any FIRST/VisPL pickoffs are in there 
 ```
 sonne $ vampires_focus vpl
 sonne $ vampires_camfocus dual
-sonne $ autofocus lens -c 1 
+sonne $ vampires_autofocus lens -c 1 
 sonne $ vampires_focus --save 4
 ```
 

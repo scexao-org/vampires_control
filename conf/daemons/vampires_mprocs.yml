@@ -5,7 +5,7 @@ procs:
   qwp daemon: "sleep 5; qwp_daemon"
   flc temp daemon: "sleep 5; vampires_temp_daemon"
   healthcheck:
-    shell: "healthcheck"
+    shell: "vampires_healthcheck"
     autostart: false
   prepare config:
     shell: "vampires_prep"
@@ -36,4 +36,7 @@ procs:
     autostart: false
   badseeing:
     shell: "while true; do sl; done"
+    autostart: false
+  monitor strehl:
+    shell: "watch 'vampires_strehl vcam1'"
     autostart: false

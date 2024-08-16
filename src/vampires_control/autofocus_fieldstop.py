@@ -82,7 +82,7 @@ def fit_optimal_focus(focus, metrics) -> float:
 
 
 @click.command(
-    "autofocus_fieldstop",
+    "vampires_autofocus_fieldstop",
     help="Optimize the focus using either the objective lens stage or the VCAM1 mount stage",
 )
 @click.option(

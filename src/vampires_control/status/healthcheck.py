@@ -47,7 +47,7 @@ DEVICES = [
 ]
 
 
-@click.command("healthcheck")
+@click.command("vampires_healthcheck")
 def main():
     click.echo("Checking VAMPIRES devices are connected")
     with mp.Pool() as pool:

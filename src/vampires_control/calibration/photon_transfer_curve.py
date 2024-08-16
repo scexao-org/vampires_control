@@ -7,9 +7,9 @@ import click
 import numpy as np
 import tqdm.auto as tqdm
 from astropy.io import fits
-from pyMilk.interfacing.isio_shmlib import SHM
 from scxconf.pyrokeys import VAMPIRES, VCAM1, VCAM2
 from swmain.network.pyroclient import connect
+from vampires_control.acquisition.manager import VCAMLogManager
 
 # set up logging
 formatter = logging.Formatter("%(asctime)s|%(name)s|%(message)s", datefmt="%Y-%m-%d %H:%M:%S")
@@ -20,91 +20,82 @@ stream_handler.setLevel(logging.INFO)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-SHMS = {1: SHM("vcam1"), 2: SHM("vcam2")}
 
+exptimes_fast = (0.05)
 
 class PTCAcquirer:
     """
     PTCAcquirer
     """
+    TEXP_FAST = np.geomspace(7.2e-6, 0.05, 50) # works well for 15V 3A
+    TEXP_SLOW = np.geomspace(95e-3)
 
     def __init__(self, base_dir: Union[str, Path, None] = None):
         self.cameras = {1: connect(VCAM1), 2: connect(VCAM2)}
-        self.diffwheel = connect(VAMPIRES.DIFF)
+        self.managers = {c: VCAMLogManager(c) for c in (1, 2)}
         self.base_dir = Path.cwd() if base_dir is None else Path(base_dir)
 
-    def acquire(self, nframes):
-        with mp.Pool(2) as pool:
-            res1 = pool.apply_async(get_cube, args=(1, nframes))
-            res2 = pool.apply_async(get_cube, args=(2, nframes))
-            pool.close()
-            cubes = res1.get(), res2.get()
 
-        return cubes
+    def get_exposure_times(self):
+        # determine if we're in fast or slow readout mode
+        is_fast = [cam.get_readout_mode() == "FAST" for cam in self.cameras.values()]
+        if all(is_fast):
+            texp = self.TEXP_FAST
+        elif not any(is_fast):
+            texp = self.TEXP_SLOW
+        else:
+            msg = "Both cameras have different readout modes, please make them equal"
+            raise RuntimeError(msg)
+        
+        ndits = [mgr.fps.get_param("cubesize") for mgr in self.maanagers.values()]
+        assert ndits[0] == ndits[1], "There are different cube sizes for each camera"
+        total_tint = np.sum(texp * ndits[0])
+        click.echo(f"Total integration time: {total_tint:.01f} s")
 
-    def take_bias(self, nframes=1000):
-        logger.info("Nudging diffwheel to take bias frames")
-        self.diffwheel.move_absolute(31)
+        return texp
 
-        for cam in self.cameras.values():
-            cam.set_tint(0)
-
-        logger.info("Acquiring...")
-        cubes = self.acquire(nframes)
-        logger.info("Finished taking bias frames")
-
-        logger.info("Opening diffwheel")
-        self.diffwheel.move_absolute(0)
-
-        return cubes
-
-    def take_data(self, exptimes, nframes=30, **kwargs):
+    def run(self):
+        ## prepare for PTC
+        ## take PTC data
         logger.info("Beginning PTC acquisition")
 
-        total_time = np.sum(exptimes * nframes)
-        click.echo(
-            f"{nframes} frames for {len(exptimes)} acquisitions will take {np.floor_divide(total_time, 60):02.0f}:{np.remainder(total_time, 60):02.0f}"
-        )
+        exptimes = self.get_exposure_times()
+
         click.confirm("Confirm if ready to proceed", abort=True, default=True)
 
-        actual_exptimes = []
-        cubes = []
         pbar = tqdm.tqdm(exptimes)
         for exptime in pbar:
-            pbar.desc = f"t={exptime:4.02e} s"
             for cam in self.cameras.values():
                 tint = cam.set_tint(exptime)
-            actual_exptimes.append(tint)
-            cubes.append(np.array(self.acquire(nframes=nframes)))
+            pbar.desc = f"t={tint:4.02e} s"
+            self.acquire()
 
         logger.info("Finished taking PTC data")
-        return np.array(actual_exptimes), np.array(cubes)
-
-    def run(self, name, exptimes, nframes=30, nbias=1000, **kwargs):
-        ## take bias frames
-        bias_cubes = np.array(self.take_bias(nframes=nbias))
-        bias_path = self.base_dir / f"{name}_bias.fits"
-        fits.writeto(bias_path, bias_cubes, overwrite=True)
-        ## prepare for PTC
-        click.confirm("Confirm when ready to proceed", abort=True, default=True)
-        ## take PTC data
-        exptimes, cubes = self.take_data(exptimes=exptimes, nframes=nframes)
-        ## save to disk
-        cube_path = self.base_dir / f"{name}_data.fits"
-        fits.writeto(cube_path, cubes, overwrite=True)
-        logger.info(f"Saved data to {cube_path}")
-        texp_path = self.base_dir / f"{name}_texp.fits"
-        fits.writeto(texp_path, exptimes, overwrite=True)
-        logger.info(f"Saved exposure times to {texp_path}")
-        return exptimes, cubes
 
 
-def get_cube(shm, nframes):
-    return SHMS[shm].multi_recv_data(nframes, output_as_cube=True, timeout=6)
+    def acquire(self):
+        with mp.Pool(2) as pool:
+            j1 = pool.apply_async(self.managers[1].acquire_cubes, args=(1,))
+            j2 = pool.apply_async(self.managers[2].acquire_cubes, args=(1,))
+            pool.close()
+            j1.get()
+            j2.get()
 
 
+    def cleanup(self):
+        # when exiting, make sure camera loggers have stopped
+        for mgr in self.managers.values():
+            mgr.pause_acquisition(wait_for_cube=False)
+
+
+@click.command("vampires_ptc")
 def main():
-    pass
+    ptc = PTCAcquirer()
+    try:
+        ptc.run()
+    except Exception:
+        ptc.cleanup()
+
 
 
 if __name__ == "__main__":

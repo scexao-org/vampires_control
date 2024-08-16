@@ -200,3 +200,16 @@ def measure_strehl_shm(shm_name: str, psf=None, nave=10, pxscale=5.9, **kwargs):
     if shmkwds["U_CAMERA"] == 1:
         psf = np.flipud(psf)
     return measure_strehl(image, psf, pxscale=pxscale, **kwargs)
+
+import click
+import warnings
+
+@click.command("vampires_strehl")
+@click.argument("stream", type=click.Choice(["vcam1", "vcam2"]))
+def main(stream: str):
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        result = measure_strehl_shm(stream)
+
+if __name__ == "__main__":
+    main()
