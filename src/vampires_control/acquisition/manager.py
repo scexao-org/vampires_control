@@ -1,6 +1,7 @@
 import logging
 import subprocess
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
@@ -76,37 +77,35 @@ class VCAMManager(CamManager):
 class CamLogManager:
     DATA_DIR_BASE = Path("/mnt/fuuu/")
     ARCHIVE_DATA_DIR_BASE = Path("/mnt/fuuu/ARCHIVED_DATA")
+    COMPUTER = "scexao5"
+    BASE_COMMAND = ("milk-streamFITSlog", "-cset", "q_asl")
 
-    def __init__(self, shm_name: str, computer: str = "scexao5", cset: str = "q_asl"):
+    def __init__(self, shm_name: str):
         self.shm_name = shm_name
-        self.computer = computer
-        self.cset = cset
-        self.base_command = ("milk-streamFITSlog", "-cset", self.cset)
         fps_name = f"streamFITSlog-{self.shm_name}"
         self.fps = FPS(fps_name)
 
-    # def prepare(self, num_frames: int, num_cubes=-1, archive: bool=False):
-    #     if archive:
-    #         save_dir = self.ARCHIVE_DATA_DIR_BASE
-    #     else:
-    #         save_dir = self.DATA_DIR_BASE
-    #     today = datetime.datetime.now(datetime.timezone.utc)
-    #     folder = save_dir / f"{today:%Y%m%d}" / self.shm_name
-    #     # print(f"Saving data to directory {folder.absolute()}")
-    #     cmd = [
-    #         "ssh",
-    #         f"scexao@{self.computer}",
-    #         *self.base_command,
-    #         "-z",
-    #         str(num_frames),
-    #         "-D",
-    #         str(folder.absolute())
-    #     ]
-
-    #     if num_cubes > 0:
-    #         cmd.extend(("-c", f"{num_cubes}"))
-    #     cmd.extend((self.shm_name, "pstart"))
-    #     subprocess.run(cmd, check=True, capture_output=True)
+    @classmethod
+    def create(cls, shm_name, num_frames: int, num_cubes=-1, archive: bool = False):
+        save_dir = cls.ARCHIVE_DATA_DIR_BASE if archive else cls.DATA_DIR_BASE
+        today = datetime.datetime.now(datetime.timezone.utc)
+        folder = save_dir / f"{today:%Y%m%d}" / shm_name
+        # print(f"Saving data to directory {folder.absolute()}")
+        cmd = [
+            "ssh",
+            f"scexao@{cls.COMPUTER}",
+            *cls.BASE_COMMAND,
+            "-z",
+            str(num_frames),
+            "-D",
+            str(folder.absolute()),
+        ]
+        if num_cubes > 0:
+            cmd.extend(("-c", f"{num_cubes}"))
+        cmd.extend((shm_name, "pstart"))
+        subprocess.run(cmd, check=True, capture_output=True)
+        time.sleep(0.5)
+        return cls(shm_name)
 
     def start_acquisition(self):
         # start logging
@@ -146,6 +145,8 @@ class CamLogManager:
 
 
 class VCAMLogManager(CamLogManager):
+    COMPUTER = "scexao5"
+
     def __init__(self, cam_num: Literal[1, 2], **kwargs):
         shm_name = f"vcam{cam_num:d}"
         super().__init__(shm_name, **kwargs)

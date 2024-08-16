@@ -1,16 +1,15 @@
 import os
 import pprint
-import subprocess
 import time
 from datetime import datetime, timezone
 from logging import getLogger
 from pathlib import Path
+from typing import Literal
 
 import click
 import pandas as pd
 import tqdm.auto as tqdm
 from astropy.io import fits
-from pyMilk.interfacing.fps import FPS
 from scxconf.pyrokeys import VCAM1, VCAM2
 from swmain.network.pyroclient import connect
 
@@ -73,41 +72,6 @@ def _estimate_total_time(headers):
     return tints.max()
 
 
-BASE_COMMAND = ("milk-streamFITSlog", "-cset", "q_asl")
-
-
-def _kill_log(cam: int):
-    command = [*BASE_COMMAND, f"vcam{cam}", "kill"]
-    subprocess.run(command, check=True, capture_output=True)
-
-
-def _prep_log(cam_num: int, num_frame: int, folder: Path):
-    click.echo(f"Saving data to directory {folder.absolute()}")
-    cmd = [
-        *BASE_COMMAND,
-        "-z",
-        f"{num_frame}",
-        "-D",
-        str(folder.absolute() / f"vcam{cam_num}"),
-        "-c",
-        "1",
-        f"vcam{cam_num}",
-        "pstart",
-    ]
-    subprocess.run(cmd, check=True, capture_output=True)
-
-
-def _connect_fps(cam_num: int):
-    fps_name = f"streamFITSlog-vcam{cam_num:1d}"
-    fps = FPS(fps_name)
-    return fps
-
-
-def _run_log(cam_num: int):
-    cmd = [*BASE_COMMAND, "-c", "1", f"vcam{cam_num}", "on"]
-    subprocess.run(cmd, check=True, capture_output=True)
-
-
 def _set_readout_mode(cam: int, mode: str, pbar):
     if cam == 1:
         camera = connect(VCAM1)
@@ -139,38 +103,22 @@ def _set_camera_crop(camera, crop, obsmode, pbar):
     camera.set_camera_size(height, width, h_offset, w_offset, mode_name=modename)
 
 
-def process_dark_frames(table, folder):
-    table["crop"] = table.apply(
-        lambda r: (r["PRD-MIN1"], r["PRD-MIN2"], r["PRD-RNG1"], r["PRD-RNG2"]), axis=1
-    )
+def process_one_camera(table, folder, cam_num: Literal[1, 2], num_frames=1000):
     pbar = tqdm.tqdm(table.groupby("crop"), desc="Crop")
+    camera = connect(VCAM1) if cam_num == 1 else connect(VCAM2)
+
     for key, group in pbar:
-        cam_vals = group["U_CAMERA"].values
-        num_frames = group["nframes"].max()
-        if 1 in cam_vals:
-            _set_camera_crop(connect(VCAM1), key, group["OBS-MOD"].iloc[0], pbar=pbar)
-            _kill_log(1)
-
-        if 2 in cam_vals:
-            _set_camera_crop(connect(VCAM2), key, group["OBS-MOD"].iloc[0], pbar=pbar)
-            _kill_log(2)
-
-        if 1 in cam_vals:
-            _prep_log(1, num_frames, folder)
-        if 2 in cam_vals:
-            _prep_log(2, num_frames, folder)
-        time.sleep(1) # pause to make sure FPS's have launched
-        try:
-            if 1 in cam_vals:
-                fps1 = _connect_fps(1)
-            if 2 in cam_vals:
-                fps2 = _connect_fps(2)
-        except Exception:
-            click.confirm(
-                "Could not connect to FPS. Set up manually confirm loggers ready to go",
-                default=True,
-                abort=True,
-            )
+        _set_camera_crop(connect(VCAM1), key, group["OBS-MOD"].iloc[0], pbar=pbar)
+        _kill_log(cam_num)
+        time.sleep(0.5)  # pause to make sure FPS's have launched
+        _prep_log(cam_num, num_frames, folder)
+        fps = None
+        while fps is None:
+            try:
+                fps = _connect_fps(cam_num)
+            except Exception:
+                msg = f"Could not connect to FPS for VCAM{cam_num}. Set up manually confirm loggers ready to go"
+                click.confirm(msg, default=True, abort=True)
 
         pbar2 = tqdm.tqdm(
             group.sort_values("U_DETMOD", ascending=False).groupby("U_DETMOD"),
@@ -178,24 +126,29 @@ def process_dark_frames(table, folder):
             leave=False,
         )
         for key2, group2 in pbar2:
-            if 1 in group2["U_CAMERA"].values:
-                _set_readout_mode(1, key2, pbar=pbar)
-
-            if 2 in group2["U_CAMERA"].values:
-                _set_readout_mode(2, key2, pbar=pbar)
+            _set_readout_mode(cam_num, key2, pbar=pbar)
             pbar3 = tqdm.tqdm(group2.iterrows(), total=len(group2), desc="Exp. time", leave=False)
             for _, row in pbar3:
-                if row["U_CAMERA"] == 1:
-                    camera = connect(VCAM1)
-                    fps = fps1
-                elif row["U_CAMERA"] == 2:
-                    camera = connect(VCAM2)
-                    fps = fps2
                 camera.set_keyword("DATA-TYP", "DARK")
                 camera.set_tint(row["EXPTIME"])
-                fps.set_param("saveON", True)
-                while fps.get_param("saveON"):
-                    time.sleep(0.2)
+
+                manager.fps.conf_start()
+                manager.fps.set_param("cubesize", row["nframes"])
+                manager.fps.run_start()
+                assert manager.fps.run_isrunning()
+                manager.acquire_cubes(1)
+
+
+def process_dark_frames(table, folder, num_frames=250):
+    table["crop"] = table.apply(
+        lambda r: (r["PRD-MIN1"], r["PRD-MIN2"], r["PRD-RNG1"], r["PRD-RNG2"]), axis=1
+    )
+
+    tqdm.tqdm(
+        group.sort_values("U_DETMOD", ascending=False).groupby("U_DETMOD"),
+        desc="Det. mode",
+        leave=False,
+    )
 
 
 @click.command("vampires_autodarks")
@@ -212,8 +165,7 @@ def main(folder: Path, outdir: Path, num_frames: int, no_confirm: bool):
         raise WrongComputerError(msg)
     table = vampires_dark_table(folder)
     table["nframes"] = num_frames
-    mask = table["EXPTIME"] > 0.5
-    #table[table["EXPTIME"] > 0.5]["nframes"] = 250 // table["EXPTIME"]
+    # table[table["EXPTIME"] > 0.5]["nframes"] = 250 // table["EXPTIME"]
     table = table.query("EXPTIME < 1")
     pprint.pprint(table)
     est_tint = _estimate_total_time(table)

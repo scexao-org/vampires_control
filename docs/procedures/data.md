@@ -80,3 +80,17 @@ after the manifest is created, you can manually send an email by downloading the
 ```
 sc5 $ echo "Dear Eric,\nAttached is a VMPA manifest for <date>. The IP of the machine the data is stored on is $(hostname -i).\n\nBest, SCExAO\n." | mail -s 'VMP manifest <date>' -A manifest_VMP_<date>.csv eric@naoj.org vdeo@naoj.org mdlucas@hawaii.edu
 ```
+
+## Transferring Data to scexao6
+
+Data needs to be copied to scexao6 for long-term storage and to make sure we don't run out of run on scexao5. This data transfer can be done efficiently over the 10-gig lan.
+
+Target folder: `sc6:/mnt/tier1/2_ARCHIVED_DATA`
+
+You need to make a destination folder and sync the vgen2 folder
+
+```
+sc6 $ cd /mnt/tier1/2_ARCHIVED_DATA
+sc6 $ rsync -arxuhP -e "ssh -T -c aes128-ctr -o Compression=no -o ConnectTimeout=10 -x" --exclude=lost+found --exclude=vcam* sc5l:/mnt/fuuu/ARCHIVED_DATA/<date> .
+```
+
