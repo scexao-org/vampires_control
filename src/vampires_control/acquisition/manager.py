@@ -1,14 +1,12 @@
 import logging
 import subprocess
 import time
-from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
 from paramiko import AutoAddPolicy, SSHClient
 from pyMilk.interfacing.fps import FPS
 from swmain.redis import RDB
-from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +151,6 @@ class VCAMLogManager(CamLogManager):
     def __init__(self, cam_num: Literal[1, 2], **kwargs):
         shm_name = f"vcam{cam_num:d}"
         super().__init__(shm_name, **kwargs)
-
 
     @classmethod
     def create(cls, cam_num: Literal[1, 2], num_frames: int, num_cubes=-1, folder=None):

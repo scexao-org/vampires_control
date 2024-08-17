@@ -87,8 +87,15 @@ Data needs to be copied to scexao6 for long-term storage and to make sure we don
 
 Target folder: `sc6:/mnt/tier1/2_ARCHIVED_DATA`
 
-You need to make a destination folder and sync the vgen2 folder
 
+**From sc5:**
+```
+sc5 $ cd /mnt/fuuu/ARCHIVED_DATA
+sc5 $ rsync -arxuhP -e "ssh -T -c aes128-ctr -o Compression=no -o ConnectTimeout=10 -x" --exclude=lost+found --exclude=vcam* <date> sc6l:/mnt/tier1/2_ARCHIVED_DATA/
+```
+
+
+**From sc6:**
 ```
 sc6 $ cd /mnt/tier1/2_ARCHIVED_DATA
 sc6 $ rsync -arxuhP -e "ssh -T -c aes128-ctr -o Compression=no -o ConnectTimeout=10 -x" --exclude=lost+found --exclude=vcam* sc5l:/mnt/fuuu/ARCHIVED_DATA/<date> .

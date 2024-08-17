@@ -89,10 +89,12 @@ def _focus_range(start_point: float):
 
 def measure_metric(shm: SHM, num_frames: int, **kwargs):
     """Get multiple frames, collapse, and measure focus metric"""
-    return measure_strehl_shm(shm.FNAME, nave=num_frames, **kwargs)
-    # cube = shm.multi_recv_data(num_frames, output_as_cube=True, **kwargs)
-    # frame = np.median(cube, axis=0, overwrite_input=True)
-    # return autofocus_metric(frame)
+    strehls = measure_strehl_shm(shm.FNAME, nave=num_frames, **kwargs)
+    if isinstance(strehls, dict):
+        # optimize over F720 field
+        return strehls["F720"]
+    # otherwise strehls is just a float
+    return strehls
 
 
 def fit_optimal_focus(focus, metrics) -> float:

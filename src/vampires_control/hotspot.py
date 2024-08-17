@@ -16,8 +16,8 @@ from vampires_control import paths
 from .centroid import dft_centroid, guess_mbi_centroid
 from .synthpsf import create_synth_psf
 
-DEFAULT_CSV_STORE: Final[Path] = paths.DATA_DIR / "hotspots"
-DEFAULT_CONFIG_STORE: Final[Path] = paths.DATA_DIR / "crops"
+DEFAULT_CSV_STORE: Final[Path] = paths.CONF_DIR / "hotspots"
+DEFAULT_CONFIG_STORE: Final[Path] = paths.CROPS_DIR
 
 
 class HotspotInfo(BaseModel):

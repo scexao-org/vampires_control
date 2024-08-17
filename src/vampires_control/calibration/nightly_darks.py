@@ -1,3 +1,4 @@
+import multiprocessing as mp
 import os
 import pprint
 import time
@@ -5,7 +6,6 @@ from datetime import datetime, timezone
 from logging import getLogger
 from pathlib import Path
 from typing import Literal
-import multiprocessing as mp
 
 import click
 import pandas as pd
@@ -13,6 +13,7 @@ import tqdm.auto as tqdm
 from astropy.io import fits
 from scxconf.pyrokeys import VCAM1, VCAM2
 from swmain.network.pyroclient import connect
+
 from vampires_control.acquisition.manager import VCAMLogManager
 
 logger = getLogger(__file__)
@@ -107,6 +108,7 @@ def _set_camera_crop(camera, crop, obsmode, pbar):
 
     camera.set_camera_size(height, width, h_offset, w_offset, mode_name=modename)
 
+
 def process_one_camera(table, cam_num: Literal[1, 2], num_frames=1000, folder=None):
     camera = connect(VCAM1) if cam_num == 1 else connect(VCAM2)
     manager = VCAMLogManager.create(cam_num, num_frames=num_frames, num_cubes=1, folder=folder)
@@ -142,7 +144,6 @@ def process_one_camera(table, cam_num: Literal[1, 2], num_frames=1000, folder=No
                 manager.acquire_cubes(1)
 
 
-
 def process_dark_frames(table, folder):
     kwargs = dict(folder=folder)
     groups = table.groupby("U_CAMERA")
@@ -153,6 +154,7 @@ def process_dark_frames(table, folder):
             jobs.append(job)
         for job in jobs:
             job.get()
+
 
 @click.command("vampires_autodarks")
 @click.argument("folder", type=Path, default=_default_sc5_archive_folder())
@@ -168,7 +170,7 @@ def main(folder: Path, outdir: Path, num_frames: int, no_confirm: bool):
         raise WrongComputerError(msg)
     table = vampires_dark_table(folder)
     table["nframes"] = num_frames
-    mask_med = (0.5 < table["EXPTIME"]) & (table["EXPTIME"] < 5)
+    mask_med = (table["EXPTIME"] > 0.5) & (table["EXPTIME"] < 5)
     table[mask_med]["nframes"] = 500
     mask_long = table["EXPTIME"] >= 5
     table[mask_long]["nframes"] = 100

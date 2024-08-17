@@ -40,3 +40,6 @@ procs:
   monitor strehl:
     shell: "watch 'vampires_strehl vcam1'"
     autostart: false
+  monitor strehl (fast):
+    shell: "vampires_strehl_monitor vcam1"
+    autostart: false

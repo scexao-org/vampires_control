@@ -1,3 +1,5 @@
+import warnings
+
 import matplotlib.pyplot as plt
 import numpy as np
 import sep
@@ -195,9 +197,18 @@ def model_centroid(data, center=None, **kwargs):
 def dft_centroid(data, psf, center=None, window=30):
     if center is None:
         center = np.unravel_index(np.nanargmax(data), data.shape)
-    cutout = Cutout2D(data, center[::-1], window, mode="partial")
+    cutout_data = Cutout2D(data, center[::-1], window, mode="partial")
+    psf_center = np.array(psf.shape[-2:]) / 2 - 0.5
+    cutout_psf = Cutout2D(psf, psf_center[::-1], window, mode="partial")
     shift, _, _ = phase_cross_correlation(
-        psf.astype("=f4"), cutout.data.astype("=f4"), upsample_factor=30, normalization=None
+        cutout_psf.data.astype("=f4"),
+        cutout_data.data.astype("=f4"),
+        upsample_factor=30,
+        normalization=None,
     )
     refined_center = center + shift
+
+    if np.any(np.abs(refined_center - center) > 10):
+        msg = f"PSF centroid appears to have failed, got {refined_center!r}"
+        warnings.warn(msg, stacklevel=2)
     return refined_center

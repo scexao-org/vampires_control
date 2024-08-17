@@ -1,11 +1,13 @@
 import warnings
 
+import click
 import numpy as np
+import paramiko
 import sep
 from astropy.nddata import Cutout2D
 from pyMilk.interfacing.isio_shmlib import SHM
-from skimage.registration import phase_cross_correlation
 
+from .centroid import dft_centroid
 from .synthpsf import create_synth_psf
 
 
@@ -85,23 +87,7 @@ def measure_strehl_otf(image, psf_model):
 
 def measure_strehl(image, psf_model, pos=None, phot_rad=0.5, peak_search_rad=0.1, pxscale=5.9):
     ## Step 1: find approximate location of PSF in image
-
-    # If no position given, start at the nan-max
-    if pos is None:
-        pos = np.unravel_index(np.nanargmax(image), image.shape)
-    center = np.array(pos)
-    # Now, refine this centroid using cross-correlation
-    # this cutout must have same shape as PSF reference (chance for errors here)
-    cutout = Cutout2D(image, center[::-1], psf_model.shape, mode="partial")
-    assert cutout.data.shape == psf_model.shape
-
-    shift, _, _ = phase_cross_correlation(
-        psf_model.astype("=f4"), cutout.data.astype("=f4"), upsample_factor=30, normalization=None
-    )
-    refined_center = center + shift
-    if np.any(np.abs(refined_center - center) > 5):
-        msg = f"PSF centroid appears to have failed, got {refined_center!r}"
-        warnings.warn(msg, stacklevel=2)
+    refined_center = dft_centroid(image, psf_model, center=pos)
 
     ## Step 2: Calculate peak flux with subsampling and flux
     aper_rad_px = phot_rad / (pxscale * 1e-3)
@@ -201,15 +187,32 @@ def measure_strehl_shm(shm_name: str, psf=None, nave=10, pxscale=5.9, **kwargs):
         psf = np.flipud(psf)
     return measure_strehl(image, psf, pxscale=pxscale, **kwargs)
 
-import click
-import warnings
 
 @click.command("vampires_strehl")
 @click.argument("stream", type=click.Choice(["vcam1", "vcam2"]))
-def main(stream: str):
+def vampires_strehl(stream: str):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        result = measure_strehl_shm(stream)
+        measure_strehl_shm(stream)
+
+
+@click.command("vampires_strehl_monitor")
+@click.argument("stream", type=click.Choice(["vcam1", "vcam2"]))
+def vampires_strehl_monitor(stream: str):
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.load_system_host_keys()
+    client.connect(
+        "scexao5",
+        username="scexao",
+        disabled_algorithms={"pubkeys": ("rsa-sha2-256", "rsa-sha2-512")},
+    )
+    while True:
+        stdin, stdout, stderr = client.exec_command(
+            f"/home/scexao/miniforge3/envs/vampires_control/bin/vampires_strehl {stream}"
+        )
+        print(stdout.readlines())
+
 
 if __name__ == "__main__":
-    main()
+    vampires_strehl()

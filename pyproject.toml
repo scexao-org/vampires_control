@@ -70,7 +70,8 @@ pol_calib = "vampires_control.calibration.polarization_calibration:main"
 drr_calib = "vampires_control.calibration.drr_calibration:main"
 vampires_hotspot = "vampires_control.hotspot:hotspot"
 # strehl
-vampires_strehl = "vampires_control.strehl:main"
+vampires_strehl = "vampires_control.strehl:vampires_strehl"
+vampires_strehl_monitor = "vampires_control.strehl:vampires_strehl_monitor"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_control.__version__"}

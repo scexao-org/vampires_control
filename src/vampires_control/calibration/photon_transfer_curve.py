@@ -6,9 +6,9 @@ from typing import Union
 import click
 import numpy as np
 import tqdm.auto as tqdm
-from astropy.io import fits
-from scxconf.pyrokeys import VAMPIRES, VCAM1, VCAM2
+from scxconf.pyrokeys import VCAM1, VCAM2
 from swmain.network.pyroclient import connect
+
 from vampires_control.acquisition.manager import VCAMLogManager
 
 # set up logging
@@ -21,20 +21,21 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 
-exptimes_fast = (0.05)
+exptimes_fast = 0.05
+
 
 class PTCAcquirer:
     """
     PTCAcquirer
     """
-    TEXP_FAST = np.geomspace(7.2e-6, 0.05, 50) # works well for 15V 3A
+
+    TEXP_FAST = np.geomspace(7.2e-6, 0.05, 50)  # works well for 15V 3A
     TEXP_SLOW = np.geomspace(95e-3)
 
     def __init__(self, base_dir: Union[str, Path, None] = None):
         self.cameras = {1: connect(VCAM1), 2: connect(VCAM2)}
         self.managers = {c: VCAMLogManager(c) for c in (1, 2)}
         self.base_dir = Path.cwd() if base_dir is None else Path(base_dir)
-
 
     def get_exposure_times(self):
         # determine if we're in fast or slow readout mode
@@ -46,7 +47,7 @@ class PTCAcquirer:
         else:
             msg = "Both cameras have different readout modes, please make them equal"
             raise RuntimeError(msg)
-        
+
         ndits = [mgr.fps.get_param("cubesize") for mgr in self.maanagers.values()]
         assert ndits[0] == ndits[1], "There are different cube sizes for each camera"
         total_tint = np.sum(texp * ndits[0])
@@ -72,7 +73,6 @@ class PTCAcquirer:
 
         logger.info("Finished taking PTC data")
 
-
     def acquire(self):
         with mp.Pool(2) as pool:
             j1 = pool.apply_async(self.managers[1].acquire_cubes, args=(1,))
@@ -80,7 +80,6 @@ class PTCAcquirer:
             pool.close()
             j1.get()
             j2.get()
-
 
     def cleanup(self):
         # when exiting, make sure camera loggers have stopped
@@ -95,7 +94,6 @@ def main():
         ptc.run()
     except Exception:
         ptc.cleanup()
-
 
 
 if __name__ == "__main__":

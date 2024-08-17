@@ -35,7 +35,7 @@ def create_synth_psf(
     flip: bool = True,
     pupil_offset=PUPIL_OFFSET,
     pixel_scale=PIXEL_SCALE,
-    output_directory=paths.DATA_DIR,
+    output_directory=paths.SYNTHPSF_DIR,
     **kwargs,
 ):
     if output_directory is not None:
