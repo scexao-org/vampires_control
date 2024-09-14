@@ -83,6 +83,7 @@ REDIS_KEYS = [
     "X_SRCEN",
     "X_SRCFLX",
     "X_SRCSEL",
+    "X_VISBLK",
     "X_VPLPKO",
     "X_VPLPKT",
     "u_VOBMOD",
@@ -228,6 +229,15 @@ def get_table():
         f"x={status_dict['U_FLDSTX']:6.03f} mm, y={status_dict['U_FLDSTY']:6.03f} mm, f={status_dict['U_FLDSTF']:6.03f} mm",
         style=style,
     )
+
+    ## Block
+    if status_dict["X_VISBLK"].upper() == "IN":
+        style = danger_style
+    elif status_dict["X_VISBLK"].upper() == "OUT":
+        style = default_style
+    else:
+        style = unknown_style
+    table.add_row("Vis Block", str(status_dict["X_VISBLK"]), "", style=style)
 
     ## First pickoff
     if status_dict["X_FIRPKO"].upper() == "IN":
