@@ -1,4 +1,6 @@
+import os
 import warnings
+from datetime import datetime, timezone
 
 import click
 import numpy as np
@@ -211,7 +213,11 @@ def vampires_strehl_monitor(stream: str):
         stdin, stdout, stderr = client.exec_command(
             f"/home/scexao/miniforge3/envs/vampires_control/bin/vampires_strehl {stream}"
         )
-        print(stdout.readlines())
+        output = "".join(stdout.readlines())
+        os.system("cls" if os.name == "nt" else "clear")
+        print(datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%s"))
+        print()
+        print(output)
 
 
 if __name__ == "__main__":
