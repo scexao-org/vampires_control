@@ -11,6 +11,7 @@ from device_control.facility import WPU, ImageRotator
 from scxconf.pyrokeys import VAMPIRES
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values
+from concurrent import futures
 
 from vampires_control.acquisition.manager import VCAMLogManager
 
@@ -38,9 +39,10 @@ class PolCalManager:
     STANDARD_FILTERS = ("Open", "625-50", "675-50", "725-50", "750-50", "775-50")
     NB_FILTERS = ("Halpha", "Ha-cont", "SII", "SII-cont")
 
-    def __init__(self, mode: str = "standard", use_flc: bool = False, debug=False):
+    def __init__(self, mode: str = "standard", use_flc: bool = False, extend: bool = True, debug: bool=False):
         self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
         self.managers = {1: VCAMLogManager(1), 2: VCAMLogManager(2)}
+        self.extend = extend
         self.use_flc = use_flc
         if self.use_flc:
             self.flc = connect(VAMPIRES.FLC)
@@ -126,7 +128,7 @@ class PolCalManager:
             cam.set_keyword("RET-ANG1", round(hwp_status["pol_angle"], 2))
             cam.set_keyword("RET-POS1", round(hwp_status["position"], 2))
 
-    def iterate_one_filter(self, time_per_cube=5, parity=False, do_extended_range=True):
+    def iterate_one_filter(self, parity=False):
         logger.info("Starting HWP + IMR loop")
         imr_range = self.IMR_POSNS
         if parity:
@@ -137,7 +139,7 @@ class PolCalManager:
             self.move_imr(imrang)
 
             hwp_range = self.HWP_POSNS
-            if do_extended_range and i in self.IMR_INDS_HWP_EXT:
+            if self.extend and i in self.IMR_INDS_HWP_EXT:
                 hwp_range = self.HWP_POSNS + self.EXT_HWP_POSNS
             # every other sequence flip the HWP order to minimize travel
             if i % 2 == 1:
@@ -152,10 +154,16 @@ class PolCalManager:
         if self.debug:
             logger.debug("PLAY PRETEND MODE: take VAMPIRES cube")
             return
-        for mgr in self.managers.values():
+        def wrapper(mgr):
             mgr.start_acquisition()
-        for mgr in self.managers.values():
             mgr.pause_acquisition(wait_for_cube=True)
+            time.sleep(0.5)
+        # execute function simultaneously using thread-pool, this way there's no 
+        # delay between signals fired to the fps-ctrl
+        with futures.ThreadPoolExecutor() as executor:
+            fs = list(executor.map(wrapper,self.managers.values()))
+            for f in fs:
+                f.result()
 
     def move_filters(self, filt):
         logger.info(f"Moving filter to {filt}")
@@ -220,9 +228,10 @@ class PolCalManager:
 )
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt="Use FLC")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
-def main(mode: str, flc: bool = False, debug=False):
-    manager = PolCalManager(mode=mode, use_flc=flc, debug=debug)
-    manager.run(time_per_cube=time)
+@click.option("-e/-ne", "--extend/--no-extend", default=True, help=f"For IMR angles {'°, '.join(str(PolCalManager.IMR_POSNS[idx]) for idx in PolCalManager.IMR_INDS_HWP_EXT)} extend HWP angles to 180°")
+def main(mode: str, flc: bool, debug: bool, extend: bool):
+    manager = PolCalManager(mode=mode, use_flc=flc, extend=extend, debug=debug)
+    manager.run()
 
 
 if __name__ == "__main__":
