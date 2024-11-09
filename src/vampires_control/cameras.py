@@ -112,6 +112,7 @@ def get_crop():
             "MBI",
             "MBI_REDUCED",
             "MBI_ONEHALF",
+            "MBI_JEWEL",
             "FULL",
             "PUPIL",
         ],
