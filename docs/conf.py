@@ -27,6 +27,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx.ext.mathjax",
+    "sphinx.ext.githubpages",
     "myst_parser",
 ]
 myst_enable_extensions = ["dollarmath"]

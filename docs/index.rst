@@ -50,7 +50,6 @@ Contents
    procedures/autofocus
    procedures/coronagraphs
    procedures/mbi
-   procedures/data
 
 .. toctree::
    :maxdepth: 1
@@ -58,6 +57,7 @@ Contents
 
    observing/calibrations
    observing/polarimetry
+   observing/data
 
 
 License

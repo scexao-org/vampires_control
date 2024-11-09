@@ -15,7 +15,6 @@ dependencies = [
     "scikit-image",
     "tqdm",
     "rich",
-    "pyzmq",
     "paramiko",
     "ruff",
     "pyyaml",

@@ -37,13 +37,8 @@ $ vampires_flc in
 ```
 2. Prepare the VAMPIRES trigger
 
-If the detector is in FAST readout mode:
 ```
-$ vampires_trig set -j 50 -f
-```
-else, if the detector is in SLOW readout mode:
-```
-$ vampires_trig set -j 500 -f
+$ vampires_trig set -f
 ```
 
 The FLC will start switching as soon as the `-f` flag is enabled, even if the micro-controller is not enabled for triggering. You can confirm the switching by inserting the SCExAO polarizer:
@@ -101,7 +96,21 @@ where the `c` stands for CHARIS and the `v` stands for VAMPIRES. If using FastPD
 
 Because `hwpsync` will move the HWP when started, you should wait to start the CHARIS exposures until right after the HWP is settled (about a second, depending on where it was, previously). Because VAMPIRES (and FastPDI) wait for the *end* of the CHARIS frame for signalling, there is no issue with starting their exposures before the CHARIS exposure.
 ```
+#### State Diagram
 
+```{graphviz}
+digraph {
+    node [shape=box]
+    "Move HWP" -> {
+        "Acquire VAMPIRES";
+        "Acquire FastPDI";
+        "Acquire CHARIS";
+    } ->
+    "Wait for end of CHARIS frame" ->
+    "Pause all cameras" ->
+    "Move HWP";
+}
+```
 #### Timer Synchronization
 
 Alternatively, a timer can be specified (in seconds) using VAMPIRES (`v`) and FastPDI (`f`)
@@ -110,8 +119,57 @@ Alternatively, a timer can be specified (in seconds) using VAMPIRES (`v`) and Fa
 scexao2 $ hwpsync v[f] -t 20
 ```
 
-Note: if you `CTRL + C` this script, it will stop all logging before exiting, so don't spam it!
+#### State Diagram
 
+```{graphviz}
+digraph {
+    node [shape=box]
+    "Move HWP" ->
+    "Start timer" -> {
+        "Acquire VAMPIRES";
+        "Acquire FastPDI";
+    } ->
+    "Wait for end of timer" ->
+    "Pause all cameras" ->
+    "Move HWP";
+}
+```
+
+### Polarimetric SDI
+
+We can run the narrowband spectral differential imaging mode at the same time as the PDI loop. This requires triggering two CHARIS frames (or timers, if not using CHARIS) per HWP angle. During one of the frames, the differential filter wheel will be in state 1/2, then during the other frame the differential filter wheel will be in state 2/2. This way, both SDI states are recorded for each HWP angle, allowing full PDI reconstruction. To minimize differential wheel movements, the SDI states will proceed 1,2 -> 2,1 over different HWP angles (e.g., ABBA).
+
+Example with CHARIS:
+```
+scexao2 $ hwpsync vc -n 2 --sdi Halpha 
+```
+Example without CHARIS:
+```
+scexao2 $ hwpsync v -t 30 -n 2 --sdi Halpha
+```
+#### State Diagram
+
+```{graphviz}
+digraph {
+    node [shape=box]
+    "Move HWP" -> {
+        "Acquire VAMPIRES";
+        "Acquire FastPDI";
+        "Acquire CHARIS";
+    } ->
+    "Wait for end of CHARIS frame 1" ->
+    "Pause VAMPIRES" ->
+    "Move differential filter wheel" ->
+    "Wait for end of CHARIS frame 2" ->
+    "Pause all cameras" ->
+    "Move HWP";
+}
+```
+### Stopping the HWP daemon
+
+While the `hwpsync` program is running, you can `CTRL + c` it to send a "last frame" command. This will wait for the next CHARIS frame/timer to finish, will stop all VAMPIRES and FastPDI logging, and then close the program. This is very convenient to use on the last iteration of a HWP sequence. CHARIS data acquisition still has to be stopped from Gen2.
+
+In case you need to stop urgently, hit `CTRL + c` twice, which will stop all VAMPIRES and FastPDI logging immediately.
 
 ## Teardown
 
