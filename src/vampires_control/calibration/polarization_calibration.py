@@ -161,7 +161,7 @@ class PolCalManager:
         # execute function simultaneously using thread-pool, this way there's no 
         # delay between signals fired to the fps-ctrl
         with futures.ThreadPoolExecutor() as executor:
-            fs = list(executor.map(wrapper,self.managers.values()))
+            fs = [executor.submit(wrapper, mgr) for mgr in self.managers.values()]
             for f in fs:
                 f.result()
 
