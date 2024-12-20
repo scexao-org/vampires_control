@@ -1,5 +1,15 @@
 # Instrument Layout
 
-```{image} 2023_VAMPIRES_diagram.pdf
+
+## Instrument Schematics
+
+```{figure} 2023_VAMPIRES_diagram.png
 :width: 100%
+:align: center
 ```
+
+## Zemax
+
+## CAD
+
+TODO
