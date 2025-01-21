@@ -83,7 +83,7 @@ class SDIStateMachine:
             [task.result() for task in tasks]
             
 
-@click.command("sdi_daemon")
+@click.command("vampires_sdi_daemon")
 @click.option(
     "-m", "--mode", default="Halpha", type=click.Choice(["Halpha", "SII", "both"], case_sensitive=False), prompt=True
 )
