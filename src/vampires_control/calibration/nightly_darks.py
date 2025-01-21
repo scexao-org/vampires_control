@@ -135,11 +135,9 @@ def process_one_camera(table, cam_num: Literal[1, 2], num_frames=1000, folder=No
             for _, row in pbar3:
                 camera.set_keyword("DATA-TYP", "DARK")
                 camera.set_tint(row["EXPTIME"])
-                manager.fps.conf_start()
-                time.sleep(1)
+                manager.fps.conf_start(5.0)
                 manager.fps.set_param("cubesize", row["nframes"])
-                manager.fps.run_start()
-                time.sleep(1)
+                manager.fps.run_start(100.0)
                 assert manager.fps.run_isrunning()
                 manager.acquire_cubes(1)
 
