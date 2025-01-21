@@ -119,6 +119,9 @@ class CamLogManager:
             # allow cube to fill up
             self.fps.set_param("lastcubeON", True)
             self.wait_for_acquire()
+            # sometimes you call lastcube but saveON is false,
+            # so let's clean this up to avoid messy situations
+            self.fps.set_param("lastcubeON", False)
         else:
             # truncate cube immediately
             self.fps.set_param("saveON", False)
