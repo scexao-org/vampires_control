@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from concurrent import futures
 from pathlib import Path
 
 import click
@@ -11,7 +12,6 @@ from device_control.facility import WPU, ImageRotator
 from scxconf.pyrokeys import VAMPIRES
 from swmain.network.pyroclient import connect
 from swmain.redis import get_values
-from concurrent import futures
 
 from vampires_control.acquisition.manager import VCAMLogManager
 
@@ -39,7 +39,13 @@ class PolCalManager:
     STANDARD_FILTERS = ("Open", "625-50", "675-50", "725-50", "750-50", "775-50")
     NB_FILTERS = ("Halpha", "Ha-cont", "SII", "SII-cont")
 
-    def __init__(self, mode: str = "standard", use_flc: bool = False, extend: bool = True, debug: bool=False):
+    def __init__(
+        self,
+        mode: str = "standard",
+        use_flc: bool = False,
+        extend: bool = True,
+        debug: bool = False,
+    ):
         self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
         self.managers = {1: VCAMLogManager(1), 2: VCAMLogManager(2)}
         self.extend = extend
@@ -154,11 +160,13 @@ class PolCalManager:
         if self.debug:
             logger.debug("PLAY PRETEND MODE: take VAMPIRES cube")
             return
+
         def wrapper(mgr):
             mgr.start_acquisition()
             mgr.pause_acquisition(wait_for_cube=True)
             time.sleep(0.5)
-        # execute function simultaneously using thread-pool, this way there's no 
+
+        # execute function simultaneously using thread-pool, this way there's no
         # delay between signals fired to the fps-ctrl
         with futures.ThreadPoolExecutor() as executor:
             fs = [executor.submit(wrapper, mgr) for mgr in self.managers.values()]
@@ -228,7 +236,12 @@ class PolCalManager:
 )
 @click.option("-f/-nf", "--flc/--no-flc", default=False, prompt="Use FLC")
 @click.option("--debug/--no-debug", default=False, help="Dry run and debug information")
-@click.option("-e/-ne", "--extend/--no-extend", default=True, help=f"For IMR angles {'°, '.join(str(PolCalManager.IMR_POSNS[idx]) for idx in PolCalManager.IMR_INDS_HWP_EXT)} extend HWP angles to 180°")
+@click.option(
+    "-e/-ne",
+    "--extend/--no-extend",
+    default=True,
+    help=f"For IMR angles {'°, '.join(str(PolCalManager.IMR_POSNS[idx]) for idx in PolCalManager.IMR_INDS_HWP_EXT)} extend HWP angles to 180°",
+)
 def main(mode: str, flc: bool, debug: bool, extend: bool):
     manager = PolCalManager(mode=mode, use_flc=flc, extend=extend, debug=debug)
     manager.run()

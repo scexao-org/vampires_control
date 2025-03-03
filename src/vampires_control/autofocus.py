@@ -2,6 +2,7 @@ import logging
 
 import click
 import numpy as np
+import pandas as pd
 import tqdm.auto as tqdm
 from numpy.polynomial import Polynomial
 from pyMilk.interfacing.isio_shmlib import SHM
@@ -49,30 +50,36 @@ class Autofocuser:
 
     def autofocus_lens(self, shm, start_point, num_frames=10):
         focus_range = _focus_range(start_point)
-        strehls = np.empty_like(focus_range)
+        strehls = []
         pbar = tqdm.tqdm(focus_range, desc="Scanning lens", leave=False)
-        for i, position in enumerate(pbar):
+        for _i, position in enumerate(pbar):
             pbar.write(f"Moving lens focus to {position:4.02f} mm", end=" | ")
             self.lens_stage.move_absolute(position)
-            strehls[i] = measure_metric(shm, num_frames)
-            pbar.write(f"Strehl ratio: {strehls[i]*1e2:04.01f}%")
+            cur_strehl = measure_metric(shm, num_frames)
+            strehls.append(cur_strehl)
+            strehl_val = cur_strehl["F720"] if len(cur_strehl) > 1 else list(cur_strehl.values())[0]
+            pbar.write(f"Strehl ratio: {strehl_val*1e2:04.01f}%")
 
-        best_fit, best_value = fit_optimal_focus(focus_range, strehls)
+        strehl_table = pd.DataFrame(strehls)
+        best_fit, best_value = fit_optimal_focus(focus_range, strehl_table)
         logger.info(f"Best Strehl - {best_value * 1e2:04.01f}% - focus= {best_fit:4.02f} mm")
         self.lens_stage.move_absolute(best_fit)
         return best_fit
 
     def autofocus_camfocus(self, shm, start_point, num_frames=10):
         focus_range = _focus_range(start_point)
-        strehls = np.empty_like(focus_range)
+        strehls = []
         pbar = tqdm.tqdm(focus_range, desc="Scanning camfocus", leave=False)
-        for i, position in enumerate(pbar):
+        for _i, position in enumerate(pbar):
             pbar.write(f"Moving camera focus to {position:4.02f} mm", end=" | ")
             self.cam_stage.move_absolute(position)
-            strehls[i] = measure_metric(shm, num_frames)
-            pbar.write(f"Strehl ratio: {strehls[i]*1e2:04.01f}%")
+            cur_strehl = measure_metric(shm, num_frames)
+            strehls.append(cur_strehl)
+            strehl_val = cur_strehl["F720"] if len(cur_strehl) > 1 else list(cur_strehl.values())[0]
+            pbar.write(f"Strehl ratio: {strehl_val*1e2:04.01f}%")
 
-        best_fit, best_value = fit_optimal_focus(focus_range, strehls)
+        strehl_table = pd.DataFrame(strehls)
+        best_fit, best_value = fit_optimal_focus(focus_range, strehl_table)
         logger.info(f"Best Strehl - {best_value * 1e2:04.01f}% - focus= {best_fit:4.02f} mm")
         self.cam_stage.move_absolute(best_fit)
         return best_fit
@@ -87,25 +94,37 @@ def _focus_range(start_point: float):
     return focus_range
 
 
-def measure_metric(shm: SHM, num_frames: int, **kwargs):
+def measure_metric(shm: SHM, num_frames: int, **kwargs) -> dict[str, float]:
     """Get multiple frames, collapse, and measure focus metric"""
     strehls = measure_strehl_shm(shm.FNAME, nave=num_frames, **kwargs)
     if isinstance(strehls, dict):
         # optimize over F720 field
-        return strehls["F720"]
+        return strehls
     # otherwise strehls is just a float
-    return strehls
+    return {shm.FNAME: strehls}
 
 
-def fit_optimal_focus(focus, metrics) -> float:
+def fit_optimal_focus(focus, metrics: pd.DataFrame) -> tuple[float, float]:
     """Given sample points and values, fit maximum using parabola"""
     # fit quadratic to curve, make sure
     # to convert back to origina domain and range
-    poly = Polynomial.fit(focus, metrics, deg=2).convert()
-    # vertex of polynomial
-    vertex = -poly.coef[1] / (2 * poly.coef[2])
-    value = poly(vertex)
-    return vertex, value
+    vertices = {}
+    values = {}
+    for key in metrics.columns:
+        poly = Polynomial.fit(focus, metrics[key].values, deg=2).convert()
+        # vertex of polynomial
+        vertex = -poly.coef[1] / (2 * poly.coef[2])
+        vertices[key] = vertex
+        values[key] = poly(vertex)
+    logger.info(vertices)
+    logger.info(values)
+    weighted_ave_vertex = sum(
+        val * vertex for val, vertex in zip(values.values(), vertices.values())
+    )
+    weighted_ave_vertex /= sum(values.values())
+    weighted_ave_value = sum(val**2 for val in values.values())
+    weighted_ave_value /= sum(values.values())
+    return weighted_ave_vertex, weighted_ave_value
 
 
 @click.command(
