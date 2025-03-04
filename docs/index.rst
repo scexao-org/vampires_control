@@ -57,6 +57,7 @@ Contents
 
    observing/calibrations
    observing/polarimetry
+   observing/sdi
    observing/data
 
 
