@@ -2,6 +2,9 @@ from datetime import datetime, timezone
 from functools import partial
 from pathlib import Path
 from typing import Final, Optional, Sequence
+import shutil
+import re
+import os
 
 import click
 import numpy as np
@@ -97,7 +100,7 @@ def fit_hotspots_standard(frame, shm: SHM, plot: bool=False) -> HotspotInfo:
     centroid = dft_centroid(frame, psf, ctr_guess)
     if plot:
         fig, ax = _plot_centroid(frame, ctr_guess, centroid)
-        ax.set_title(f"{shm.name}")
+        ax.set_title(f"{shm.FNAME}")
     hotspot = HotspotInfo(
         cam=shm.FNAME,
         field=curfilt,
@@ -142,7 +145,7 @@ def fit_hotspots_mbi(frame, shm: SHM, plot: bool=False) -> dict[str, HotspotInfo
         centroid = dft_centroid(frame, psfs[field], ctr)
         if plot:
             _, ax = _plot_centroid(frame, ctr, centroid)
-            ax.set_title(f"{shm.name} - {field}")
+            ax.set_title(f"{shm.FNAME} - {field}")
         hotspot = HotspotInfo(
             cam=shm.FNAME,
             field=field,
@@ -214,8 +217,9 @@ def save_configs_to_db(
     date = datetime.now(timezone.utc).strftime("%Y%m%d")
     save_path = save_dir / f"{date}_{cam_name}_mbi_crop.toml"
     config.save(save_path)
-    save_path = save_dir / f"{date}_{cam_name}_mbir_crop.toml"
-    config_reduced.save(save_path)
+    save_path_reduced = save_dir / f"{date}_{cam_name}_mbir_crop.toml"
+    config_reduced.save(save_path_reduced)
+    return save_path, save_path_reduced
 
 
 def generate_standard_crop_config(hotspot: HotspotInfo) -> CameraMode:
@@ -286,6 +290,16 @@ def generate_mbi_crops(hotspots: dict[str, HotspotInfo]) -> dict[str, CameraMode
     return {"MBI": mbi_mode, "MBIR": mbir_mode}
 
 
+def _backup_and_copy_hotspots(filename: Path, target: str):
+    _root = Path("/home/scexao/src/camstack/")
+    target_path = _root / "conf" / "modes" / "vampires" / target
+    if target_path.exists():
+        backup_path = target_path.with_name(target.replace("vcam", "bak_vcam"))
+        print(f"Replacing {target_path} with {backup_path}")
+        target_path.replace(backup_path)
+    print(f"Copying {filename} to {target_path}")
+    shutil.copy(filename, target_path)
+
 @click.command("vampires_hotspot")
 @click.argument("shm_name")
 @click.option("-n", "--num-frames", default=10, type=int)
@@ -304,7 +318,18 @@ def generate_mbi_crops(hotspots: dict[str, HotspotInfo]) -> dict[str, CameraMode
     default=True,
     help=f"Plot centroids",
 )
-def hotspot(shm_name: str, num_frames=10, save: bool = True, report: bool = False, plot: bool=True):
+@click.option(
+    "-c/-nc",
+    "--copy/--no-copy",
+    default=False,
+    help="If true, copy crop file over to camstack (requires `--report`)"
+)
+def hotspot(shm_name: str, num_frames=10, save: bool = True, report: bool = False, plot: bool=True, copy: bool=False):
+    if copy and not report:
+        msg = "Cannot copy report over without generating report, pass `--report`"
+        raise ValueError(msg)
+    if copy and not os.environ.get("WHICHCOMP", "") == "5":
+        msg = "Cannot copy report to camstack unless running on scexao5"
     shm = SHM(shm_name)
     data = shm.multi_recv_data(num_frames, output_as_cube=True)
     frame = np.median(data.astype("f4"), axis=0, overwrite_input=True)
@@ -313,7 +338,13 @@ def hotspot(shm_name: str, num_frames=10, save: bool = True, report: bool = Fals
         hotspots = fit_hotspots_mbi(frame, shm, plot=plot)
         if report:
             crops = generate_mbi_crops(hotspots)
-            save_configs_to_db(crops["MBI"], crops["MBIR"], cam_name=shm_name.lower())
+            fname, fname_red = save_configs_to_db(crops["MBI"], crops["MBIR"], cam_name=shm_name.lower())
+            if copy:
+                target = re.sub(r".*vcam", "vcam", fname.name)
+                _backup_and_copy_hotspots(fname, target)
+                target = re.sub(r".*vcam", "vcam", fname_red.name)
+                _backup_and_copy_hotspots(fname_red, target)
+                print("Finished copying crop configs over, restart cameras to check")
         hotspot_values = list(hotspots.values())
     else:
         hotspots = fit_hotspots_standard(frame, shm, plot=plot)
@@ -325,7 +356,6 @@ def hotspot(shm_name: str, num_frames=10, save: bool = True, report: bool = Fals
         save_hotspots_to_db(hotspot_values)
 
     return hotspots
-
 
 if __name__ == "__main__":
     click.echo(hotspot())

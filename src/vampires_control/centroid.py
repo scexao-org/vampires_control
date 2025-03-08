@@ -6,7 +6,7 @@ import sep
 from astropy.modeling import fitting, models
 from astropy.nddata import Cutout2D
 from matplotlib import colors
-from skimage.registration import phase_cross_correlation
+from image_registration import chi2_shift
 
 
 def guess_mbi_centroid(frame, field, camera=1):
@@ -201,13 +201,9 @@ def dft_centroid(data, psf, center=None, window=20):
     cutout_data = Cutout2D(data, center[::-1], window, mode="partial")
     psf_center = np.array(psf.shape[-2:]) / 2 - 0.5
     cutout_psf = Cutout2D(psf, psf_center[::-1], window, mode="partial")
-    shift, _, _ = phase_cross_correlation(
-        cutout_psf.data.astype("=f4"),
-        cutout_data.data.astype("=f4"),
-        upsample_factor=30,
-        normalization=None,
-    )
-    refined_center = center + shift
+    xoff, yoff = chi2_shift(cutout_psf.data, cutout_data.data, upsample_factor="auto", return_error=False)
+    dft_offset = np.array((yoff, xoff))
+    refined_center = center + dft_offset
 
     if np.any(np.abs(refined_center - center) > 10):
         msg = f"PSF centroid appears to have failed, got {refined_center!r}"
