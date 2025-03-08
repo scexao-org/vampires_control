@@ -58,6 +58,7 @@ vampires_healthcheck = "vampires_control.status.healthcheck:main"
 # calibrations
 vampires_autofocus = "vampires_control.autofocus:main"
 vampires_autofocus_fieldstop = "vampires_control.autofocus_fieldstop:main"
+vampires_coralign = "vampires_control.coralign:main"
 vampires_ptc = "vampires_control.calibration.photon_transfer_curve:main"
 # take_cals = "vampires_control.calibration.calibs:main"
 vampires_autodarks = "vampires_control.calibration.nightly_darks:main"

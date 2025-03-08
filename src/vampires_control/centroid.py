@@ -33,6 +33,7 @@ def guess_mbi_centroid(frame, field, camera=1):
     inds = cutout_slice(frame, window=500, center=(y, x))
     cutout = frame[inds]
     cy, cx = np.unravel_index(np.nanargmax(cutout), cutout.shape)
+
     return cy + inds[0].start, cx + inds[1].start
 
 
@@ -194,7 +195,7 @@ def model_centroid(data, center=None, **kwargs):
     return (model.y0.value, model.x0.value)
 
 
-def dft_centroid(data, psf, center=None, window=30):
+def dft_centroid(data, psf, center=None, window=20):
     if center is None:
         center = np.unravel_index(np.nanargmax(data), data.shape)
     cutout_data = Cutout2D(data, center[::-1], window, mode="partial")

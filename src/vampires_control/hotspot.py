@@ -10,6 +10,8 @@ import tomli_w
 from pydantic import BaseModel, Field, computed_field
 from pyMilk.interfacing.isio_shmlib import SHM
 from swmain import redis
+import matplotlib.pyplot as plt
+from astropy.visualization import simple_norm
 
 from vampires_control import paths
 
@@ -86,13 +88,16 @@ def save_hotspots_to_db(hotspots: Sequence[HotspotInfo], save_dir: Path = DEFAUL
         df.to_csv(save_path)
 
 
-def fit_hotspots_standard(frame, shm: SHM) -> HotspotInfo:
+def fit_hotspots_standard(frame, shm: SHM, plot: bool=False) -> HotspotInfo:
     shm_kwds = shm.get_keywords()
     curfilt = shm_kwds["FILTER01"].strip()
     psf = create_synth_psf(curfilt, 30, pixel_scale=5.9)
     # psf = create_synth_psf(curfilt)
     ctr_guess = np.unravel_index(np.nanargmax(frame), frame.shape)
     centroid = dft_centroid(frame, psf, ctr_guess)
+    if plot:
+        fig, ax = _plot_centroid(frame, ctr_guess, centroid)
+        ax.set_title(f"{shm.name}")
     hotspot = HotspotInfo(
         cam=shm.FNAME,
         field=curfilt,
@@ -103,20 +108,41 @@ def fit_hotspots_standard(frame, shm: SHM) -> HotspotInfo:
         sizex=shm_kwds["PRD-RNG1"],
         sizey=shm_kwds["PRD-RNG2"],
     )
+    if plot:
+        fig.show(block=True)
     return hotspot
 
 
-def fit_hotspots_mbi(frame, shm: SHM) -> dict[str, HotspotInfo]:
+def _plot_centroid(frame, guess, final):
+    fig, ax = plt.subplots()
+
+    ax.imshow(frame, origin="lower", cmap="magma", norm=simple_norm(frame, "log"))
+
+    ax.scatter(guess[1], guess[0], c="g", s=100, marker="+", lw=1)
+    ax.scatter(final[1], final[0], c="r", s=50, marker="x", lw=1)
+    width = 40
+    ax.set_xlim(guess[1] - width, guess[1] + width)
+    ax.set_ylim(guess[0] - width, guess[0] + width)
+    fig.tight_layout()
+    fig.show()
+    return fig, ax
+
+
+
+def fit_hotspots_mbi(frame, shm: SHM, plot: bool=False) -> dict[str, HotspotInfo]:
     shm_kwds = shm.get_keywords()
     cam = shm_kwds["U_CAMERA"]
     hotspots = {}
     fields = ("F610", "F670", "F720", "F760")
-    psfs = {f: create_synth_psf(f, 30, pixel_scale=5.9) for f in fields}
+    psfs = {f: create_synth_psf(f, 20, pixel_scale=5.9) for f in fields}
     for field in fields:
         create_synth_psf(field)
         ctr = guess_mbi_centroid(frame, field=field, camera=cam)
         # centroid = cross_correlation_centroid(frame, psf, ctr)
         centroid = dft_centroid(frame, psfs[field], ctr)
+        if plot:
+            _, ax = _plot_centroid(frame, ctr, centroid)
+            ax.set_title(f"{shm.name} - {field}")
         hotspot = HotspotInfo(
             cam=shm.FNAME,
             field=field,
@@ -128,6 +154,8 @@ def fit_hotspots_mbi(frame, shm: SHM) -> dict[str, HotspotInfo]:
             sizey=shm_kwds["PRD-RNG2"],
         )
         hotspots[field] = hotspot
+    if plot:
+        plt.show(block=True)
     return hotspots
 
 
@@ -270,19 +298,25 @@ def generate_mbi_crops(hotspots: dict[str, HotspotInfo]) -> dict[str, CameraMode
     default=True,
     help=f"Save hotspots to CSV file in {DEFAULT_CSV_STORE}",
 )
-def hotspot(shm_name: str, num_frames=10, save: bool = True, report: bool = False):
+@click.option(
+    "-p/-np",
+    "--plot/--no-plot",
+    default=True,
+    help=f"Plot centroids",
+)
+def hotspot(shm_name: str, num_frames=10, save: bool = True, report: bool = False, plot: bool=True):
     shm = SHM(shm_name)
     data = shm.multi_recv_data(num_frames, output_as_cube=True)
-    frame = np.median(data, axis=0, overwrite_input=True)
+    frame = np.median(data.astype("f4"), axis=0, overwrite_input=True)
     mbi_status = redis.RDB.hget("U_MBI", "value")
     if mbi_status.lower() == "dichroics":
-        hotspots = fit_hotspots_mbi(frame, shm)
+        hotspots = fit_hotspots_mbi(frame, shm, plot=plot)
         if report:
             crops = generate_mbi_crops(hotspots)
             save_configs_to_db(crops["MBI"], crops["MBIR"], cam_name=shm_name.lower())
         hotspot_values = list(hotspots.values())
     else:
-        hotspots = fit_hotspots_standard(frame, shm)
+        hotspots = fit_hotspots_standard(frame, shm, plot=plot)
         if report:
             report = generate_standard_crop_config(hotspots)
         hotspot_values = (hotspots,)
