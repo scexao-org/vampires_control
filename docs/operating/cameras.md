@@ -246,7 +246,26 @@ digraph {
 
 The crop location for the standard crop (and the smaller subcrops) are always centered on the detector. The MBI crops are more complicated and the hotspots for each PSF are required for the camera viewers and the WCS dictionary info.
 
-TODO describe `vampires_hotspot` and simplify implementation in camstack
+There is an automated script for fitting MBI hotspots and copying the crop information over to camstack. First, set up the cameras in dual-camera MBI mode
+
+    $ vampires_mbi dichroics &
+    sonne $ set_crop mbi
+
+Then prepare a scexao5 terminal to run the hotspot code from
+    $ ssh -Y sc5
+    sc5 $ conda activate vampires_control
+    sc5 (vampires_control) $ vampires_hotspot
+
+Finally, run `vampires_hotspot --report --copy <shm>`. The `report` creates the crop configurations from the hotspots, and `copy` will automatically populate the camstack config folder with the crops.
+
+    sc5 (vampires_control) $ vampires_hotspot --report --copy vcam1
+    sc5 (vampires_control) $ vampires_hotspot --report --copy vcam2
+
+Afterwards, restart the cameras and viewers to utilize the new hotspots
+
+    sc5 $ camstart vcam1; camstart vcam2
+    sc5 $ vcam1 & vcam2 &
+    sonne $ set_crop mbi
 
 ## Miscellaneous
 
