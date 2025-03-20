@@ -38,8 +38,8 @@ class Autofocuser:
     - pupil imaging lens
 
     The focusing is done in the following order:
-    1. beamsplitter in, focus camera 2 using lens ("standard")
-    2. beamsplitter in, focus camera 1 using camfocus ("standard")
+    1. beamsplitter in, focus camera 2 using lens ("dual")
+    2. beamsplitter in, focus camera 1 using camfocus ("dual")
     3. beamsplitter in, narrowband in, focus camera 1 and 2 using lens ("sdi")
     4. beampslitter out, focus camera 1 using camfocus ("single")
     5. TODO beamsplitter out, pupil lens in, focus camera 1 using camfocus ("pupil")

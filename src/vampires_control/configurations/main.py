@@ -6,7 +6,7 @@ from .configurations import Configuration
 
 CONFIGS = {
     "nominal": Configuration(
-        name="nominal", diff=1, bs="PBS", mbi="Mirror", puplens="OUT", fcs="Standard", mask=8
+        name="nominal", diff=1, bs="PBS", mbi="Mirror", puplens="OUT", fcs="Dual", mask=8
     ),
     "SDI": Configuration(name="SDI", bs="PBS", mbi="Mirror", puplens="OUT", fcs="SDI"),
     "VPL": Configuration(name="VPL", bs="PBS", fcs="VPL"),
@@ -17,12 +17,10 @@ CONFIGS = {
         mbi="Mirror",
         puplens="OUT",
         cam_defocus=3.0,
-        fcs="Standard",
+        fcs="Dual",
         mask=8,
     ),
-    "NRM": Configuration(
-        name="NRM", diff=1, bs="Open", mbi="Dichroics", fcs="Standard", mask="SAM-18"
-    ),
+    "NRM": Configuration(name="NRM", diff=1, bs="Open", mbi="Dichroics", fcs="Dual", mask="SAM-18"),
 }
 
 
@@ -152,9 +150,9 @@ def prep_nrm_mbi(beamsplitter: str, mbi: str, holes: int):
     conf.mbi = mbi
     conf.mask = f"SAM-{holes}"
     if "PBS" not in beamsplitter:
-        conf.fcs = "single"
+        conf.fcs = "Single"
     else:
-        conf.fcs = "standard"
+        conf.fcs = "Dual"
     print(conf)
     asyncio.run(conf.move_async())
 
