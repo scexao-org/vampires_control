@@ -26,7 +26,6 @@ REDIS_KEYS = [
     "U_BS",
     "U_BSTH",
     "U_CAMFCF",
-    "U_CAMFCS",
     "U_DIFFL1",
     "U_DIFFL2",
     "U_DIFFTH",

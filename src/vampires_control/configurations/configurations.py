@@ -18,7 +18,6 @@ class Configuration(BaseModel):
     filter: str | int | None = None
     diff: str | int | None = None
     bs: str | int | None = None
-    camfcs: str | int | None = None
     cam_defocus: float = 0
     fcs: str | int | None = None
     puplens: str | int | None = None
@@ -68,8 +67,6 @@ class Configuration(BaseModel):
             promises += [move_diffwheel_async(self.diff)]
         if self.bs:
             promises += [move_bs_async(self.bs)]
-        if self.camfcs:
-            promises += [move_camfcs_async(self.camfcs, self.cam_defocus)]
         if self.fcs:
             promises += [move_fcs_async(self.fcs)]
         if self.puplens:
@@ -92,6 +89,8 @@ async def move_fcs_async(conf):
     fcs = connect(VAMPIRES.FOCUS)
     click.echo(f" - Moving focus to {conf}")
     fcs.move_configuration(conf)
+    if conf.cam_defocus != 0:
+        fcs.move_relative("cam", conf.cam_defocus)
 
 
 async def move_puplens_async(pos):
@@ -99,14 +98,6 @@ async def move_puplens_async(pos):
     word = "Inserting" if pos.upper() == "IN" else "Removing"
     click.echo(f" - {word} pupil lens")
     pupil_lens.move_configuration_name(pos)
-
-
-async def move_camfcs_async(pos, defocus=0):
-    camfcs = connect(VAMPIRES.CAMFCS)
-    click.echo(f" - Moving camera focus to {pos} with {defocus} mm offset")
-    camfcs.move_configuration_name(pos)
-    if defocus != 0:
-        camfcs.move_relative(defocus)
 
 
 async def move_diffwheel_async(filtname):

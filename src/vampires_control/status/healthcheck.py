@@ -28,7 +28,6 @@ def check_device(devname):
 
 DEVICES = [
     VAMPIRES.BS,
-    VAMPIRES.CAMFCS,
     VAMPIRES.DIFF,
     VAMPIRES.FIELDSTOP,
     VAMPIRES.FILT,

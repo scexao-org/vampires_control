@@ -50,7 +50,7 @@ class BSCalManager:
             logger.handlers[0].setLevel(logging.DEBUG)
         # connect
         self.bs_wheel = connect(VAMPIRES.BS)
-        self.cam_focus = connect(VAMPIRES.CAMFCS)
+        self.focus = connect(VAMPIRES.FOCUS)
         self.polarizer = connect(SCEXAO.POL)
         # check bs and match to config
         self.bs_idx = self.bs_wheel.get_config_index_from_name(bs)
@@ -79,7 +79,9 @@ class BSCalManager:
         logger.info(f"Moving beamsplitter to {self.bs_idx}: {name}")
         self.bs_wheel.move_configuration_idx(self.bs_idx)
         if name.lower == "open":
-            self.cam_focus.move_configuration("single")
+            self.focus.move_configuration("single")
+        else:
+            self.focus.move_configuration("standard")
 
     def run(self, confirm=False, time_per_cube=5):
         logger.info("Beginning BS calibration")
