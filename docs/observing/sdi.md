@@ -13,7 +13,6 @@ regardless, the following common procedure follows
 The differential filters are in a F/21 powered beam which causes a focus offset. Because the filters are narrowband, it is necessary to check these offsets ahead of time with a laser source. The default offsets are applied to both focus stages with
 
     $ vampires_focus sdi
-    $ vampires_camfocus sdi
 
 ## Simple dual-band Imaging
 
@@ -72,7 +71,7 @@ Here is a checklist for SDI observations
 - []: Have you checked SDI focus offsets with the calibration source?
 **Observing:**
 - []: Is differential filter inserted?
-- []: Are focus offsets applied (both vampires_focus and vampires_camfocus)?
+- []: Are focus offsets applied?
 - []: Change any detector settings
 - []: Prepare data logging (vampires_preplog), remember cube size matters!
 - []: If using differential switching, prepare a scexao5 terminal in the `vampires_control` environment to run the `vampires_sdi_daemon`

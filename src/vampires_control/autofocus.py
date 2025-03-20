@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 
 import click
 import numpy as np
@@ -8,7 +9,6 @@ import tqdm.auto as tqdm
 from numpy.polynomial import Polynomial
 from pyMilk.interfacing.isio_shmlib import SHM
 from swmain.network.pyroclient import connect
-import time
 
 from .strehl import measure_strehl_shm
 
@@ -39,7 +39,7 @@ class Autofocuser:
 
     The focusing is done in the following order:
     1. beamsplitter in, focus camera 2 using lens ("standard")
-    2. beamsplitter in, focus camera 1 using camfocus ("dual")
+    2. beamsplitter in, focus camera 1 using camfocus ("standard")
     3. beamsplitter in, narrowband in, focus camera 1 and 2 using lens ("sdi")
     4. beampslitter out, focus camera 1 using camfocus ("single")
     5. TODO beamsplitter out, pupil lens in, focus camera 1 using camfocus ("pupil")
@@ -145,10 +145,7 @@ def fit_optimal_focus(focus, metrics: pd.DataFrame, plot: bool = True) -> tuple[
                 ax.plot(test_focus, fit_vals, c=color, lw=1)
                 ax.axvline(vertices[key], c=color, label=None)
             ax.axvline(weighted_ave_vertex, c="k", lw=3)
-            ax.set(
-                xlabel="Stage position (mm)",
-                ylabel="Strehl ratio",
-            )
+            ax.set(xlabel="Stage position (mm)", ylabel="Strehl ratio")
             ax.legend()
             plt.show(block=True)
         except Exception as e:

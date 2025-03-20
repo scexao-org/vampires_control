@@ -112,8 +112,9 @@ Focus position options
 There are two focus stages in VAMPIRES, the first is the absolute focus, which controls the objective lens focusing the collimated beam into the beamsplitter cube. It should affect both camera's focii. The second is the differential focus, which is a motorized stage on camera 1. The `Defocus` mode uses the differential focus to add (TODO) waves of defocus on camera 1 for phase-diversity focal plane wavefront sensing.
 
 ```
-vampires_focus <posn>
-vampires_camfocus <posn>
+    vampires_focus <configuration>
+    vampires_focus lens <args>
+    vampires_focus cam <args>
 ```
 
 ## AFLC Stage

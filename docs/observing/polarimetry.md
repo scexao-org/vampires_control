@@ -21,7 +21,6 @@ After the WPU is set up, make sure VAMPIRES is prepared for dual-cam imaging usi
 ```
 $ vampires_bs pbs
 $ vampires_focus standard
-$ vampires_camfocus dual
 ```
 There is no difference between standard and MBI imaging- follow [the MBI instructions](mbi) for instructions.
 

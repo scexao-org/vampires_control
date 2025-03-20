@@ -5,44 +5,23 @@ import click
 from .configurations import Configuration
 
 CONFIGS = {
-    "parked": Configuration(
-        name="parked",
-        diff=7,
-        bs="PBS",
-        mbi="Mirror",
-        puplens="OUT",
-        camfcs="dual",
-        fcs="standard",
-        mask=8,
-    ),
     "nominal": Configuration(
-        name="nominal",
-        diff=1,
-        bs="PBS",
-        mbi="Mirror",
-        puplens="OUT",
-        camfcs="dual",
-        fcs="standard",
-        mask=8,
+        name="nominal", diff=1, bs="PBS", mbi="Mirror", puplens="OUT", fcs="Standard", mask=8
     ),
-    "PDI": Configuration(name="PDI", bs="PBS", camfcs="dual", fcs="standard"),
-    "SDI": Configuration(
-        name="SDI", bs="PBS", mbi="Mirror", puplens="OUT", camfcs="dual", fcs="standard"
-    ),
-    "VPL": Configuration(name="VPL", bs="PBS", camfcs="VPL", fcs="VPL"),
+    "SDI": Configuration(name="SDI", bs="PBS", mbi="Mirror", puplens="OUT", fcs="SDI"),
+    "VPL": Configuration(name="VPL", bs="PBS", fcs="VPL"),
     "LAPD": Configuration(
         name="LAPD",
         diff=1,
         bs="PBS",
         mbi="Mirror",
         puplens="OUT",
-        camfcs="dual",
         cam_defocus=3.0,
-        fcs="standard",
+        fcs="Standard",
         mask=8,
     ),
     "NRM": Configuration(
-        name="NRM", diff=1, bs="Open", mbi="Mirror", camfcs="single", fcs="standard", mask="SAM-7"
+        name="NRM", diff=1, bs="Open", mbi="Dichroics", fcs="Standard", mask="SAM-18"
     ),
 }
 
@@ -172,8 +151,10 @@ def prep_nrm_mbi(beamsplitter: str, mbi: str, holes: int):
     conf.bs = beamsplitter
     conf.mbi = mbi
     conf.mask = f"SAM-{holes}"
-    if "PBS" in beamsplitter:
-        conf.camfcs = "dual"
+    if "PBS" not in beamsplitter:
+        conf.fcs = "single"
+    else:
+        conf.fcs = "standard"
     print(conf)
     asyncio.run(conf.move_async())
 
