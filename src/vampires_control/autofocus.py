@@ -8,6 +8,7 @@ import tqdm.auto as tqdm
 from numpy.polynomial import Polynomial
 from pyMilk.interfacing.isio_shmlib import SHM
 from swmain.network.pyroclient import connect
+import time
 
 from .strehl import measure_strehl_shm
 
@@ -24,6 +25,7 @@ logger.addHandler(stream_handler)
 class Autofocuser:
     # only get 30 fps over zmq, don't waste our time here
     DEFAULT_NUM_FRAMES = 10
+    DEFAULT_SLEEP = 0.1
 
     """
         Autofocuser
@@ -55,6 +57,7 @@ class Autofocuser:
         for _i, position in enumerate(pbar):
             pbar.write(f"Moving lens focus to {position:4.02f} mm", end=" | ")
             self.focus_stage.move_absolute("lens", position)
+            time.sleep(self.DEFAULT_SLEEP)
             cur_strehl = measure_metric(shm, num_frames)
             strehls.append(cur_strehl)
             strehl_val = cur_strehl["F720"] if len(cur_strehl) > 1 else list(cur_strehl.values())[0]
@@ -73,6 +76,7 @@ class Autofocuser:
         for _i, position in enumerate(pbar):
             pbar.write(f"Moving camera focus to {position:4.02f} mm", end=" | ")
             self.focus_stage.move_absolute("cam", position)
+            time.sleep(self.DEFAULT_SLEEP)
             cur_strehl = measure_metric(shm, num_frames)
             strehls.append(cur_strehl)
             strehl_val = cur_strehl["F720"] if len(cur_strehl) > 1 else list(cur_strehl.values())[0]
@@ -110,9 +114,11 @@ def fit_optimal_focus(focus, metrics: pd.DataFrame, plot: bool = True) -> tuple[
     # to convert back to origina domain and range
     vertices = {}
     values = {}
+    polynomials = {}
     for key in metrics.columns:
         poly = Polynomial.fit(focus, metrics[key].values, deg=2).convert()
         # vertex of polynomial
+        polynomials[key] = poly
         vertex = -poly.coef[1] / (2 * poly.coef[2])
         vertices[key] = vertex
         values[key] = poly(vertex)
@@ -130,13 +136,21 @@ def fit_optimal_focus(focus, metrics: pd.DataFrame, plot: bool = True) -> tuple[
             import matplotlib.pyplot as plt
 
             fig, ax = plt.subplots()
+            test_focus = np.linspace(focus.min(), focus.max(), 1000)
             for i, key in enumerate(metrics.columns):
-                metrics = metrics[key].values
+                _metrics = metrics[key].values
                 color = f"C{i}"
-                ax.scatter(focus, metrics, label=key, c=color)
+                ax.scatter(focus, _metrics, label=key, c=color)
+                fit_vals = polynomials[key](test_focus)
+                ax.plot(test_focus, fit_vals, c=color, lw=1)
                 ax.axvline(vertices[key], c=color, label=None)
+            ax.axvline(weighted_ave_vertex, c="k", lw=3)
+            ax.set(
+                xlabel="Stage position (mm)",
+                ylabel="Strehl ratio",
+            )
             ax.legend()
-            fig.show()
+            plt.show(block=True)
         except Exception as e:
             print(e)
             print("Could not plot")
