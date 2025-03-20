@@ -240,12 +240,13 @@ def get_table():
     table.add_row("Vis Block", str(status_dict["X_VISBLK"]), "", style=style)
 
     ## First pickoff
-    if status_dict["X_FIRPKO"].upper() == "IN":
-        style = active_style
-    elif status_dict["X_FIRPKO"].upper() == "OUT":
-        style = default_style
-    else:
-        style = unknown_style
+    style = inactive_style
+    # if status_dict["X_FIRPKO"].upper() == "IN":
+    #     style = active_style
+    # elif status_dict["X_FIRPKO"].upper() == "OUT":
+    #     style = default_style
+    # else:
+    #     style = unknown_style
     table.add_row(
         "FIRST pickoff",
         status_dict["X_FIRPKO"],
@@ -254,12 +255,14 @@ def get_table():
     )
 
     ## Visible Photonics pickoff
-    if status_dict["X_VPLPKO"].upper() == "OPEN":
+    # if status_dict["X_VPLPKO"].upper() == "OPEN":
+    if status_dict["X_FIRPKO"].upper() == "OUT":
         style = default_style
-    elif status_dict["X_VPLPKO"].upper() == "UNKNOWN":
-        style = unknown_style
-    else:
+    elif status_dict["X_FIRPKO"].upper() == "IN":
+        # elif status_dict["X_VPLPKO"].upper() == "UNKNOWN":
         style = active_style
+    else:
+        style = unknown_style
     table.add_row(
         "VPL pickoff", status_dict["X_VPLPKO"], f"θ={status_dict['X_VPLPKT']:6.02f}°", style=style
     )
@@ -336,12 +339,15 @@ def get_table():
         style = unknown_style
     table.add_row("Pupil lens", status_dict["U_PUPST"], "", style=style)
 
-    ## Focusing lens
+    ## Lens and Camera Focus Stages
     style = default_style
     if status_dict["U_FCS"].upper() == "UNKNOWN":
         style = unknown_style
     table.add_row(
-        "Focus", str(status_dict["U_FCS"]), f"f={status_dict['U_FCSF']:5.02f} mm", style=style
+        "Focus",
+        str(status_dict["U_FCS"]),
+        f"lens={status_dict['U_FCSF']:5.02f} mm, cam={status_dict['U_CAMFCF']:5.02f} mm",
+        style=style,
     )
 
     ## Beamsplitter
@@ -367,15 +373,6 @@ def get_table():
         "Diff wheel",
         f"{str(status_dict['U_DIFFL1'])} / {str(status_dict['U_DIFFL2'])}",
         f"θ={status_dict['U_DIFFTH']:6.02f}°",
-        style=style,
-    )
-
-    ## Camera focus
-    style = default_style
-    table.add_row(
-        "Cam focus",
-        str(status_dict["U_CAMFCS"]),
-        f"f={status_dict['U_CAMFCF']:5.02f} mm",
         style=style,
     )
 
