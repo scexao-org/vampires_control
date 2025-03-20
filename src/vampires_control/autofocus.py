@@ -1,4 +1,5 @@
 import logging
+import os
 
 import click
 import numpy as np
@@ -45,8 +46,7 @@ class Autofocuser:
     def __init__(self):
         self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
         self.shms = {1: SHM("vcam1"), 2: SHM("vcam2")}
-        self.lens_stage = connect("VAMPIRES_FOCUS")
-        self.cam_stage = connect("VAMPIRES_CAMFCS")
+        self.focus_stage = connect("VAMPIRES_FOCUS")
 
     def autofocus_lens(self, shm, start_point, num_frames=10):
         focus_range = _focus_range(start_point)
@@ -54,7 +54,7 @@ class Autofocuser:
         pbar = tqdm.tqdm(focus_range, desc="Scanning lens", leave=False)
         for _i, position in enumerate(pbar):
             pbar.write(f"Moving lens focus to {position:4.02f} mm", end=" | ")
-            self.lens_stage.move_absolute(position)
+            self.focus_stage.move_absolute("lens", position)
             cur_strehl = measure_metric(shm, num_frames)
             strehls.append(cur_strehl)
             strehl_val = cur_strehl["F720"] if len(cur_strehl) > 1 else list(cur_strehl.values())[0]
@@ -63,7 +63,7 @@ class Autofocuser:
         strehl_table = pd.DataFrame(strehls)
         best_fit, best_value = fit_optimal_focus(focus_range, strehl_table)
         logger.info(f"Best Strehl - {best_value * 1e2:04.01f}% - focus= {best_fit:4.02f} mm")
-        self.lens_stage.move_absolute(best_fit)
+        self.focus_stage.move_absolute("lens", best_fit)
         return best_fit
 
     def autofocus_camfocus(self, shm, start_point, num_frames=10):
@@ -72,7 +72,7 @@ class Autofocuser:
         pbar = tqdm.tqdm(focus_range, desc="Scanning camfocus", leave=False)
         for _i, position in enumerate(pbar):
             pbar.write(f"Moving camera focus to {position:4.02f} mm", end=" | ")
-            self.cam_stage.move_absolute(position)
+            self.focus_stage.move_absolute("cam", position)
             cur_strehl = measure_metric(shm, num_frames)
             strehls.append(cur_strehl)
             strehl_val = cur_strehl["F720"] if len(cur_strehl) > 1 else list(cur_strehl.values())[0]
@@ -81,7 +81,7 @@ class Autofocuser:
         strehl_table = pd.DataFrame(strehls)
         best_fit, best_value = fit_optimal_focus(focus_range, strehl_table)
         logger.info(f"Best Strehl - {best_value * 1e2:04.01f}% - focus= {best_fit:4.02f} mm")
-        self.cam_stage.move_absolute(best_fit)
+        self.focus_stage.move_absolute("cam", best_fit)
         return best_fit
 
 
@@ -104,7 +104,7 @@ def measure_metric(shm: SHM, num_frames: int, **kwargs) -> dict[str, float]:
     return {shm.FNAME: strehls}
 
 
-def fit_optimal_focus(focus, metrics: pd.DataFrame) -> tuple[float, float]:
+def fit_optimal_focus(focus, metrics: pd.DataFrame, plot: bool = True) -> tuple[float, float]:
     """Given sample points and values, fit maximum using parabola"""
     # fit quadratic to curve, make sure
     # to convert back to origina domain and range
@@ -124,6 +124,23 @@ def fit_optimal_focus(focus, metrics: pd.DataFrame) -> tuple[float, float]:
     weighted_ave_vertex /= sum(values.values())
     weighted_ave_value = sum(val**2 for val in values.values())
     weighted_ave_value /= sum(values.values())
+
+    if plot:
+        try:
+            import matplotlib.pyplot as plt
+
+            fig, ax = plt.subplots()
+            for i, key in enumerate(metrics.columns):
+                metrics = metrics[key].values
+                color = f"C{i}"
+                ax.scatter(focus, metrics, label=key, c=color)
+                ax.axvline(vertices[key], c=color, label=None)
+            ax.legend()
+            fig.show()
+        except Exception as e:
+            print(e)
+            print("Could not plot")
+
     return weighted_ave_vertex, weighted_ave_value
 
 
@@ -148,6 +165,10 @@ def fit_optimal_focus(focus, metrics: pd.DataFrame) -> tuple[float, float]:
     show_default=True,
 )
 def main(stage: str, camera: int, num_frames: int):
+    if os.environ.get("WHICHCOMP", "") != "5":
+        msg = "WARNING: this script should be ran on scexao5"
+        raise ValueError(msg)
+
     welcome = "Welcome to the VAMPIRES autofocusing scripts"
     click.echo("=" * len(welcome))
     click.echo(welcome)
@@ -163,19 +184,19 @@ def main(stage: str, camera: int, num_frames: int):
     if stage == "lens":
         focus_posn = click.prompt(
             "Please enter starting position for lens stage",
-            default=af.lens_stage.get_position(),
+            default=af.focus_stage.get_position("lens"),
             type=float,
         )
-        af.lens_stage.move_absolute(focus_posn)
+        af.focus_stage.move_absolute("lens", focus_posn)
         click.confirm("Adjust camera settings and proceed when ready", abort=True, default=True)
         result = af.autofocus_lens(shm, start_point=focus_posn, num_frames=num_frames)
     elif stage == "cam":
         camfocus_posn = click.prompt(
             "Please enter starting position for camera stage",
-            default=af.cam_stage.get_position(),
+            default=af.focus_stage.get_position("cam"),
             type=float,
         )
-        af.cam_stage.move_absolute(camfocus_posn)
+        af.focus_stage.move_absolute("cam", camfocus_posn)
         click.confirm("Adjust camera settings and proceed when ready", abort=True, default=True)
         result = af.autofocus_camfocus(shm, start_point=camfocus_posn, num_frames=num_frames)
     click.echo("Autofocus finished")
