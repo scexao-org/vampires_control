@@ -37,10 +37,10 @@ $ vampires_flc in
 2. Prepare the VAMPIRES trigger
 
 ```
-$ vampires_trig set -f
+$ vampires_trig set --flc
 ```
 
-The FLC will start switching as soon as the `-f` flag is enabled, even if the micro-controller is not enabled for triggering. You can confirm the switching by inserting the SCExAO polarizer:
+The FLC will start switching as soon as the `--flc` flag is enabled, even if the micro-controller is not enabled for triggering. You can confirm the switching by inserting the SCExAO polarizer:
 ```
 scexao2 $ polarizer
 ```
@@ -183,5 +183,6 @@ garde $ stopOBS
 
 If the VAMPIRES FLC was used, it should be removed as well
 ```
+$ vampires_trig set --no-flc
 $ vampires_flc out
 ```

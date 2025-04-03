@@ -45,7 +45,7 @@ Be careful to not save too many frames to each data cube-- when individual data 
 
 Once this process is finished, you should launch an FPS control from `scexao5`
 ```
-scexao5 $ FPS_FILT_NAME="vcam" milk-fpsCTRL
+scexao5 $ FPS_FILTSTRING_NAME="streamFITSlog-vcam" milk-fpsCTRL
 ```
 you should see one or two processes, depending on how many cameras you're logging. The left three numbers should all be green. If the right of those three numbers is gray, press `SHIFT + R` over the process to start it. 
 

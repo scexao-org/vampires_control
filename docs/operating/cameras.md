@@ -182,7 +182,7 @@ The state diagram for the camera trigger is as follows:
 ### AFLC Disabled
 
 ```
-$ vampires_trig set -nf
+$ vampires_trig set --no-flc
 ```
 
 ```{graphviz}
@@ -204,20 +204,18 @@ digraph {
 
 When saving the camera SHM streams there is no way to know *a priori* the FLC state of each frame. To overcome this, we add an asymmetric delay so that every other frame can be consistently identified from the framegrabber timestamp. We call this delay the FLC jitter.
 ```
-It is critical that the FLC jitter is larger than any statistical randomness in the frame timings. For our ORCA-Quest detectors, there is an inherent stochasticity that is a function of the detector readout mode (7.2 us in FAST mode and 172.8 us in SLOW mode). The jitter half-width (half the total jitter) is set directly with the `vampires_trig` command. After testing, we recommend using the following half-jitter values-
-* FAST: 50 us
+It is critical that the FLC jitter is larger than any statistical randomness in the frame timings. For our ORCA-Quest detectors, there is an inherent stochasticity that is a function of the detector readout mode (7.2 us in FAST mode and 172.8 us in SLOW mode). The jitter half-width (half the total jitter) is set directly with the `vampires_trig` command. After testing, we recommend using 500 us for the half-jitter value, which is the default. If you need to use a different jitter value, pass it to the `vampires_trig` command
+
 ```
-$ vampires_trig set -j 50 -f
-```
-* SLOW: 500 us
-```
-$ vampires_trig set -j 500 -f
+$ vampires_trig set --flc --jitter 500
 ```
 
 ```{admonition} Warning: AFLC Aging
 :class: warning
 
-We want to limit the usage of the AFLC to minimize aging effcts, so when the cameras are not acquiring we recommend leaving it disabled.
+We want to limit the usage of the AFLC to minimize aging effcts, so when the cameras are not acquiring we recommend leaving it disabled with
+
+    $ vampires_trig set --no-flc
 ```
 
 
