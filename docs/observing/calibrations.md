@@ -62,9 +62,9 @@ sonne $ vampires_datatype dark
 ```{admonition} 🧪: Automatated script
 There is a script for automatically logging all necessary dark frames AFTER an observation has completed. This is convenient to have a perfect match for all the science data, but be aware the script is somewhat experimental.
 ```
-First, prepare VAMPIRES for darks by putting the pupil mirror in
+First, prepare VAMPIRES for darks by putting the visible block in
 ```
-$ vampires_mask mirror
+$ vis_block in
 ```
 then on `scexao5` activate the `vampires_control` environment
 ```
@@ -78,7 +78,7 @@ and run the `vampires_autodarks` script
 ```
 scexao5 $ vampires_autodarks -n 1000 .
 ```
-feel free to change the number of frames per dark with the `-n` flag. I recommend 1000 frames unless it is prohibitively long.
+feel free to change the number of frames per dark with the `-n` flag. I recommend 1000 frames unless it will take prohibitively long (e.g., if your EXPTIME is 1 second then 1000 frames will take 1000 seconds, so maybe choose something smaller).
 
 ## On-sky Calibrations
 
