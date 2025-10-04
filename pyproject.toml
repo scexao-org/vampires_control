@@ -68,6 +68,7 @@ vampires_sdi_daemon = "vampires_control.acquisition.sdi_daemon:main"
 bs_calib = "vampires_control.calibration.bs_throughput:main"
 pol_calib = "vampires_control.calibration.polarization_calibration:main"
 drr_calib = "vampires_control.calibration.drr_calibration:main"
+qwp_sweep = "vampires_control.calibration.qwp_calibration:main"
 vampires_hotspot = "vampires_control.hotspot:hotspot"
 # strehl
 vampires_strehl = "vampires_control.strehl:vampires_strehl"
