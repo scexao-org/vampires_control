@@ -1,46 +1,69 @@
 # Post-observing Data Management
 
-There are a few pre-processing steps we take before uploading data to the STARS2 archive. These only need to be ran if data is going to be archived. If you need to synchronize polarimetry data the first step is necessary, too.
+All VAMPIRES data is pre-processed with a uniform pipeline before transferring to the local SCExAO data archive (currently `scexao6`). The pipeline has the following steps:
 
-1. Synchronization and consolidation
+1. Synchronization, deinterleaving, and consolidation
 1. Fix headers
-1. Assign frame IDs
+1. (Archive-only) Assign frame IDs
 1. Compress
 1. Copy to scexao6 archive
-1. Generate manifest and email Eric
+1. (Archive-only) Generate manifest
 
-These steps have been combined into a single script that is run from scexao5
+These steps have been combined into a convenience scripts that can be run from scexao5.
 
+By default, all VAMPIRES data will be processed daily using cronjob scripts and should not require manual intervention. However, any steps can be ran manually at any time (e.g., to quickly begin processing data).
 
-```{admonition} Background execution
-:class: important
-
-The data archive procedure can take a long time, it is highly recommended to use a tmux session to allow detaching
+To view the status of the VAMPIRES archival data
+```bash
+sc5 $ vamp_archive_table | head
+scexao5_path                      utc_date    processed  processed_timestamp  transferred_to_scexao6  transferred_timestamp  safe_on_scexao6  safe_timestamp
+/mnt/fuuu/ARCHIVED_DATA/20250603  2025-06-03  True                            True                                           True             2025-11-14T20:38:15
+/mnt/fuuu/ARCHIVED_DATA/20250605  2025-06-05  True                            True                                           True             2025-06-26T21:54:55
+/mnt/fuuu/ARCHIVED_DATA/20250606  2025-06-06  True       2025-06-26T21:50:20  True                                           True             2025-11-13T00:00:00
+/mnt/fuuu/ARCHIVED_DATA/20251004  2025-10-04  True                            True                                           True             2025-11-14T20:19:46
+/mnt/fuuu/ARCHIVED_DATA/20251005  2025-10-05  True                            True                                           True             2025-11-14T20:12:06
+/mnt/fuuu/ARCHIVED_DATA/20251006  2025-10-06  True                            True                                           True             2025-11-14T20:12:52
+/mnt/fuuu/ARCHIVED_DATA/20251009  2025-10-09  True                            True                                           True             2025-11-11T01:22:03
+/mnt/fuuu/ARCHIVED_DATA/20251106  2025-11-06  True       2025-11-07T01:51:53  True                    2025-11-07T02:51:24    True             2025-11-14T20:15:09
+```
+and to see the status of the VAMPIRES engineering data
+```bash
+sc5 $ vamp_process_table | head
+scexao5_path        utc_date    processed  processed_timestamp  transferred_to_scexao6  transferred_timestamp  safe_on_scexao6  safe_timestamp
+/mnt/fuuu/20240124  2024-01-24  True       2025-11-17T20:07:20  True                    2025-11-17T20:07:22    False
+/mnt/fuuu/20240131  2024-01-31  False                           False                                          False
+/mnt/fuuu/20240201  2024-02-01  False                           False                                          False
+/mnt/fuuu/20240204  2024-02-04  False                           False                                          False
+/mnt/fuuu/20240205  2024-02-05  True       2025-11-17T20:07:31  True                    2025-11-17T20:07:32    False
+/mnt/fuuu/20240207  2024-02-07  False                           False                                          False
+/mnt/fuuu/20240210  2024-02-10  False                           False                                          False
+/mnt/fuuu/20240212  2024-02-12  False                           False                                          False
+/mnt/fuuu/20240213  2024-02-13  False                           False                                          False
 ```
 
-```{admonition} Frame IDs
-:class: warning
 
-Ideally sequential VAMPIRES frame IDs are also in chronological order. If you are processing multiple folders, please process them in chronological order!
+To view and edit the cron schedule, see
+```bash
+$ crontab -e
 ```
 
-```
-sc5 $ scxkw-vamp-archive <folder>
-```
+## Manual Execution
 
-this will generate a manifest file automatically, which still requires emailing to Eric for processing into STARS2
-
+The most straightforward way to immediately process new data is to run a script which scans through all available data folders and automatically launches the appropriate processing script inside a tmux session. For archival data, this script is
+```bash
+sc5 $ scxkw-vamp-archive-processor
 ```
-sc5 $ echo -e "Dear Eric,\nAttached is a VMPA manifest for <date>. The IP of the machine the data is stored on is $(hostname -i).\n\nBest, SCExAO\n." | mail -s 'VMP manifest <date>' -A manifest_VMP_<date>.csv eric@naoj.org mdlucas@hawaii.edu
+and for engineering data the script is
+```bash
+sc5 $ scxkw-vamp-process-processor
 ```
-
 
 ### Restoring folder
 
 if something goes wrong in this process and you need to recover, there is another script that restores the working directory to its original state (this will delete the vgen2 folder!)
 
 ```
-sc5 $ scxkw-vamp-archive-restore <folder>
+sc5 $ scxkw-vamp-restore-folder <folder>
 ```
 
 ## Advanced details
