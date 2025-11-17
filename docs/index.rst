@@ -59,6 +59,7 @@ Contents
    observing/polarimetry
    observing/sdi
    observing/data
+   observing/sorting
    observing/faq
 
 
