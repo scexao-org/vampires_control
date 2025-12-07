@@ -59,7 +59,7 @@ class CamManager:
 
 
 class VCAMManager(CamManager):
-    def __init__(self, cam_number, shm_name=None, computer="scexao5", cset="q_asl", **kwargs):
+    def __init__(self, cam_number, shm_name=None, computer="scexao5", cset="v_log", **kwargs):
         self.cam_number = cam_number
         shm_name = f"vcam{cam_number}"
         super().__init__(shm_name, computer, cset, **kwargs)
@@ -77,7 +77,7 @@ class CamLogManager:
     DATA_DIR_BASE = Path("/mnt/fuuu/")
     ARCHIVE_DATA_DIR_BASE = Path("/mnt/fuuu/ARCHIVED_DATA")
     COMPUTER = "scexao5"
-    BASE_COMMAND = ("milk-streamFITSlog", "-cset", "q_asl")
+    BASE_COMMAND = ("milk-streamFITSlog", "-cset", "v_log")
 
     def __init__(self, shm_name: str):
         self.shm_name = shm_name

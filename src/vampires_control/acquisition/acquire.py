@@ -40,7 +40,7 @@ DATA_TYPES = (
     "TEST",
 )
 # BASE_COMMAND = ("ssh", "scexao@scexao6", "milk-streamFITSlog", "-cset", "aol0log")
-BASE_COMMAND = ("ssh", "scexao@scexao5", "milk-streamFITSlog", "-cset", "q_asl")
+BASE_COMMAND = ("ssh", "scexao@scexao5", "milk-streamFITSlog", "-cset", "v_log")
 
 CAMS = connect_cameras()
 

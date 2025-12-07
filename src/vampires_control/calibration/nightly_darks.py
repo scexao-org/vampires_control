@@ -75,7 +75,7 @@ def _estimate_total_time(headers):
     return tints.max()
 
 
-BASE_COMMAND = ("milk-streamFITSlog", "-cset", "q_asl")
+BASE_COMMAND = ("milk-streamFITSlog", "-cset", "v_log")
 
 
 def _set_readout_mode(cam: int, mode: str, pbar):
