@@ -1,3 +1,4 @@
+import functools
 import logging
 import os
 import subprocess
@@ -54,7 +55,32 @@ class VAMPIRESFilterTrackingLaw:
         return qwp1_angle, qwp2_angle
 
 
-TRACKING_LAWS = {"Filter": VAMPIRESFilterTrackingLaw}
+class VAMPIRESIMRTrackingLaw:
+    _qwp1_params = [3.73028547, 63.55348525, 68.73169187, 115.01856026]
+    _qwp2_params = [38.00632515, 141.79661255, 94.04025936, 120.29212049]
+
+    def _model(self, X, angles):
+        I0, period, phi, B = X
+        return I0 * np.cos((angles + phi) / period * 2 * np.pi) + B
+
+    def __init__(self):
+        self.model_qwp1 = functools.partial(self._model, self._qwp1_params)
+        self.model_qwp2 = functools.partial(self._model, self._qwp2_params)
+
+    def __call__(self) -> Tuple[float, float]:
+        imrang = self._get_imr_angle()
+        logger.info(f"Current IMR angle is {imrang}")
+        qwp1_ang = self.model_qwp1(imrang)
+        qwp2_ang = self.model_qwp2(imrang)
+        logger.info(f"QWP 1={qwp1_ang} QWP 2={qwp2_ang}")
+        return qwp1_ang, qwp2_ang
+
+    def _get_imr_angle(self):
+        value_dict = get_values(("D_IMRANG",))
+        return value_dict["D_IMRANG"]
+
+
+TRACKING_LAWS = {"FILTER": VAMPIRESFilterTrackingLaw, "IMR": VAMPIRESIMRTrackingLaw}
 
 
 class QWPTrackingDaemon:
@@ -66,8 +92,8 @@ class QWPTrackingDaemon:
         p1.wait()
         p2.wait()
 
-    def run(self, law="filter", poll=5):
-        law_key = law.title()
+    def run(self, law="IMR", poll=5):
+        law_key = law.upper()
         if law_key not in TRACKING_LAWS:
             msg = f"Unrecognized tracking law: {law_key}"
             raise ValueError(msg)
@@ -150,9 +176,9 @@ class QWPTrackingDaemon:
 
 @click.command("qwp_daemon")
 @click.option(
-    "-l", "--law", type=click.Choice(TRACKING_LAWS.keys(), case_sensitive=False), default="filter"
+    "-l", "--law", type=click.Choice(TRACKING_LAWS.keys(), case_sensitive=False), default="imr"
 )
-@click.option("-p", "--poll", default=5, type=float, help="(s) Poll time for daemon")
+@click.option("-p", "--poll", default=10, type=float, help="(s) Poll time for daemon")
 def main(law: str, poll: float):
     auto_register_to_watchers("VAMP_QWP", "VAMPIRES QWP Tracking law daemon")
     daemon = QWPTrackingDaemon()
