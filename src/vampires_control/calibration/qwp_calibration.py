@@ -24,10 +24,19 @@ logger.addHandler(stream_handler)
 class QWPSweeper:
     """
     QWPSweeper
+
+    - Flat lamp in 15V 1.6A
+    - WPU linear polarizer in
+    - Exposure set (try continuous HWP rotation to assure no saturation)
+        - I have used 0.01 seconds before
+    - 100 Frames per cube
+    Expected time: 70 minutes
+    Expected volume: 740 GB
+
     """
 
-    ANGLES = np.arange(0, 180, 5)
-    IMR_ANGLES = np.linspace(60, 120, 7)
+    ANGLES = np.arange(0, 90, 5)
+    IMR_ANGLES = np.arange(80, 101, 5)
 
     def __init__(self):
         self.cameras = {1: connect("VCAM1"), 2: connect("VCAM2")}
@@ -40,7 +49,9 @@ class QWPSweeper:
         logger.info("Beginning QWP calibration")
 
         # prepare cameras
-        click.confirm("Adjust camera settings and confirm when ready", default=True, abort=True)
+        click.confirm(
+            "Adjust camera settings and confirm when loggers are ready", default=True, abort=True
+        )
 
         imr_pbar = tqdm.tqdm(self.IMR_ANGLES, desc="IMR")
         parity_flip1 = False
