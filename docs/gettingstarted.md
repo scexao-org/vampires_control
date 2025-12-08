@@ -45,6 +45,24 @@ for example
 $ pgrep "dpp"
 ```
 
-## FAQ
+## How to edit the documentation
 
-Each section of the documentation contains a frequently asked questions (FAQ) page to hopefully answer your questions about VAMPIRES. If there's something that slipped through the cracks, reach out on the SCExAO slack `#bench_help` channel, or email me directly (Miles Lucas <mdlucas@hawaii.edu>). Please be considerate of the SCExAO team's time and double-check the documentation (use the search bar!) before reaching out.
+In case you find a mistake, ommission, or a new FAQ/troubleshooting item, the docs can be directly edited in markdown format with the `vampires_control/docs` directory of the source code. If a page already exists, it can be edited directly on GitHub using their built-in editor for [the repository](https://github.com/scexao-org/vampires_control/tree/main/docs). To build the documentation locally, make sure you've installed the optional documentation dependencies with
+```
+cd vampires_control/
+pip install .[docs]
+```
+and then use Sphinx to build the documentation locally, one of the simpler ways is to use the `Makefile`
+
+```
+cd docs/
+make html
+```
+which outputs to `vampires_control/docs/_build/html` and can be seen in a web browser at the URI `file:///home/lestat/src/vampires_control/docs/_build/html/index.html`. If you are doing many changes it is convenient to auto-build the docs and view them as an http server using the `sphinx-auto-build` package
+```
+cd vampires_control/
+sphinx-auto-build docs docs/_build/html
+```
+which will spin up a local http server you can reach from `localhost` or forward over an SSH connection (i.e., VSCode remote does this automatically and you can view on YOUR host machine's browser).
+
+Once your changes are ready, commit and push them to GitHub using git, and the online documentation should build and update within a few minutes using GitHub actions.
