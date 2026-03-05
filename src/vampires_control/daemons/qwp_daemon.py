@@ -67,8 +67,9 @@ class VAMPIRESIMRTrackingLaw:
         self.model_qwp1 = functools.partial(self._model, self._qwp1_params)
         self.model_qwp2 = functools.partial(self._model, self._qwp2_params)
 
-    def __call__(self) -> Tuple[float, float]:
-        imrang = self._get_imr_angle()
+    def __call__(self, imrang: float | None = None) -> tuple[float, float]:
+        if imrang is None:
+            imrang = self._get_imr_angle()
         logger.info(f"Current IMR angle is {imrang}")
         qwp1_ang = self.model_qwp1(imrang)
         qwp2_ang = self.model_qwp2(imrang)
@@ -84,6 +85,13 @@ TRACKING_LAWS = {"FILTER": VAMPIRESFilterTrackingLaw, "IMR": VAMPIRESIMRTracking
 
 
 class QWPTrackingDaemon:
+    def __init__(self, law="IMR"):
+        self.law_key = law.upper()
+        if self.law_key not in TRACKING_LAWS:
+            msg = f"Unrecognized tracking law: {self.law_key}"
+            raise ValueError(msg)
+        self.tracking_law = TRACKING_LAWS[self.law_key]()
+
     def move_qwps(self, qwp1_angle, qwp2_angle):
         logger.info(f"Moving QWP 1 to {qwp1_angle} deg")
         logger.info(f"Moving QWP 2 to {qwp2_angle} deg")
@@ -92,19 +100,13 @@ class QWPTrackingDaemon:
         p1.wait()
         p2.wait()
 
-    def run(self, law="IMR", poll=5):
-        law_key = law.upper()
-        if law_key not in TRACKING_LAWS:
-            msg = f"Unrecognized tracking law: {law_key}"
-            raise ValueError(msg)
-        tracking_law = TRACKING_LAWS[law_key]()  # instantiate tracking law object
-
-        logger.info(f"Starting QWP tracking loop with {law_key} law")
-        update_keys(U_QWPMOD=law_key)
+    def run(self, poll=5):
+        logger.info(f"Starting QWP tracking loop with {self.law_key} law")
+        update_keys(U_QWPMOD=self.law_key)
         last_qwp1, last_qwp2 = get_values(("U_QWP1", "U_QWP2")).values()
         try:
             while True:
-                qwp1_angle, qwp2_angle = tracking_law()
+                qwp1_angle, qwp2_angle = self.tracking_law()
                 # check if we have to move the QWPs
                 if not np.isclose(qwp1_angle, last_qwp1) or not np.isclose(qwp2_angle, last_qwp2):
                     self.move_qwps(qwp1_angle, qwp2_angle)
@@ -181,8 +183,8 @@ class QWPTrackingDaemon:
 @click.option("-p", "--poll", default=10, type=float, help="(s) Poll time for daemon")
 def main(law: str, poll: float):
     auto_register_to_watchers("VAMP_QWP", "VAMPIRES QWP Tracking law daemon")
-    daemon = QWPTrackingDaemon()
-    daemon.run(law, poll=poll)
+    daemon = QWPTrackingDaemon(law)
+    daemon.run(poll=poll)
 
 
 if __name__ == "__main__":
