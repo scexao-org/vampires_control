@@ -58,6 +58,41 @@ and for engineering data the script is
 sc5 $ scxkw-vamp-process-processor
 ```
 
+## Cleaning up bad files
+
+One of the steps of the automatic archiver is a cross-check that files exist on scexao6 with the correct name and checksums. When this script fails, a text file is written with the names of files which should be transferred back over to scexao6 from scexao5. For example,
+```bash
+sc5 $ head /mnt/fuuu/ARCHIVED_DATA/20260102/bad_sc6_files.txt
+20260102/vgen2/VMPA00425189.fits.fz
+20260102/vgen2/VMPA00425190.fits.fz
+20260102/vgen2/VMPA00425191.fits.fz
+20260102/vgen2/VMPA00425192.fits.fz
+20260102/vgen2/VMPA00425193.fits.fz
+20260102/vgen2/VMPA00425194.fits.fz
+20260102/vgen2/VMPA00425195.fits.fz
+20260102/vgen2/VMPA00425196.fits.fz
+20260102/vgen2/VMPA00425197.fits.fz
+20260102/vgen2/VMPA00425198.fits.fz
+```
+
+to transfer these files, and these files only, over to scexao6 you can use the following command
+```bash
+sc5 $ rsync \
+  --archive \
+  --recursive \
+  --one-file-system \
+  --update \
+  --human-readable \
+  --progress \
+  --relative \
+  --rsh="ssh -T -c aes128-ctr -o Compression=no -o ConnectTimeout=10 -x" \
+  --exclude=lost+found \
+  --exclude=vcam* \
+  --files-from=/mnt/fuuu/ARCHIVED_DATA/<date>/bad_sc6_files.txt \
+  /mnt/fuuu/ARCHIVED_DATA/<date> \
+  sc6l:/mnt/tier1/2_ARCHIVED_DATA/
+```
+
 ### Restoring folder
 
 if something goes wrong in this process and you need to recover, there is another script that restores the working directory to its original state (this will delete the vgen2 folder!)
@@ -154,13 +189,35 @@ Target folder: `sc6:/mnt/tier1/2_ARCHIVED_DATA`
 **From sc5:**
 ```
 sc5 $ cd /mnt/fuuu/ARCHIVED_DATA
-sc5 $ rsync -arxuhP -e "ssh -T -c aes128-ctr -o Compression=no -o ConnectTimeout=10 -x" --exclude=lost+found --exclude=vcam* <date> sc6l:/mnt/tier1/2_ARCHIVED_DATA/
+sc5 $ rsync \
+  --archive \
+  --recursive \
+  --one-file-system \
+  --update \
+  --human-readable \
+  --progress \
+  --rsh="ssh -T -c aes128-ctr -o Compression=no -o ConnectTimeout=10 -x" \
+  --exclude=lost+found \
+  --exclude=vcam* \
+  <date> \
+  sc6l:/mnt/tier1/2_ARCHIVED_DATA/
 ```
 
 
 **From sc6:**
 ```
 sc6 $ cd /mnt/tier1/2_ARCHIVED_DATA
-sc6 $ rsync -arxuhP -e "ssh -T -c aes128-ctr -o Compression=no -o ConnectTimeout=10 -x" --exclude=lost+found --exclude=vcam* sc5l:/mnt/fuuu/ARCHIVED_DATA/<date> .
+sc6 $ rsync \
+  --archive \
+  --recursive \
+  --one-file-system \
+  --update \
+  --human-readable \
+  --progress \
+  --rsh="ssh -T -c aes128-ctr -o Compression=no -o ConnectTimeout=10 -x" \
+  --exclude=lost+found \
+  --exclude=vcam* \
+  sc5l:/mnt/fuuu/ARCHIVED_DATA/<date> \
+  .
 ```
 
