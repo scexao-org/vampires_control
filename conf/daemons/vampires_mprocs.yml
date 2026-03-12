@@ -17,13 +17,13 @@ procs:
     shell: "vampires_preplog"
     autostart: false
   startlog:
-    shell: "vampires_startlog"
+    shell: "vampires_startlog --ncubes -1"
     autostart: false
   stoplog:
     shell: "vampires_pauselog"
     autostart: false
   stoplog (wait):
-    shell: "vampires_pauselog --wait"
+    shell: "vampires_pauselog --waitß"
     autostart: false
   killlog:
     shell: "vampires_stoplog --kill"
