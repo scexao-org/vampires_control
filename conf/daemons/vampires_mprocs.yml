@@ -23,7 +23,7 @@ procs:
     shell: "vampires_pauselog"
     autostart: false
   stoplog (wait):
-    shell: "vampires_pauselog --waitß"
+    shell: "vampires_pauselog --wait"
     autostart: false
   killlog:
     shell: "vampires_stoplog --kill"
